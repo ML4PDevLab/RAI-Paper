@@ -1,0 +1,21 @@
+variable,theme
+diplomatic_mediation,Diplomacy
+diplomatic_recognition,Diplomacy
+diplomatic_sanction,Diplomacy
+diplomatic_statement,Diplomacy
+diplomatic_visit,Diplomacy
+intelligence_counterintelligence,Domestic Interference
+political_process_policy_intervention,Domestic Interference
+surveillance,Domestic Interference
+economic_aid_assistance,Economic Power
+investment,Economic Power
+tech_transfer_investment,Economic Power
+trade_agreement_exchange,Economic Power
+trade_financial_sanction,Economic Power
+arms_transfer_security_aid_assistance,Hard Power
+joint_security_force_exercise,Hard Power
+security_cooperation,Hard Power
+security_force_facility_presence,Hard Power
+diaspora_activation,Soft Power
+media_campaign_intervention,Soft Power
+professional_cultural_exchange,Soft Power

@@ -1,0 +1,197 @@
+---
+title: "Machine Learning for Peace:"
+subtitle: "Infrastructure and Applications"
+author: "PDRI-DevLab"
+institute: "University of Pennsylvania"
+date: today
+date-format: long
+cap-location: top
+fig-cap-location: top
+
+format:
+  revealjs:
+    toc: false
+    theme: [custom_iea.scss]
+    width: 1050
+    margin: 0.05
+    logo: devlab.png
+    embed-resources: true
+    template-partials:
+      - title-slide.html
+    gfm:
+    mermaid-format: png
+editor: source
+---
+
+
+
+
+## Resurgent Authoritarian Influence?
+
+\
+
+1.    Introduce data on Russian and Chinese influence on developing countries
+2.    Describe influence cross-nationally and over time
+3.    Examine Russia's pre-invasion behavior
+
+
+## Resurgent Authoritarian Influence?
+
+**Background:**
+
+-   Collapse of Soviet Union: less influence by autocracies
+-   Recently, powerful autocracies becoming more assertive in foreign policy
+
+**Foreign Influence**: 
+
+- Actions by the government of an influencing country to affect the policies, capacity, or behavior of a target country to advance its own national interests
+
+
+## Influence Tools
+
+![](rai_themes.png){fig-align="center"}
+
+## Data Processing Pipeline
+
+![](mermaid_paper.png){fig-align="center"}
+
+
+## Example of Hard Power
+
+![](output/plot_russian_coups.png){fig-align="center"}
+
+
+::: notes
+BF: Jan, Sept 2022
+Mali: May 2021
+Jul: 2023
+:::
+
+
+## Example of Diplomacy
+
+![](output/plot_chinese_recognition.png){fig-align="center"}
+
+## Describing RAI: Spheres
+
+\
+
+1.    Russian influence is more concentrated in a geographic sphere of influence
+2.    Spheres of influence are shifting over time
+3.    Russia has dramatically expanded its sphere in recent years, challenging China's dominance
+
+
+## Describing RAI: Spheres
+
+![](output/map_dominant-theme.png){fig-align="center"}
+
+
+::: notes
+1.    Russian influence is more concentrated in a geographic sphere of influence
+2.    Spheres of influence are shifting over time. In recent years, Russia has expanded its own sphere of influence into the Sahel and North Africa, while also challenging China's dominance in Sub-Saharan Africa, and to a lesser extent, Southeast Asia. Interestingly, Russia's expansion does not appear to have spread in Latin America.
+:::
+
+
+## Describing RAI: Spheres
+
+![](output/map_russia-influence-share.png){fig-align="center"}
+
+
+
+## Describing RAI: Tools
+
+\
+
+-   Economic Power is the most prevalent theme 
+-   Beginning in 2022, Diplomacy increases dramatically in places where Russia's influence grew 
+
+
+## Describing RAI: Tools
+
+![](output/slides_map_theme_1.png){fig-align="center"}
+
+
+## Describing RAI: Tools
+
+![](output/slides_map_theme_2.png){fig-align="center"}
+
+## Describing RAI: Tools
+
+![](output/slides_map_theme_3.png){fig-align="center"}
+
+
+::: notes
+-   Economic Power is the most prevalent theme in the majority of countries in each region and both spheres of influence. -   Growth in diplomacy after 2022 in the Russian sphere of influence and in places where Russia's share of influence saw the largest increases. 
+-   This provides further evidence for an influence campaign by Russia beginning at roughly the same time as the invasion of Ukraine. Given the focus on diplomacy, this campaign appears aimed at bolstering international support from non-Western governments
+:::
+
+
+
+
+## Did Russia Signal Invasion?
+
+![](russia_experts.png){ width="1500"}
+
+
+## Did Russia Signal Invasion?
+
+![](output/plot_level-increase.png){fig-align="center"}
+
+
+## Did Russia Signal Invasion?
+
+![](output/plot_period_levels.png){fig-align="center"}
+
+
+## Did Russia Signal Invasion?
+
+![](output/changepoint_themes.png){fig-align="center"}
+
+
+## Explaining Increased Influence
+
+- Explain variation in:
+  + Countries with largest increase in Russian influence
+- Potential causes of targeting:
+  + Geopolitical alignment (UN Ideal Point Distance)
+  + Strategic value (exports and exports)
+
+
+
+## Hard Power - Change in Articles
+
+![](figures/tp_full.png){fig-align="center"}
+
+## Discussion
+
+- RAI dataset provides a quantified measure of Russia and Chinese influence efforts
+- Highlights differences in strategic approaches:
+  + Russian focus on Hard Power and Diplomacy
+  + Chinese emphasis on Economic influence
+- For Academics:
+  + Granular data provides additional leverage for inference
+  + Provides useful guide for conducting similar analyses in the future
+
+
+# Appendix
+
+
+## Russian Import Reliance
+
+![](import_reliance_heading.png){fig-align="center" }
+
+
+## Russian Export Reliance
+
+![](export_reliance_heading.png){fig-align="center" }
+
+
+
+## Exporters of Russian Imports
+
+![](import_reliance_heading_exporters.png){fig-align="center" }
+
+
+## Importers of Russian Exports
+
+![](export_reliance_heading_importers.png){fig-align="center" }

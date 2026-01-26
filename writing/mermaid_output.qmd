@@ -1,0 +1,38 @@
+---
+title: "Mermaid Diagram in PDF"
+format:
+  html:
+    output: default
+---
+
+## Mermaid Diagram Example
+
+
+```{r}
+# Load required library
+library(DiagrammeR)
+
+# Generate the Mermaid diagram and save it as a PNG
+a = DiagrammeR("
+  graph LR
+  A(Scrape news from web)--> B(Translate to English) 
+  B --> C{Process} 
+  C --> D[LLM: Detect Events]
+  C --> E[Geographic Locations]
+  C --> F[Custom Keywords]
+  D --> G(Aggregate to Country-Month)
+  E --> G
+  F --> G
+  G --> H( Normalize)", width = "100%", height = "100%")
+
+a %>%
+  htmltools::html_print() %>%
+  webshot::webshot(file = "mermaid.png",
+                   vwidth = 1000,
+                   vheight = 250,
+                   cliprect = "viewport")
+
+
+
+```
+

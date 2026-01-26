@@ -1,0 +1,853 @@
+---
+title: "Resurgent Authoritarian Influence:"
+subtitle: "Evidence from the Machine Learning for Peace Dataset"
+author: "PDRI-DevLab"
+institute: "University of Pennsylvania"
+date: today
+date-format: long
+cap-location: top
+fig-cap-location: top
+
+format:
+  revealjs:
+    toc: false
+    theme: [custom_iea.scss]
+    width: 1050
+    margin: 0.05
+    logo: devlab.png
+    footer: "mlpeace.org/rai"
+    embed-resources: true
+    template-partials:
+      - title-slide.html
+    gfm:
+    mermaid-format: png
+editor: source
+---
+
+```{r}
+#| label: load-packages
+#| include: false
+
+# devtools::load_all(here::here("rai.atari"))
+library(dplyr)
+library(tidyr)
+library(gt)
+library(kableExtra)
+library(ggplot2)
+library(changepoint)
+library(flextable)
+library(readr)
+
+#library(rai.atari)
+#rai <- rai.atari::rai 
+
+# load(file = here::here("rai.atari/data/rai.rda"))
+rai = readr::read_csv(here::here("writing", "output", "rai_4_5_24.csv"))
+load(file = here::here("data/rai_vars.rda"))
+
+rai_vars_select = bind_rows(
+  data.frame(
+    variable = grep("rai_idx_.*", colnames(rai), value = T),
+    name = c("Total RAI", "Backlash", "Domestic Interference", "Diplomacy", "Economic Power", "Hard Power", "Soft Power")
+  ),
+  rai_vars
+)
+
+```
+
+
+
+## Overview
+
+\
+
+1.    Introduce data on Russian and Chinese influence on developing countries
+2.    Describe influence cross-nationally and over time
+3.    Examine Russia's pre-invasion behavior
+
+
+## Resurgent Authoritarian Influence?
+
+**Background:**
+
+-   Collapse of Soviet Union: less influence by autocracies
+-   Recently, powerful autocracies becoming more assertive in foreign policy
+
+**Foreign Influence**: 
+
+- Actions by the government of an influencing country to affect the policies, capacity, or behavior of a target country to advance its own national interests
+
+
+## Influence Tools
+
+![](rai_themes.png){fig-align="center"}
+
+## Data Production: Scraping
+
+::: columns
+::: {.column width="50%"}
+**Input: Online news**
+
+-   300+ news sources
+-   35+ languages
+-   100+ million articles
+:::
+
+::: {.column width="50%"}
+**Data quality**
+
+-   Focus on high-quality domestic news outlets
+-   *Much* better coverage than extant archivers/aggregators (GDELT, Wayback, Lexis Nexis, etc.)
+:::
+:::
+
+**\
+\
+Output: Monthly data**
+
+-   60 countries
+-   2012 - 2024
+
+
+## Underlying Data: Crawlers vs Direct
+
+![](output/zr_comparison.png){ width="1400" fig-align="center"}
+
+## Data Production: Text Classification
+
+-   Robustly Optimized BERT Pretraining Approach (RoBERTa)
+-   Fine-tuned on double human-coded training data (n=3,400)
+
+
+```{mermaid}
+
+flowchart LR
+  A(Scrape news from web)==QC==> B(Translate to English) 
+  B --> C{Process} 
+  C --> D[NLP: 22 RAI\nEvents]
+  C --> E[Geographic\nLocations]
+  C --> F[Custom\nKeywords]
+  D --> G(Aggregate to Country-Month)
+  E --> G
+  F --> G
+  G --> H(Normalize by Country-Month Volume)
+
+```
+
+## Data Production 
+
+```{r}
+#| echo: false
+#| warning: false
+
+dat = rai %>%
+  filter(influencer == "Russia" & country %in%  c("Mali", "Burkina Faso", "Niger")) 
+
+ggplot(dat, aes(x = date, y =  rai_idx_hp)) +
+  geom_line(linewidth = 1, color = "black", linetype=1) +
+  facet_wrap(~country, scales = "free_y", ncol = 1) +
+  theme_bw() +
+  scale_x_date(breaks = seq(as.Date("2012-01-01"), as.Date(max(rai$date)), by = "6 months"), labels = scales::date_format("%Y-%b"),
+              expand = c(.01,.01) ) +
+  theme(plot.title = element_text(hjust = 0, size = 18),  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.title.x = element_blank(),
+        strip.text = element_text(size = 18)) +
+  labs(y = "Hard Power (articles per 10k published)")
+
+```
+
+
+## Describing RAI: Spheres
+
+\
+
+1.    Russian influence is more concentrated in a geographic sphere of influence
+2.    Spheres of influence are shifting over time
+3.    Russia has dramatically expanded its sphere in recent years, challenging China's dominance
+
+
+## Describing RAI: Spheres
+
+```{r}
+#| echo: false
+#| warning: false
+
+# Pull map data and create versions for each historical period
+map = map_data('world')
+map = map %>% filter(region != "Antarctica")
+
+map1 = map %>%
+  mutate(period = "2012-2016")
+
+map2 = map %>%
+  mutate(period = "2017-2021")
+
+map3 = map %>%
+  mutate(period = "2022-2024")
+
+# Pull RAI data
+df <- rai |>
+  mutate(period = case_when(
+    date < "2017-01-01" ~ "2012-2016",
+    date >= "2017-01-01" & date < "2021-01-01" ~ "2017-2021",
+    TRUE ~ "2022-2024"
+    )
+  ) |>
+  filter(influencer %in% c("Russia", "China")) |>
+  select(country, date, rai_idx_total, influencer, period) |>
+  pivot_wider(names_from = "influencer", values_from = "rai_idx_total") 
+  
+df <- df |>
+  group_by(country, period) |>
+  arrange(date) 
+
+df <- df |>
+  group_by(country, period) |>
+  summarize(russia_share = mean(Russia) / (mean(Russia) + mean(China)),
+            .groups = "drop") 
+
+## Maps
+map = bind_rows(map1, map2, map3)
+
+df[df$country == "DR Congo",]$country = "Democratic Republic of the Congo"
+map = left_join(map, df %>% dplyr::rename(region = country) )
+
+# set map parameters
+map_theme = theme(axis.title.x = element_blank(), axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.title.y = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(),
+        legend.key = element_rect(),
+        legend.key.height = unit(.4, 'cm'),
+        legend.key.width = unit(.4, 'cm'),
+        legend.text = element_text(size = 5), legend.title=element_text(size = 6),
+        legend.position = c(.22, .78), legend.box.background = element_rect(colour = "black"),
+        plot.margin=unit(c(4, 4, 0, 4),"pt"),
+        strip.text = element_text(size = 18))
+
+x_lim = c(-90,142)
+y_lim = c(-33, 52)
+
+a = ggplot(map %>% filter(period == "2012-2016"), 
+       aes(x = long, y = lat, group = group, fill = russia_share)) +
+  geom_polygon(colour = "black", size=0.15) +
+  facet_wrap(~period, ncol = 1) +
+  scale_fill_distiller(palette = 'RdYlBu', direction = 1, name = "Russian share",
+                       limits = c(min(df$russia_share), max(df$russia_share)), 
+                       labels = scales::label_percent()) + 
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+b = ggplot(map %>% filter(period == "2017-2021"), 
+       aes(x = long, y = lat, group = group, fill = russia_share)) +
+  geom_polygon(colour = "black", size=0.15) +
+  facet_wrap(~period, ncol = 1) +
+  scale_fill_distiller(palette = 'RdYlBu', direction = 1, name = "Russian share",
+                       limits = c(min(df$russia_share), max(df$russia_share)), 
+                       labels = scales::label_percent()) + 
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+c = ggplot(map %>% filter(period == "2022-2024"), 
+       aes(x = long, y = lat, group = group, fill = russia_share)) +
+  geom_polygon(colour = "black", size=0.15) +
+  facet_wrap(~period, ncol = 1) +
+  scale_fill_distiller(palette = 'RdYlBu', direction = 1, name = "Russian share",
+                       limits = c(min(df$russia_share), max(df$russia_share)), 
+                       labels = scales::label_percent()) + 
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+a
+
+
+ggsave(here::here("writing/output", "slides_map1.png") , plot = a, width = 10, height = 6)
+ggsave(here::here("writing/output", "slides_map2.png") , plot = b, width = 10, height = 6)
+ggsave(here::here("writing/output", "slides_map3.png") , plot = c, width = 10, height = 6)
+
+
+
+```
+
+::: notes
+1.    Russian influence is more concentrated in a geographic sphere of influence
+2.    Spheres of influence are shifting over time. In recent years, Russia has expanded its own sphere of influence into the Sahel and North Africa, while also challenging China's dominance in Sub-Saharan Africa, and to a lesser extent, Southeast Asia. Interestingly, Russia's expansion does not appear to have spread in Latin America.
+:::
+
+
+## Describing RAI: Spheres
+
+```{r}
+b
+
+```
+
+
+## Describing RAI: Spheres
+
+```{r}
+c
+
+```
+
+
+## Describing RAI: Tools
+
+\
+
+-   Economic Power is the most prevalent theme 
+-   Beginning in 2022, Diplomacy increases dramatically in places where Russia's influence grew 
+
+
+## Describing RAI: Tools
+
+```{r}
+#| echo: false
+#| warning: false
+
+df <- rai |>
+  mutate(period = case_when(
+    date < "2017-01-01" ~ "2012-2016",
+    date >= "2017-01-01" & date < "2021-01-01" ~ "2017-2021",
+    TRUE ~ "2022-2024"
+    )
+  ) |>
+  filter(influencer %in% "Russia") |>
+  select(country, date, period, starts_with("rai_idx"), -rai_idx_total) |>
+  pivot_longer(starts_with("rai_idx"), names_to = "theme") |>
+  mutate(theme = gsub("rai\\_idx\\_", "", theme))
+  
+df <- df |>
+  group_by(country, period, theme) |>
+  arrange(date) 
+
+df <- df |>
+  group_by(country, period, theme) |>
+    summarize(mean_value = mean(value),
+              .groups = "drop")
+
+df <- df |>
+  group_by(country, period) |>
+  mutate(share = mean_value / sum(mean_value))
+
+df$theme = factor(df$theme)
+df$theme = factor(df$theme, levels = gsub("rai_idx_", "", rai_vars_select$variable[2:7]), labels = rai_vars_select$name[2:7])
+
+df <- df |>
+  group_by(country, period) |>
+  slice_max(share)
+
+
+## Maps
+map = bind_rows(map1, map2, map3)
+
+df[df$country == "DR Congo",]$country = "Democratic Republic of the Congo"
+map = left_join(map, df %>% dplyr::rename(region = country) )
+
+# set map parameters
+map_theme = theme(axis.title.x = element_blank(), axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.title.y = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(),
+        legend.key = element_rect(),
+        legend.key.height = unit(.4, 'cm'),
+        legend.key.width = unit(.4, 'cm'),
+        legend.text = element_text(size = 5), legend.title=element_text(size = 6),
+        legend.position = c(.22, .78), legend.box.background = element_rect(colour = "black"),
+        plot.margin=unit(c(4, 4, 0, 4),"pt"),
+        strip.text = element_text(size = 18))
+
+x_lim = c(-90,142)
+y_lim = c(-33, 52)
+
+pal <- leaflet::colorFactor("Accent", domain = df$theme)
+# map = map %>% mutate(theme = replace_na(as.character(theme), "No")) %>% mutate(theme = forcats::fct_relevel(theme, c(rai_vars_select$name[2:7], "No")))
+
+a = ggplot(map %>% filter(period == "2012-2016"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+  
+
+b = ggplot(map %>% filter(period == "2017-2021"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+c = ggplot(map %>% filter(period == "2022-2024"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+a
+
+ggsave(here::here("writing/output", "slides_map_theme_1.png") , plot = a, width = 10, height = 6)
+ggsave(here::here("writing/output", "slides_map_theme_2.png") , plot = b, width = 10, height = 6)
+ggsave(here::here("writing/output", "slides_map_theme_3.png") , plot = c, width = 10, height = 6)
+
+```
+
+
+::: notes
+-   Economic Power is the most prevalent theme in the majority of countries in each region and both spheres of influence. -   Growth in diplomacy after 2022 in the Russian sphere of influence and in places where Russia's share of influence saw the largest increases. 
+-   This provides further evidence for an influence campaign by Russia beginning at roughly the same time as the invasion of Ukraine. Given the focus on diplomacy, this campaign appears aimed at bolstering international support from non-Western governments
+:::
+
+## Describing RAI: Tools
+
+```{r}
+b
+
+```
+
+
+## Describing RAI: Tools
+
+```{r}
+c
+
+```
+
+
+## Describing RAI: Tools
+
+```{r}
+#| echo: false
+#| warning: false
+
+# df <- rai.atari::rai |>
+df = readr::read_csv(here::here("writing", "output", "rai_4_5_24.csv")) |>
+  filter(! influencer %in% "Combined") |>
+  select(country, date, influencer, starts_with("rai_idx"), -rai_idx_total) |>
+  pivot_longer(starts_with("rai_idx"), names_to = "theme") |>
+  mutate(theme = gsub("rai\\_idx\\_", "", theme))
+
+df$theme = factor(df$theme)
+df$theme = factor(df$theme, levels = gsub("rai_idx_", "", rai_vars_select$variable[2:7]), labels = rai_vars_select$name[2:7])
+
+theme_idx = unique(df$theme)
+
+df = df |>
+  group_by(date, influencer, theme) |>
+  summarise(value = sum(value) ) |>
+  ungroup()
+
+df = df |>
+  group_by(influencer, date) |>
+  mutate(value = value / sum(value)) |>
+  # make it a factor for plotting labels
+  mutate(influencer = factor(influencer, levels = c("China", "Russia")))
+
+dip_av = df |>
+  filter(theme == "Diplomacy") |>
+  mutate(period = case_when(
+    date < "2017-01-01" ~ "2012-2016",
+    date >= "2017-01-01" & date < "2021-01-01" ~ "2017-2021",
+    TRUE ~ "2022-2024"
+    )
+  ) |>
+  group_by(period, theme, influencer) |>
+  summarise(value = mean(value)) 
+
+ggplot(df, aes(x = date, y = value, fill = theme)) +
+  geom_area(na.rm = TRUE) +
+  facet_wrap(~influencer, ncol = 1) +
+  scale_fill_brewer("Theme", type = "qual") +
+  scale_y_continuous(labels = scales::percent_format(scale = 100)) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") + # Customize the x-axis for yearly labels
+  theme_bw() +
+  theme(legend.position = "bottom", strip.text = element_text(size = 16)) +
+  labs(x = "", y = "")
+
+
+```
+
+
+## Did Russia Signal Invasion?
+
+![](russia_experts.png){ width="1500"}
+
+
+## Did Russia Signal Invasion?
+
+![](output/plot_level-increase.png){fig-align="center" }
+
+
+## Did Russia Signal Invasion?
+
+
+```{r}
+#| echo: false
+#| warning: false
+
+df <- rai |>
+  mutate(period = case_when(
+    date < "2017-01-01" ~ "2012-2016",
+    date >= "2017-01-01" & date < "2021-01-01" ~ "2017-2021",
+    TRUE ~ "2022-2024"
+    )
+  ) |>
+  select(country, date, rai_idx_total, period, influencer)
+  
+df <- df |>
+  filter( influencer=="Russia") |>
+  group_by(country, period, influencer) |>
+  summarize(mean_total_rai = mean(rai_idx_total, na.rm = T),
+            .groups = "drop") |>
+  arrange(country, influencer, period)
+
+
+dfp <- df |>
+  group_by(country, influencer) |>
+  mutate(percentage_change = (mean_total_rai / lag(mean_total_rai) - 1) * 100) |>
+  mutate(increase = mean_total_rai[3] - mean_total_rai[2]) |>
+  filter(!is.na(percentage_change))
+
+dfpr = dfp |>
+  filter(influencer == "Russia" & period == "2022-2024") |>
+  group_by(country) |>
+  arrange(percentage_change)
+
+
+ann_text <- data.frame(country = factor("South Sudan", levels =  unique(dfpr$country)), 
+                       percentage_change = 1100, 
+                       #lab = "* Boxes display average number\nof RAI articles per 10k\npublished articles in\nfinal period", 
+                       lab = "* Boxes display mean increase in absolute\nnumber of RAI articles per 10k\npublished articles between\nsecond and third period", 
+                       influencer = factor("Russia", levels = c("China", "Russia")), 
+                       mean_total_rai = 100)
+
+#write.csv(dfpr, here::here("writing", "output", "dfpr.csv"))
+
+dfp |>
+  mutate(country = factor(country, levels =  unique(dfpr$country))  ) |>
+  ggplot(aes(x = percentage_change, y = country ) ) + 
+  geom_line(aes(group = country), color = "gray80") +
+  geom_point(aes(color = period)) +
+  facet_wrap(~influencer) +
+  # geom_label(data = dfp %>% group_by(country, influencer) |> slice_tail(n=1),
+  #            aes(label = round(increase, digits = 0), group = influencer), size = 2, hjust = .5,
+  #            nudge_x = 10, color = "#66a182") +
+  theme_bw() +
+  scale_x_continuous(labels = scales::percent_format( scale=1 )) +
+  # geom_text(aes(x = percentage_change, y = country, label=lab),
+  #           data = ann_text, size = 3) +
+  scale_color_manual("Percent change between time\nperiods", 
+                       labels = c("2012-2016 and 2017-2021", "2017-2021 and 2022-2024"),
+                       values = c("#edae49", "#66a182")) +
+  labs(x = "Percent change in average monthly RAI articles per 10k published articles", y = "") +
+  coord_flip() +
+  theme(legend.text = element_text(size = 6), legend.title = element_text(size = 6),
+        legend.position = c(.3, .85), legend.box.background = element_rect(colour = "black"),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        strip.text = element_text(size = 14))  
+
+```
+
+
+## Did Russia Signal Invasion?
+
+
+```{r}
+#| echo: false
+#| warning: false
+
+
+rai_df <- rai
+rai_df <- rai_df %>%
+  select(country, influencer, date, rai_idx_bal:rai_idx_sp)
+
+# List of unique country names in your dataframe
+unique_countries <- unique(rai_df$country)
+
+result_df <- data.frame()
+
+# Loop through each country
+for (country_name in unique_countries) {
+  for (j in names(rai_df)[4:9]  ){
+    # Filter the dataframe for the current country
+    dat = rai_df |> filter(country == country_name & influencer == "Russia")
+    
+    # Calculate cpt.mean() for the current country
+    cpt_result <- cpt.mean( dat[[j]] , method = "BinSeg", Q = 1)
+    cpt_result = cpt_result@cpts[1]
+    
+    country_result <- data.frame(country = country_name, col = j, t(cpt_result))
+    result_df <- rbind(result_df, country_result)
+
+  }
+
+}
+
+result_dfi = result_df
+for (i in names(result_dfi)[3]  ) {
+  result_dfi[ , i] = NA
+  result_dfi[ , i] = as.Date(result_dfi[ , i])
+  
+  for (j in 1:nrow(result_dfi) ) {
+    result_dfi[j , i] = unique(rai_df$date)[result_df[j , i]+1]
+    
+  }
+  
+}
+
+dat2 = result_dfi |>
+  rename(date = t.cpt_result.,
+         theme = col) |>
+  group_by(theme, date) |>
+  summarise(count = n() )
+
+break.vec <- c(as.Date("2012-01-01"),
+               seq(from = as.Date("2012-02-01"), to = as.Date(max(rai$date)),
+                   by = "month"),
+               as.Date(max(rai$date)))
+des_break = break.vec[c(TRUE, FALSE, FALSE, FALSE, FALSE)]
+
+dat2$theme = factor(dat2$theme)
+dat2$theme = factor(dat2$theme, levels = rai_vars_select$variable[2:7], labels = rai_vars_select$name[2:7])
+
+
+ggplot(dat2 , aes(x=date, y = count) ) + geom_bar(stat="identity") +
+   scale_x_date(date_breaks = "1 year",date_labels = "%Y") +
+  theme_bw() + 
+  facet_wrap(~theme, ncol = 2) +
+  geom_vline( xintercept = as.numeric(as.Date("2014-02-01")), linetype="dashed", color = "#edae49" ) +
+  geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed", color = "#66a182" ) +
+  labs(x = "", y = "Frequency of changepoint dates") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.text.y = element_text(size = 6),
+        strip.text = element_text(size = 14))
+
+```
+
+
+## Did Russia Signal Invasion?
+
+
+```{r}
+#| echo: false
+#| warning: false
+
+
+ggplot(dat2 %>% filter(theme %in% c("Diplomacy", "Hard Power")), aes(x=date, y = count) ) + geom_bar(stat="identity") +
+   scale_x_date(date_breaks = "1 year",date_labels = "%Y") +
+  theme_bw() + 
+  facet_wrap(~theme, ncol = 1) +
+  geom_vline( xintercept = as.numeric(as.Date("2014-02-01")), linetype="dashed", color = "#edae49" ) +
+  geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed", color = "#66a182" ) +
+  labs(x = "", y = "Frequency of changepoint dates") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.text.y = element_text(size = 6),
+        strip.text = element_text(size = 14))
+
+```
+
+
+
+## Hard Power
+
+![](output/hp_changepoints.png){fig-align="center" }
+
+
+## Diplomacy
+
+![](output/dip_changepoints.png){fig-align="center" }
+
+
+
+
+
+## Diplomacy
+
+```{r}
+#| echo: false
+#| warning: false
+
+
+
+dat = read_csv(here::here("writing", "output", "gpt", "event_summaries2.0.csv")) %>%
+  mutate(Date = as.Date(Date, "%m/%d/%Y"),
+         Period = case_when( Date < "2022-02-01" ~ "Aug-Jan",
+                             Date == "2022-02-01" & Flag == "before invasion" ~ "Feb (Pre)",
+                             Date == "2022-02-01" & Flag == "after invasion" ~ "Feb (Post)",
+                             Date > "2022-02-01" ~ "March"),
+         Period = factor(Period, levels = c("Aug-Jan", 
+                                            "Feb (Pre)", "Feb (Post)",
+                                            "March") ),
+         substance = ifelse(Signal == "Nothing", "False Positive", "True Positive")) %>%
+  rename(Accuracy = substance)
+
+proc_freq(dat %>% filter(Event %in% c("Diplomacy") ), "Period", "Accuracy", 
+          include.row_percent = T,
+          include.column_percent = F, 
+          include.table_percent = F) %>%
+  fontsize(size = 18, part = "header") %>%
+  fontsize(size = 16, part = "body") %>%
+  labelizor( part = "header", labels = stringr::str_to_title) %>%
+  height_all(height = 10) %>% 
+  width(j=1, width = 2) %>%
+  width(j=2, width = .8) %>%
+  width(j=3, width = 1) %>%
+  width(j=4, width = 1) 
+
+```
+
+
+## Diplomacy
+
+- Countries with change points: 
+  + 2022: 37
+  + 2018-2021: average of 1.6
+  + Previous high of 3 in 2015
+
+
+
+## Diplomacy
+
+- True Positives:
+  + Aug-Jan: Antagonism (Kosovo), celebration (Bangladesh), military intervention (Kazakhstan)
+  + Feb 1-23: High profile meetings (Serbia, Belarus, Nicaragua, Hungary, Turkey), major statements (Albania, India)
+- False Positives:
+  + Aug- Jan: domestic reporting on geopolitics (El Salvador, Peru)
+  + Feb 1-23: domestic reporting on/criticism of Russian build-up (Cameroon, Jamaica, Nepal, Philippines)
+
+## Hard Power
+
+```{r}
+#| echo: false
+#| warning: false
+
+dat = read_csv(here::here("writing", "output", "gpt", "event_summaries2.0.csv")) %>%
+  mutate(Date = as.Date(Date, "%m/%d/%Y"),
+         Period = case_when( Date < "2022-02-01" ~ "Aug-Jan",
+                             Date == "2022-02-01" & Flag == "before invasion" ~ "Feb (Pre)",
+                             Date == "2022-02-01" & Flag == "after invasion" ~ "Feb (Post)",
+                             Date > "2022-02-01" ~ "March"),
+         Period = factor(Period, levels = c("Aug-Jan", 
+                                            "Feb (Pre)", "Feb (Post)",
+                                            "March") ),
+         substance = ifelse(Signal == "Nothing", "False Positive", "True Positive")) %>%
+  rename(Accuracy = substance)
+
+proc_freq(dat %>% filter(Event %in% c("Hard Power") ), "Period", "Accuracy", 
+          include.row_percent = T,
+          include.column_percent = F, 
+          include.table_percent = F) %>%
+  fontsize(size = 18, part = "header") %>%
+  fontsize(size = 16, part = "body") %>%
+  labelizor( part = "header", labels = stringr::str_to_title) %>%
+  height_all(height = 10) %>% 
+  width(j=1, width = 2) %>%
+  width(j=2, width = .8) %>%
+  width(j=3, width = 1) %>%
+  width(j=4, width = 1) 
+
+```
+
+
+## Hard Power
+
+- Countries with change points: 
+  + 2022: 24
+  + 2021: 10
+  + 2017-2020: average of 2 
+  + Previous high of 4 in 2012
+
+
+## Hard Power
+
+- True Positives:
+  + Aug-Jan: direct security cooperation (Mali, Pakistan, Burkina Faso, Belarus), security antagonism (Kosovo, Georgia)
+  + Feb 1-23: direct security engagement (Ethiopia)
+- False Positives:
+  + Aug-Jan: security response over Russia's influence on neighbors (Angola, Niger, Colombia), domestic reporting on geopolitics (Cameroon, Peru)
+  + Feb 1-23: security response over Russia's influence on neighbors (Hungary), domestic reporting on geopolitics (Bangladesh, India)
+  
+
+## Accuracy
+
+```{r}
+#| echo: false
+#| warning: false
+
+
+data = read_csv(here::here("writing", "output", "dfpr.csv")) %>% select(-1)
+
+
+dat = read_csv(here::here("writing", "output", "gpt", "event_summaries2.0.csv")) %>% 
+  mutate(Date = as.Date(Date, "%m/%d/%Y"),
+         Period = case_when( Date < "2022-02-01" ~ "Pre-Invasion (6 mos)",
+                             Date == "2022-02-01" & Flag == "before invasion" ~ "February (Pre)",
+                             Date == "2022-02-01" & Flag == "after invasion" ~ "February (Post)",
+                             Date > "2022-02-01" ~ "March"),
+         Period = factor(Period, levels = c("Pre-Invasion (6 mos)", 
+                                            "February (Pre)", "February (Post)",
+                                            "March") ),
+         substance = ifelse(Signal == "Nothing", "False Positive", "True Positive")) %>%
+  rename(Accuracy = substance) 
+#%>%
+#  filter(Accuracy == "True Positive")
+
+data  = data %>%
+  mutate(Targeted = case_when(
+    country %in% unique(dat[dat$Accuracy == "False Positive",]$Country) ~ "False Positive",
+    country %in% unique(dat[dat$Accuracy == "True Positive",]$Country) ~  "True Positive",
+    TRUE ~ "Neither")) %>%
+  mutate(Targeted = factor(Targeted, levels = c("Neither", "False Positive", "True Positive")))
+
+
+stats_summary <- data %>%
+  group_by(Targeted) %>%
+  summarise(
+    Mean = mean(percentage_change, na.rm = T),
+    Median = median(percentage_change, na.rm = T),
+    Range = paste0(round(min(percentage_change, na.rm = T), digits = 0), " - ", round(max(percentage_change, na.rm = T), digits = 0)),
+    SD = sd(percentage_change, na.rm = T)
+  ) %>%
+  mutate(Annotation = paste("Median:", round(Median, digits = 0),
+                            "\nRange:", Range))
+
+
+ggplot(data, aes(y = percentage_change, x = Targeted, color = Targeted)) + 
+  geom_boxplot() +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  #scale_color_manual(values = c("#edae49", "#66a182")) +
+  labs(y = "Increase in Influence (2022-2024)", x = "Change Point Influence (Aug-Mar)") +
+  theme_minimal() +
+  geom_jitter(width = 0.2, height = 0, alpha = 0.5) +  
+  geom_text(data = stats_summary, aes(x = Targeted, y = 1000, label = Annotation) ) +
+  theme(legend.position = "none")
+
+```
+
+
+## Explaining Increased Influence
+
+- Explain variation in:
+  + Countries with largest increase in Russian influence
+  + Countries targeted before Feb 2022
+- Potential causes of targeting:
+  + International influence (rotating seats on international and regional bodies)
+  + Strategic value (trade ties, resource endowments)
+
+
+
+## Explaining Increased Influence
+
+
+![](output/reg_table.png){fig-align="center" }
+
+

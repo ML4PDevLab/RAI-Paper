@@ -1,0 +1,97 @@
+/*-- scss:defaults --*/
+
+$body-bg: #fff;
+$body-color: #222;
+$link-color: #011F5B;
+$presentation-heading-color: #222;
+$code-color: #222;
+$code-block-bg: grey;
+$code-block-border-color: #222;
+
+/*-- scss:rules --*/
+
+
+.reveal .footer {
+  font-size: 0.4em !important;
+  text-align: center !important;
+}
+
+
+.slide-menu-button {
+  left: 10px !important;
+  bottom: 10px !important;
+}
+
+li li { font-size: 90% }
+
+#title-slide {
+  text-align: left;
+
+  .title, .quarto-title- {
+    font-size: 210%;
+    color: #011F5B;
+    text-align: center;
+  }
+  
+  .subtitle, .quarto-subtitle- {
+    font-size: 150%;
+    color: #222;
+    text-align: center;
+  }
+
+  .author, .quarto-title-author-name {
+    font-size: 100%;
+    color: #011F5B;
+  }
+
+  .institute, .quarto-title-affiliation {
+    font-size: 100%;
+    color: #990000;
+
+  }
+
+  .date, .quarto-title-date {
+    font-size: 70%;
+    color: #222;
+  }
+  
+  .quarto-title-authors {
+    display: flex;
+    justify-content: left;
+  
+    .quarto-title-author {
+      padding-left: 0em;
+      padding-right: 0em;
+      width: 100%;
+    }
+  }
+
+  p.subtitle::after, div.quarto-title-subtitle::after {
+    content: "";
+    display: block;
+    border: none;
+    background-color: #011F5B;
+    color: #011F5B;
+    height: 3px;
+    margin-bottom: 1em;
+  }
+  
+  .left {
+  width: 55%;
+  }
+  
+  .right {
+  width: 45%;
+  padding-top: 0px;
+
+  }
+
+}
+
+.column {
+  float: left;
+  padding: 0px;
+  height: 200px; /* Should be removed. Only for demonstration */
+}
+
+

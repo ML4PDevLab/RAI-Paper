@@ -1,0 +1,56 @@
+theme,prompt_js
+Diplomacy,"Here is a sample of newspaper articles reporting on diplomatic activity (any attempts to impact diplomatic standing or ties) between Russia and {country} for {year_month}. Generate a numbered list that summarizes reporting on the most important diplomatic activity that occurred. I want your summary to be no more than 2 sentences. In your summary, include information about the nature of the diplomatic activity, the objectives of the governments involved, and the significance of the diplomatic activity for politics in {country}. Rank the importance of the different diplomatic activities being reported on based on the impact on politics in {country} and the number of articles reporting on the diplomatic activity.              
+
+Input text: 
+{combined_text}
+
+Output:             
+1. Most significant diplomatic activity             
+...             
+n. Least significant diplomatic activity      
+
+Do not describe more than 10 events. Conclude with 1-2 sentences that provide an overview of the diplomatic activities being reported on. Please be concise. "
+Domestic Interference,"Here is a sample of newspaper articles reporting on domestic interference (any attempts to influence policies or capacity through non-military actions) between Russia and {country} for {year_month}. Generate a numbered list that summarizes reporting on the most important domestic interference events that occurred. I want your summary to be no more than 2 sentences. In your summary, include information about the nature of the domestic interference, the objectives of the governments involved, and the significance of the domestic interference for politics in {country}. Rank the importance of the different domestic interference events being reported on based on the impact on politics in {country} and the number of articles reporting on the domestic interference.              
+
+Input text: 
+{combined_text}
+
+Output:             
+1. Most significant domestic interference            
+...             
+n. Least significant domestic interference      
+
+Do not describe more than 10 events. Conclude with 1-2 sentences that provide an overview of the domestic interference being reported on. Please be concise. "
+Economic Power,"Here is a sample of newspaper articles reporting on economic activity (any attempts to impact economic capacity or economic ties) between Russia and {country} for {year_month}. Generate a numbered list that summarizes reporting on the most important economic activity events that occurred. I want your summary to be no more than 2 sentences. In your summary, include information about the nature of the economic activity, the objectives of the governments involved, and the significance of the economic activity for politics in {country}. Rank the importance of the different economic activity events being reported on based on the impact on politics in {country} and the number of articles reporting on the economic activity.              
+
+Input text: 
+{combined_text}
+
+Output:             
+1. Most significant economic activity           
+...             
+n. Least significant economic activity      
+
+Do not describe more than 10 events. Conclude with 1-2 sentences that provide an overview of the economic activity being reported on. Please be concise. "
+Hard Power,"Here is a sample of newspaper articles reporting on military activity (any attempts to impact military ties or use military force) between Russia and {country} for {year_month}. Generate a numbered list that summarizes reporting on the most important military activity events that occurred. I want your summary to be no more than 2 sentences. In your summary, include information about the nature of the military activity, the objectives of the governments involved, and the significance of the military activity for politics in {country}. Rank the importance of the different military activity events being reported on based on the impact on politics in {country} and the number of articles reporting on the military activity.              
+
+Input text: 
+{combined_text}
+
+Output:             
+1. Most significant military activity           
+...             
+n. Least significant military activity      
+
+Do not describe more than 10 events. Conclude with 1-2 sentences that provide an overview of the military activity being reported on. Please be concise. "
+Soft Power,"Here is a sample of newspaper articles reporting on soft power activity (any attempts to influence public perceptions of another country's citizens) between Russia and {country} for {year_month}. Generate a numbered list that summarizes reporting on the most important soft power activity that occurred. I want your summary to be no more than 2 sentences. In your summary, include information about the nature of the soft power activity, the objectives of the governments involved, and the significance of the soft power activity for politics in {country}. Rank the importance of the different soft power activity being reported on based on the impact on politics in {country} and the number of articles reporting on the soft power activity.              
+
+Input text: 
+{combined_text}
+
+Output:             
+1. Most significant soft power activity           
+...             
+n. Least significant soft power activity      
+
+Do not describe more than 10 events. Conclude with 1-2 sentences that provide an overview of the soft power activity being reported on. Please be concise. "

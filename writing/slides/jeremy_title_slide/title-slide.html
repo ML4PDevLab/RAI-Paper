@@ -1,0 +1,32 @@
+<section id="$idprefix$title-slide"$for(title-slide-attributes/pairs)$ $it.key$="$it.value$"$endfor$>
+<div style="background-color:#bbb;" >
+  <h1 class="title">$title$</h1>
+  $if(subtitle)$
+  <p class="subtitle">$subtitle$</p>
+  $endif$
+  </div>
+
+ <div class="row" >
+  <div class="column left" >
+  
+  $for(author)$
+  <p class="author">$author$</p>
+  $endfor$
+
+  $for(institute)$
+  <p class="institute">$institute$</p>
+  $endfor$
+  $if(date)$
+  <p class="date">$date$</p>
+  $endif$
+  </div>
+
+  <div class="column right"> 
+  <p style="font-size:100%; text-align:left"> Jeremy Springman </p>  
+    <p style="font-size:80%; text-align:left"> Research Assistant Professor </p>  
+    <p style="font-size:50%; text-align:left"> Erik Wibbels, Serkant Adiguzel, Mateo Villamizar Chaparro, Zung-Ru Lin, Donald Moratz, Diego Romero, Hanling Su, Mahda Soltani </p> 
+  </div>   
+  
+</div> 
+
+</section>

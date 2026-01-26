@@ -1,0 +1,158 @@
+"","sheet_name","keyword","TRUE","FALSE","Total","tp_share"
+"1","China_all_kw","Alibaba",0,1,1,0
+"2","China_all_kw","Asian Infrastructure Investment Bank",4,1,5,0.8
+"3","China_all_kw","Baidu",0,1,1,0
+"4","China_all_kw","Beijing",222,55,277,0.8014440433213
+"5","China_all_kw","ByteDance",2,2,4,0.5
+"6","China_all_kw","CAMC Engineering",1,0,1,1
+"7","China_all_kw","China",389,75,464,0.838362068965517
+"8","China_all_kw","China Communications Construction",1,0,1,1
+"9","China_all_kw","China Mobile",1,0,1,1
+"10","China_all_kw","China Railway Construction",1,0,1,1
+"11","China_all_kw","China Telecom",9,0,9,1
+"12","China_all_kw","Chinese",229,24,253,0.905138339920949
+"13","China_all_kw","CloudWalk",2,0,2,1
+"14","China_all_kw","Dahua",1,0,1,1
+"15","China_all_kw","Dashang Group",1,0,1,1
+"16","China_all_kw","FAW Group",1,0,1,1
+"17","China_all_kw","Hainan Airlines",1,0,1,1
+"18","China_all_kw","Hikvision",1,0,1,1
+"19","China_all_kw","Hisense",0,3,3,0
+"20","China_all_kw","Hu Chunhua",2,0,2,1
+"21","China_all_kw","Hu Jintao",1,0,1,1
+"22","China_all_kw","Huawei",55,20,75,0.733333333333333
+"23","China_all_kw","Inspur",1,1,2,0.5
+"24","China_all_kw","Peoples Liberation Army",2,0,2,1
+"25","China_all_kw","Ping An Insurance",0,1,1,0
+"26","China_all_kw","Shanghai",20,18,38,0.526315789473684
+"27","China_all_kw","Shougang",0,1,1,0
+"28","China_all_kw","Sinopec",0,1,1,0
+"29","China_all_kw","Sinovac Biotech",4,2,6,0.666666666666667
+"30","China_all_kw","Tencent",3,0,3,1
+"31","China_all_kw","Wang Qishan",1,0,1,1
+"32","China_all_kw","Wang Yi",19,0,19,1
+"33","China_all_kw","Xi Jinping",116,18,134,0.865671641791045
+"34","China_all_kw","Xiao Jie",1,0,1,1
+"35","China_all_kw","Xiaomi",0,1,1,0
+"36","China_all_kw","ZTE",6,1,7,0.857142857142857
+"37","China_all_kw","Zijin Mining",2,0,2,1
+"38","China_china_chinese_first_two","Alibaba",0,1,1,0
+"39","China_china_chinese_first_two","Asian Infrastructure Investment Bank",4,1,5,0.8
+"40","China_china_chinese_first_two","Beijing",222,55,277,0.8014440433213
+"41","China_china_chinese_first_two","ByteDance",2,2,4,0.5
+"42","China_china_chinese_first_two","CAMC Engineering",1,0,1,1
+"43","China_china_chinese_first_two","Chengdu",3,0,3,1
+"44","China_china_chinese_first_two","China",581,127,708,0.820621468926554
+"45","China_china_chinese_first_two","Chinese",562,51,613,0.916802610114193
+"46","China_china_chinese_first_two","CloudWalk",2,0,2,1
+"47","China_china_chinese_first_two","Dahua",1,0,1,1
+"48","China_china_chinese_first_two","Dashang Group",1,0,1,1
+"49","China_china_chinese_first_two","FAW Group",1,0,1,1
+"50","China_china_chinese_first_two","Fujian",8,0,8,1
+"51","China_china_chinese_first_two","Guangdong",3,0,3,1
+"52","China_china_chinese_first_two","Hainan Airlines",1,0,1,1
+"53","China_china_chinese_first_two","Hebei",3,0,3,1
+"54","China_china_chinese_first_two","Hikvision",1,0,1,1
+"55","China_china_chinese_first_two","Hisense",0,3,3,0
+"56","China_china_chinese_first_two","Hu Chunhua",2,0,2,1
+"57","China_china_chinese_first_two","Hu Jintao",1,0,1,1
+"58","China_china_chinese_first_two","Huawei",55,20,75,0.733333333333333
+"59","China_china_chinese_first_two","Jiangxi",4,0,4,1
+"60","China_china_chinese_first_two","Peoples Liberation Army",2,0,2,1
+"61","China_china_chinese_first_two","Ping An Insurance",0,1,1,0
+"62","China_china_chinese_first_two","Shaanxi",2,0,2,1
+"63","China_china_chinese_first_two","Shandong",6,0,6,1
+"64","China_china_chinese_first_two","Shanghai",20,18,38,0.526315789473684
+"65","China_china_chinese_first_two","Shenzhen",4,1,5,0.8
+"66","China_china_chinese_first_two","Shougang",0,1,1,0
+"67","China_china_chinese_first_two","Sinopec",0,1,1,0
+"68","China_china_chinese_first_two","Sinovac Biotech",4,2,6,0.666666666666667
+"69","China_china_chinese_first_two","Tencent",3,0,3,1
+"70","China_china_chinese_first_two","Tianjin",3,1,4,0.75
+"71","China_china_chinese_first_two","Wang Qishan",1,0,1,1
+"72","China_china_chinese_first_two","Wang Yi",19,0,19,1
+"73","China_china_chinese_first_two","Xi Jinping",116,18,134,0.865671641791045
+"74","China_china_chinese_first_two","Xian",1,0,1,1
+"75","China_china_chinese_first_two","Xiao Jie",1,0,1,1
+"76","China_china_chinese_first_two","Xiaomi",0,1,1,0
+"77","China_china_chinese_first_two","Xinjiang",2,1,3,0.666666666666667
+"78","China_china_chinese_first_two","Zhejiang",3,0,3,1
+"79","China_china_chinese_first_two","Zijin Mining",2,0,2,1
+"80","China_province_only","Alibaba",0,1,1,0
+"81","China_province_only","Asian Infrastructure Investment Bank",4,1,5,0.8
+"82","China_province_only","Beijing",222,55,277,0.8014440433213
+"83","China_province_only","ByteDance",2,2,4,0.5
+"84","China_province_only","CAMC Engineering",1,0,1,1
+"85","China_province_only","Chengdu",3,0,3,1
+"86","China_province_only","China",389,75,464,0.838362068965517
+"87","China_province_only","China Communications Construction",1,0,1,1
+"88","China_province_only","China Mobile",1,0,1,1
+"89","China_province_only","China Railway Construction",1,0,1,1
+"90","China_province_only","China Telecom",9,0,9,1
+"91","China_province_only","Chinese",229,24,253,0.905138339920949
+"92","China_province_only","CloudWalk",2,0,2,1
+"93","China_province_only","Dahua",1,0,1,1
+"94","China_province_only","Dashang Group",1,0,1,1
+"95","China_province_only","FAW Group",1,0,1,1
+"96","China_province_only","Fujian",8,0,8,1
+"97","China_province_only","Guangdong",3,0,3,1
+"98","China_province_only","Hainan Airlines",1,0,1,1
+"99","China_province_only","Hebei",3,0,3,1
+"100","China_province_only","Hikvision",1,0,1,1
+"101","China_province_only","Hisense",0,3,3,0
+"102","China_province_only","Hu Chunhua",2,0,2,1
+"103","China_province_only","Hu Jintao",1,0,1,1
+"104","China_province_only","Huawei",55,20,75,0.733333333333333
+"105","China_province_only","Jiangxi",4,0,4,1
+"106","China_province_only","Peoples Liberation Army",2,0,2,1
+"107","China_province_only","Ping An Insurance",0,1,1,0
+"108","China_province_only","Shaanxi",2,0,2,1
+"109","China_province_only","Shandong",6,0,6,1
+"110","China_province_only","Shanghai",20,18,38,0.526315789473684
+"111","China_province_only","Shenzhen",4,1,5,0.8
+"112","China_province_only","Shougang",0,1,1,0
+"113","China_province_only","Sinopec",0,1,1,0
+"114","China_province_only","Sinovac Biotech",4,2,6,0.666666666666667
+"115","China_province_only","Tencent",3,0,3,1
+"116","China_province_only","Tianjin",3,1,4,0.75
+"117","China_province_only","Wang Qishan",1,0,1,1
+"118","China_province_only","Wang Yi",19,0,19,1
+"119","China_province_only","Xi Jinping",116,18,134,0.865671641791045
+"120","China_province_only","Xian",1,0,1,1
+"121","China_province_only","Xiao Jie",1,0,1,1
+"122","China_province_only","Xiaomi",0,1,1,0
+"123","China_province_only","Xinjiang",2,1,3,0.666666666666667
+"124","China_province_only","Zhejiang",3,0,3,1
+"125","China_province_only","Zijin Mining",2,0,2,1
+"126","RAI_keywords","Alibaba",0,1,1,0
+"127","RAI_keywords","Asian Infrastructure Investment Bank",4,1,5,0.8
+"128","RAI_keywords","Baidu",0,1,1,0
+"129","RAI_keywords","Beijing",223,55,278,0.802158273381295
+"130","RAI_keywords","ByteDance",2,2,4,0.5
+"131","RAI_keywords","China",388,75,463,0.838012958963283
+"132","RAI_keywords","China Mobile",1,0,1,1
+"133","RAI_keywords","China Telecom",9,0,9,1
+"134","RAI_keywords","Chinese",229,24,253,0.905138339920949
+"135","RAI_keywords","CloudWalk",2,0,2,1
+"136","RAI_keywords","Dahua",1,0,1,1
+"137","RAI_keywords","Dashang Group",1,0,1,1
+"138","RAI_keywords","FAW Group",1,0,1,1
+"139","RAI_keywords","Hainan Airlines",1,0,1,1
+"140","RAI_keywords","Hikvision",1,0,1,1
+"141","RAI_keywords","Hisense",0,3,3,0
+"142","RAI_keywords","Hu Jintao",1,0,1,1
+"143","RAI_keywords","Huawei",55,20,75,0.733333333333333
+"144","RAI_keywords","Kaspersky Lab",2,0,2,1
+"145","RAI_keywords","Moscow",10,9,19,0.526315789473684
+"146","RAI_keywords","Ping An Insurance",0,1,1,0
+"147","RAI_keywords","Russia",27,8,35,0.771428571428571
+"148","RAI_keywords","Sergey Lavrov",1,1,2,0.5
+"149","RAI_keywords","Shanghai",20,18,38,0.526315789473684
+"150","RAI_keywords","Shougang",0,1,1,0
+"151","RAI_keywords","Sinopec",0,1,1,0
+"152","RAI_keywords","Sinovac Biotech",4,2,6,0.666666666666667
+"153","RAI_keywords","Sukhoi",2,0,2,1
+"154","RAI_keywords","Tencent",3,0,3,1
+"155","RAI_keywords","Xi Jinping",116,18,134,0.865671641791045
+"156","RAI_keywords","Xiaomi",0,1,1,0
+"157","RAI_keywords","ZTE Corporation",5,1,6,0.833333333333333

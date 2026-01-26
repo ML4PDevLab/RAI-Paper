@@ -1,0 +1,353 @@
+---
+title: "Machine Learning for Peace:"
+subtitle: "Infrastructure and Applications"
+author: "PDRI-DevLab"
+institute: "University of Pennsylvania"
+date: today
+date-format: long
+cap-location: top
+fig-cap-location: top
+
+format:
+  revealjs:
+    toc: false
+    theme: [custom_iea.scss]
+    width: 1050
+    margin: 0.05
+    logo: devlab.png
+    footer: "jrspringman.github.io"
+    embed-resources: true
+    template-partials:
+      - title-slide.html
+    gfm:
+    mermaid-format: png
+editor: source
+---
+
+```{r}
+#| label: load-packages
+#| include: false
+
+# devtools::load_all(here::here("rai.atari"))
+library(dplyr)
+library(tidyr)
+library(gt)
+library(kableExtra)
+library(ggplot2)
+library(changepoint)
+library(flextable)
+library(readr)
+
+#library(rai.atari)
+#rai <- rai.atari::rai 
+
+# load(file = here::here("rai.atari/data/rai.rda"))
+rai = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv"))
+load(file = here::here("data/rai_vars.rda"))
+
+rai_vars_select = bind_rows(
+  data.frame(
+    variable = grep("rai_idx_.*", colnames(rai), value = T),
+    name = c("Total RAI", "Backlash", "Domestic Interference", "Diplomacy", "Economic Power", "Hard Power", "Soft Power")
+  ),
+  rai_vars
+)
+
+```
+
+
+## Overview
+
+\
+
+1. Introducing Machine Learning for Peace
+2. Application: Forecasting Travel Warnings
+3. MLEED Extensions and Estimation
+
+
+# Introducing MLP Infrastructure
+
+## Background
+
+- Event data are key for understanding political dynamics
+- Media reports are the most comprehensive documentation
+- Positive: AI/ML provides new tools to extract information from text
+- Negative: Existing media corpora have poor coverage of domestic media outlets in developing countries
+- MLP provides high-quality corpus and flexible text processing infrastructure
+
+
+## High Quality Corpus
+
+::: columns
+::: {.column width="50%"}
+**Input: Online news**
+
+-   400+ news sources
+-   47 languages
+-   120 million articles
+:::
+
+::: {.column width="50%"}
+**Data quality**
+
+-   Focus on high-quality local sources (medium data)
+-   Direct, human monitored scraping
+-   *Much* better coverage than extant archivers/aggregators (GDELT, Wayback, Lexis Nexis, etc.)
+:::
+:::
+
+**\
+\
+Output: *Monthly* data**
+
+-   63 countries
+-   2012 - last month 
+
+
+## Detecting Civic Space Events in Text
+
+::: columns
+::: {.column width="50%"}
+-   Robustly Optimized BERT Pretraining Approach (RoBERTa)
+-   Pre-trained on enormous corpora of data + transfer learning
+-   Fine-tuned on double human-coded training data (n=9,875)
+:::
+
+::: {.column width="50%"}
+![](roberta_performance.png){.absolute height="65%"}
+:::
+:::
+
+## Data Processing Pipeline
+
+\
+
+![](mermaid.png){fig-align="center"}
+
+## Event Detection
+
+
+```{r, fig.width=8,fig.height=6}
+#| echo: false
+#| warning: false
+
+dat = rai %>%
+  filter(influencer == "China" & country %in%  c("Burkina Faso", "Dominican Republic", "El Salvador", "Honduras", "Nicaragua")) 
+
+ggplot(dat, aes(x = date, y =  rai_idx_dip)) +
+  geom_line(linewidth = .5, color = "black", linetype=1) +
+  facet_wrap(~country, scales = "free_y", ncol = 1) +
+  theme_bw() +
+  scale_x_date(breaks = seq(as.Date("2012-01-01"), as.Date(max(rai$date)), by = "6 months"), labels = scales::date_format("%Y-%b"),
+              expand = c(.01,.01) ) +
+  theme(plot.title = element_text(hjust = 0, size = 18),  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 10),
+        strip.text = element_text(size = 10)) +
+  labs(y = "Chinese Diplomacy Activity (articles per 10k published)") +
+  geom_vline(aes(xintercept = as.Date("2018-05-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Burkina Faso", ]) +
+  geom_vline(aes(xintercept = as.Date("2018-05-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Dominican Republic", ]) +
+  geom_vline(aes(xintercept = as.Date("2018-08-01")), linetype = "dashed", color = "red", data = dat[dat$country == "El Salvador", ]) +
+  geom_vline(aes(xintercept = as.Date("2021-12-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Nicaragua", ]) +
+  geom_vline(aes(xintercept = as.Date("2023-03-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Honduras", ])
+
+```
+
+
+# Forecasting Travel Advisories
+
+## Why Travel Advisories?
+
+- Request from US State Department
+  + High-level travel advisories trigger deployment of resources
+  + Anticipating location, timing of warnings can help smooth budgets
+- Travel advisories include political instability, natural disasters, health risks, etc
+
+## Data
+
+- Target: onset of a serious travel advisory
+- Predictors: MLP data, indicator for continued advisories, years, time trend, Bayesian country encoding 
+
+![](Picture1.png){fig-align="center"}
+
+
+## Modeling
+
+- Forecast Horizon: 3 and 6 months
+- Model: LightGBM + Temporal CV
+- Hyperparameters: Wide grid search for learning rate, proportion of features, depth of trees
+- Evaluation Metrics: 
+  + ROC-AUC: ranking months in test set
+  + AUC-PR: optimal for imbalanced data
+ 
+## Performance
+
+![](ROC_AUC6.png){fig-align="center"}
+
+## Performance
+
+![](AUC_PR6.png){fig-align="center"}
+
+
+## Performance
+
+![](fuzzyROC6.png){fig-align="center"}
+
+::: notes
+Fuzzy' Metrics: Models are evaluated using a 'fuzzy' onset metric, which considers an onset as 1 for the month before, during, and after the actual event. This accounts for the daily nature of travel advisories versus the monthly granularity of the MLP data
+:::
+
+## Performance
+
+![](fuzzyAUC6.png){fig-align="center"}
+
+## Feature Importance
+
+![](FE6.png){fig-align="center"}
+
+
+## MLEED Extensions
+
+- New classification model to detect environmental events
+- Geographic granularity down to ADM2
+  + Current ability for ADM1
+  + GPT needed for ADM2
+- Higher-frequency data is feasible
+
+## Estimating the Relationship Between Climate Events and Political Events
+
+- Unit of analysis: ADM2-months
+- Forecasting using temporal cross-validation
+  + Correlation between short-term climate events and long-term climate conditions on the frequency of political events
+- Estimating causal effects
+  + Effect of short-term weather shocks on political events
+
+
+
+# Comparing MLP with Big Data Media Corpora
+
+
+## Findings
+
+- International media sources have limited, skewed coverage of events in developing countries
+  + Event datasets that rely on global language sources will have major biases
+- Accurate data collection from national news sources requires careful human curation
+  + GDELT, Common Crawl, Internet Archive include major errors
+
+
+## Importance of Domestic News
+
+![](figure_6_indonesia.jpg){fig-align="center"}
+
+::: notes
+We ran shock detection algorithms to identify major events 
+We picked the event-month with the highest volume of articles but 0 from international sources
+widespread corruption takedown implicating a major businesswoman and her husband in the mining trade, the minister of agriculture, a state-owned construction firm, and finally a major firm in gold commodities. From what I can tell, these aren't all connected, but the only one that received coverage in the AP (that I can find) is the minister of agriculture being sentenced to 10 years in prison.
+:::
+
+
+## Importance of Domestic News
+
+![](figure_3.jpg){fig-align="center"}
+::: notes
+- most of our news comes from national sources
+- fundamental differences in the type of events covered by domestic and international sources
+:::
+
+
+## Importance of Domestic News
+
+![](figure_4_alternative.jpg){fig-align="center"}
+
+::: notes
+event types sorted by the extent of international coverage, with national coverage stacked on top. We see that there are big differences in the types of events that are covered in international media compared to domestic media. International media is far more likely to cover acts of violence, whereas domestic media is far more likely to cover legal actions, election activity, corruption, protests, and cooperation
+
+:::
+
+
+## Importance of Domestic News
+
+![](figure_5.jpg){fig-align="center"}
+
+::: notes
+slightly positive relationship between the volume of coverage and the correlation between domestic and international reporting, the correlation is low across all countries. For instance, in Turkey and India, two countries that receive a lot of international coverage, the correlation between national and international coverage is below 0.5
+:::
+
+## Lexis Nexis vs MLP 
+
+**Countries where LN has zero local sources: 6/56**
+
+-   Albania, Belarus, Kosovo, Jamaica, Angola, South Sudan
+
+**Comparing LN on other metrics:**
+
+-   Fewer languages: 17 vs 34
+-   Slightly more local sources per country: 5.5 vs 5 (median; excluding MLP's regional sources)
+-   Shorter, more sporadic coverage over time
+
+::: notes
+-   These counts are generous to LN because (a) they're calculated conditional on the country being in the data (we don't include 0 sources for the 6 countries they don't have) and (b) we don't include our 12 regional sources
+-   LN has more sources overall, but they're concentrated in big countries like India
+-   LN is super expensive, academics have restricted access
+-   Next slides show that a pretty large share start in recent years
+:::
+
+## Challenges of Scraping
+
+![](figure_1.jpg){fig-align="center"}
+
+
+## Scraping Case Study
+
+**Bangladesh**: easiest case for automated scrapers
+
+- Massive volume
+- Good web architecture
+- 2/5 sources are in English
+
+## Scraping Domestic Outlets is Tough
+
+**GDELT**
+
+- MLP: 2013 and 2015 
+- GDELT: 2019 forward
+- GDELT's best covered source: 2,100 articles/mo compared to 2,500 per month from MLP
+- Broken links, redirects, duplicate articles, and advertising
+- Restricts requests to one search every 5 seconds, so that scraping even a single source for the full time-period can take several days
+
+## Scraping Domestic Outlets is Tough
+
+**Internet Archive**
+
+- Took nearly two weeks to collect URLs from a single source from 2019-2023
+- Numerous irrelevant, broken, and duplicate links
+- Less than half or urls were usable 
+
+
+## Random Audit of 5 MLP Countries
+
+**Task**
+
+- Use algorithm to identify major events
+- Use GPT to summarize 5 most important events
+- Human check of location and event classification accuracy
+
+**Results**
+
+- 40 events detected from April - June 2024 (300 possible)
+- Correct country: 34/40
+- Correct event: 38/40
+
+::: notes
+- Use algorithm to identify major events
+- Use GPT to summarize 5 most important events (from 1-1000 articles)
+- Correct country for all events: 34/40
+- Correct event for all top 5: 38/40
+- Correct event for every top 5: 181/200
+
+:::
+
+
+
+
+

@@ -1,0 +1,2060 @@
+---
+title: "Foreign Influence by Authoritarian Governments: Introducing New Data and Evidence "
+subtitle: "Supplemental Materials"
+
+format: 
+  pdf:
+    geometry:
+      - margin=1in
+    colorlinks: true
+    toc: true
+
+bibliography: references.bib
+
+header-includes:
+  - \usepackage{multirow}
+  - \usepackage{hyperref}
+  - \usepackage[capitalise,noabbrev]{cleveref}
+  - \usepackage{float}
+  - \floatplacement{table}{!ht}
+---
+
+{{< pagebreak >}}
+
+
+```{r}
+#| label: load-packages
+#| include: false
+
+library(tidyverse)
+library(gt)
+library(kableExtra)
+library(ggplot2)
+library(changepoint)
+library(cowplot)
+library(ml4p.forecast)
+library(rai.atari)
+
+rai_vars_select = bind_rows(
+  data.frame(
+    variable = grep("rai_idx_.*", colnames(rai), value = T),
+    name = c("Total RAI", "Backlash", "Domestic Interference", "Diplomacy", "Economic Power", "Hard Power", "Soft Power")
+  ),
+  rai_vars
+)
+
+```
+
+
+<!-- ## Differences with AidData -->
+
+<!-- AidData provides detailed, project-level data on China's foreign aid and state financing to all low- and middle-income countries from 2000-2017 and more recently, annual event data on 10 types of diplomatic events in 25 in East Asian and Pacific countries (2000-2016) and 13 South and Central Asian countries (2000-2018). Both datasets received major updates in 2021 [@custer2021tracking].  -->
+
+<!-- AidData's data on foreign aid and state financing comes from human review of official government sources from China and aid/finance receiving countries. For each project identified during this review of official sources, coders seek to collect information on 70 unique characteristics, including project start and end dates, fees, terms, and implementing organizations. When possible, this includes the specific dates on which projects begin and end. This process is complemented by a systematic search of media content sourced from Factiva, a media monitoring company, to collect information on additional project details. Public diplomacy event data is compiled using a similar methodology. These data are available at the country-year level, meaning that AidData provides the number of times each event occurred in each country in each year. These data have been a boon to researchers and policymakers alike.  -->
+
+
+## Event Definitions
+
+### Diplomacy
+
+- Diplomatic Action  
+  - Any action where a foreign authoritarian actor engages in diplomatic sanctions.  
+  - **Example:** “Russia expelled 23 British diplomats...”
+
+- Diplomatic Visit  
+  - Any action where a foreign authoritarian actor visits with local officials.  
+  - **Example:** “The 3rd Meeting of the Brazil-China Global Strategic Dialogue was held...”
+
+- Diplomatic Engagement  
+  - Any action where a foreign authoritarian actor engages in mediation between a local actor and others.  
+  - **Example:** “Russia said on Tuesday it was ready to facilitate...”
+
+- Diplomatic Relations  
+  - Any action where a foreign authoritarian actor provides legitimacy through agreements or support.  
+  - **Example:** “The comprehensive strategic partnership between Argentina and China was signed...”
+
+- Diplomatic Statement  
+  - Any action where a foreign authoritarian actor engages in public discourse regarding local actors.  
+  - **Example:** “The Maldives is a case in point...”
+
+### Domestic Interference
+
+- Cyber Operation  
+  - Any action where a foreign authoritarian actor engages in cyber intrusion or intelligence activities.  
+  - **Example:** “Colombian authorities are investigating...”
+
+- Intelligence Operation  
+  - Any action where a foreign authoritarian actor engages in intelligence or covert operations.  
+  - **Example:** “Ukraine's security service SBU said on Wednesday it had captured...”
+
+- Policy Intervention  
+  - Any action where a foreign authoritarian actor intervenes in local political processes.  
+  - **Example:** “China has reportedly also donated funding to preferred political campaigns...”
+
+- Technology Transfer  
+  - Any action where a foreign authoritarian actor provides technology.  
+  - **Example:** “Technology linked to Chinese companies... supply AI surveillance technology...”
+
+### Economic Power
+
+- Aid Operation  
+  - Any action where a foreign authoritarian actor provides economic support.  
+  - **Example:** “Recognizing Mongolia’s difficult situation, China Exim Bank agreed...”
+
+- Investment Action  
+  - Any action where a foreign authoritarian actor engages in investment in local projects.  
+  - **Example:** “Most significantly, a $3 billion portion of the Central Asia-China gas pipeline...”
+
+- Trade Action  
+  - Any action where a foreign authoritarian actor implements trade sanctions.  
+  - **Example:** “Moscow’s threat to halt imports of Argentine beef...”
+
+- Trade Agreement  
+  - Any action where a foreign authoritarian actor signs a trade agreement.  
+  - **Example:** “November 30, 2017... economic and trade exchanges with the Philippine Chinese Economic...”
+
+### Hard Power
+
+- Security Engagement  
+  - Any action where a foreign authoritarian actor enters into a security agreement with local actors.  
+  - **Example:** “Russia and Bolivia signed a defense cooperation agreement...”
+
+- Security Exercise  
+  - Any action where a foreign authoritarian actor engages in joint security exercises or training.  
+  - **Example:** “Thailand regularly conducts counter-terrorism exercises with China...”
+
+- Security Presence  
+  - Any action where a foreign authoritarian actor deploys security forces.  
+  - **Example:** “China prepares to deploy nuclear submarines...”
+
+- Security Transfer  
+  - Any action where a foreign authoritarian actor provides security technology or supports military forces.  
+  - **Example:** “Bolivia is in discussions with Moscow to purchase transport helicopters...”
+
+### Soft Power
+
+- Cultural Activity  
+  - Any action where a foreign authoritarian actor engages in student or social exchange programs.  
+  - **Example:** “In March 2017... promote Russia’s academic offerings among Latin American students...”
+
+- Diaspora Activation  
+  - Any action where a foreign authoritarian actor mobilizes citizens in a foreign nation to engage in domestic politics.  
+  - **Example:** “A Chinese-born businessman, Jian was elected... linked his nomination to the donation...”
+
+- Media Campaign  
+  - Any action where a foreign authoritarian actor interacts with local media.  
+  - **Example:** “Grupo America... closed an agreement with China Daily...”
+
+### Backlash
+
+- Corruption  
+  - Any action where a foreign authoritarian actor engages in bribery or corruption.  
+  - **Example:** “Malaysia's new government... believes that two of the contracts, for pipelines, were used to launder money...”
+
+- Organized Crime  
+  - Any action where a foreign authoritarian actor engages in organized crime.  
+  - **Example:** “The Philippines said Friday it has detained hundreds of Chinese workers...”
+
+
+## Distribution of Domestic Sources in HQMARC
+
+```{r}
+#| echo: false
+#| warning: false
+#| label: source-distribution
+#| fig-cap: "The number of domestic media outlets included in the HQMARC corpus by country."
+
+library(ISOcodes)
+
+rai = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv"))
+
+# Initialize an empty dataframe to store the results
+result_df <- data.frame(country = character(), lsources_len = integer(), stringsAsFactors = FALSE)
+
+sum_lengths <- 0
+for (i in unique(rai$country)) {
+  lsources_len = ml4p.forecast::local_source_select(i)$lsources
+  len = length(lsources_len)
+  
+  # Append the country and the length to the dataframe
+  result_df <- rbind(result_df, data.frame(country = i, lsources_len = len))
+  
+  # Update sum_lengths
+  sum_lengths <- sum_lengths + len
+}
+
+# Create a bar plot to visualize the length of lsources by country
+a = ggplot(result_df, aes(x = reorder(country, -lsources_len), y = lsources_len)) +
+  geom_bar(stat = "identity", fill = "darkgrey") +
+  labs(title = "Number of Domestic Sources by Country", 
+       x = NULL, 
+       y = NULL) +
+  theme_bw() +
+  scale_y_continuous(breaks = 0:max(result_df$lsources_len)) +  # Set the y-axis to display numbers from 0 to 5
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
+        title = element_text(size = 10))
+
+a
+
+```
+
+
+
+## Languages in HQMARC
+
+```{r}
+#| echo: false
+#| warning: false
+
+library(ISOcodes)
+
+lan = read_csv(here::here("data", "languages", "Scraping Process List.csv")) %>%
+  filter(! Name %in% c("Roya’s project")) %>%
+  filter(!is.na(Language))
+
+# Remove parentheses and all characters between them
+lan$Language <- gsub("\\(.*?\\)", "", lan$Language)
+
+# Trim any leading or trailing spaces left after removing the parentheses
+lan$Language <- trimws(lan$Language)
+
+# Calculate number of languages
+langs = unique(unlist(strsplit(lan$Language, ", ")))
+
+nl = length(langs)
+
+```
+
+The *HQMARC* corpus currently includes domestic media outlets publishing in `r nl` languages. This number will increase as we add new countries and media sources to the corpus. These languages include `r unlist(ISO_639_2[ISO_639_2$Alpha_2 %in% langs, ]$Name)`. Below, we provide the languages associated with media outlets in each country using the language ISO codes.
+
+```{r}
+#| echo: false
+#| warning: false
+
+# Loop over the dataframe and print each country with its languages
+for(i in 1:nrow(lan)) {
+  cat("**", lan$Name[i], "**: ", lan$Language[i], "\n\n", sep = "")
+}
+
+```
+
+
+## Digital News Sources
+
+```{r}
+#| echo: false
+#| warning: false
+
+library(knitr)
+library(ml4p.forecast)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+
+cat("  -  International Sources:")
+
+counter <- 0  # Initialize counter
+for (country in isources) {
+    country <- sub("\\.csv$", "", country)
+    cat(paste0(country, ", "))
+    counter <- counter + 1
+    if (counter %% 6 == 0) {  # Check if counter is divisible by 5
+        cat("\n")  # Print newline after every 5 countries
+    }
+}
+
+
+```
+
+**Sub-Saharan Africa**:
+
+```{r}
+#| echo: false
+#| warning: false
+
+library(countrycode)
+
+rai = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv"))
+rai$region <- countrycode::countrycode(rai$country, "country.name", "region")
+
+
+countries_afr <- unique(rai[rai$region == "Sub-Saharan Africa",]$country)
+
+cat("  -   Africa Regional Sources:", "\n")
+cat("africanews.com", "theeastafrican.co.ke", "iwpr.net\n\n")
+
+# Loop through countries
+for (country in countries_afr) {
+  cat(paste0("  -  ", country, ":\n"))
+  
+  sources = local_source_select(country)$lsources
+  sources = gsub("\\.csv$", "", sources)
+  
+  # Determine the number of columns based on the country
+  num_columns <- ifelse(country == "Liberia", 3, 5)
+  
+  counter <- 0  # Reset the counter for each country
+  
+  # Loop through sources
+  for (source in sources) {
+    counter <- counter + 1
+    cat(paste0( source))
+    
+    # Check if the counter reaches the specified number of columns
+    if (counter %% num_columns == 0) {
+      cat("\n")
+    } else {
+      cat(", ")
+    }
+  }
+  
+  cat("\n\n")
+}
+
+```
+
+**Middle East and North Africa**
+
+```{r, echo=FALSE}
+# Define the MENA countries
+countries_mena <- unique(rai[rai$region == "Middle East & North Africa",]$country)
+
+
+# Loop through MENA countries
+for (country in countries_mena) {
+  cat(paste0("  -  ", country, ":\n"))
+  
+  # Get the sources for the current country
+  sources <- local_source_select(country)$lsources
+  sources <- gsub("\\.csv$", "", sources)
+  
+  # Print the sources with bullet points
+  for (i in seq_along(sources)) {
+    cat(paste0( sources[i]))
+    
+    # Check if it's not the last source for the country
+    if (i < length(sources)) {
+      cat(", ")
+      
+      # Print newline after listing 3 sources
+      if (i %% 5 == 0) {
+        cat("\n")
+      }
+    } else {
+      cat("\n\n")  # Add an extra newline after listing all sources for the country
+    }
+  }
+}
+```
+
+**Eastern Europe**
+
+```{r, echo=FALSE}
+# Define the Eastern European regional sources
+cat("  -   Eastern Europe Regional Sources:\n")
+cat("euronews.com/tag/eastern-europe", "neweasterneurope.edu", "balkaninsight.com", "iwpr.net\n\n")
+
+# Define the Eastern European countries
+countries_est_eu <- unique(rai[rai$region == "Europe & Central Asia",]$country)
+
+# Loop through Eastern European countries
+for (country in countries_est_eu) {
+  cat(paste0("  -  ", country, ":\n"))
+  
+  # Get the sources for the current country
+  sources <- local_source_select(country)$lsources
+  sources <- gsub("\\.csv$", "", sources)
+  
+  # Print the sources with bullet points
+  for (i in seq_along(sources)) {
+    cat(paste0(sources[i]))
+    
+    # Check if it's not the last source for the country
+    if (i < length(sources)) {
+      cat(", ")
+      
+      # Print newline after listing 3 sources
+      if (i %% 5 == 0) {
+        cat("\n")
+      }
+    } else {
+      cat("\n\n")  # Add an extra newline after listing all sources for the country
+    }
+  }
+}
+
+```
+
+**Latin America and the Caribbean**:
+
+```{r, echo=FALSE}
+# Define the Latin America regional sources
+cat("  -   Latin America Regional Sources:\n")
+cat("elpais.com", "cnnespanol.cnn.com", "iwpr.net\n\n")
+
+# Define the Latin American countries
+countries_lacar <- unique(rai[rai$region == "Latin America & Caribbean",]$country)
+
+# Loop through Latin American countries
+for (country in countries_lacar) {
+  cat(paste0("  -  ", country, ":\n"))
+  
+  # Get the sources for the current country
+  sources <- local_source_select(country)$lsources
+  sources <- gsub("\\.csv$", "", sources)
+  
+  counter <- 0  # Reset the counter for each country
+  
+  # Loop through sources
+  for (source in sources) {
+    cat(paste0(source))
+    counter <- counter + 1
+    
+    # Check if it's not the last source for the country
+    if (counter < length(sources)) {
+      cat(", ")
+      
+      # Print newline after listing 5 sources
+      if (counter %% 5 == 0) {
+        cat("\n")
+      }
+    } else {
+      cat("\n\n")  # Add an extra newline after listing all sources for the country
+    }
+  }
+}
+
+```
+
+**Asia**:
+
+```{r, echo=FALSE}
+# Define the Asia regional sources
+cat("  -   Asia Regional Sources:\n")
+cat("asiatimes.com", "asia.nikkei.com", "iwpr.net\n\n")
+
+# Define the Asian countries
+countries_asia <- unique(rai[rai$region %in% c("East Asia & Pacific", "South Asia"),]$country)
+
+# Loop through Asian countries
+for (country in countries_asia) {
+  cat(paste0("  -  ", country, ":\n"))
+  
+  # Get the sources for the current country
+  sources <- local_source_select(country)$lsources
+  sources <- gsub("\\.csv$", "", sources)
+  
+  counter <- 0  # Reset the counter for each country
+  
+  # Loop through sources
+  for (source in sources) {
+    cat(paste0(source))
+    counter <- counter + 1
+    
+    # Check if it's not the last source for the country
+    if (counter < length(sources)) {
+      cat(", ")
+      
+      # Print newline after listing 5 sources
+      if (counter %% 5 == 0) {
+        cat("\n")
+      }
+    } else {
+      cat("\n\n")  # Add an extra newline after listing all sources for the country
+    }
+  }
+}
+
+```
+
+
+## Using Keyword to Detect Influence 
+
+We begin by identifying articles that report on one of our 22 foreign influence events. Next, we apply keyword filters to detect whether the main event being reported on involves Russian and Chinese agencies, companies, or officials. Specifically, articles get classified as Russian or Chinese influence respectively if they meet one of these two criteria.
+
+- Contains one or more of the following keywords in the *title*:
+  + **China**: China, Chinese
+  + **Russia**: Russia, Russian
+-  Contains one or more keyword in the *main text*
+
+
+### Keyword Lists
+
+Below are the *main text* keyword lists for Russia and China.
+
+**Russia**: 1C Company, Acron Group, Aeroflot, Africa Corps, Airport Tolmachevo, Akella, Alawar Entertainment, Alfa Group, Alfa-Bank, Almaz-Antey, ALROSA, Arktikgaz, AST, Atomenergoprom, ATV, Aviaconversiya, Aviakor, Aviastar-SP, Avtotor, AvtoVAZ, Baltika Breweries, Bank Rossiya, Bank Saint Petersburg, Beriev, Channel One, Chelyabinsk Pipe Rolling Plant, Chelyabinsk Tractor Plant, Cherkizovo, Concern Radio-Electronic Technologies, Concern Tractor Plants, CTC Media, Dalsvyaz, Derways Automobile, DIXY, E4 Group, Eksmo, En+ Group, ER-Telecom, Eurocement group, Euroset, Evalar, Evraz, ForteInvest, GAZ Group, Gazprom Media, Gazprom Neft, Gazprom, Gazprombank, Gorky Film Studio, High Precision Systems, I-Fly, Ilyushin, Ingosstrakh, Inter RAO, Interfax, International Industrial Bank, Intourist, Irkut Corporation, Irkutsk, Irkutskenergo, Izhevsk Mechanical Plant, Kalashnikov Concern, KamAZ, Kaspersky Lab, Kazan Helicopter Plant, Kazanorgsintez, Kirov Plant, Komus, Krasnoye Sormovo Factory, Kuzbassenergo, Lavochkin, Lebedyansky, Lenfilm, Lenta, Leroy Merlin Vostok, LOMO, LSR Group, Lukoil, M.video, Magnit, Magnitogorsk Iron and Steel Works, Mail.Ru Group, Makeyev Rocket Design Bureau, Mechel, MegaFon, Melodiya, Merlion, Metalloinvest, Metro Cash & Carry, Mikoyan, Mobile TeleSystems, Molodaya Gvardiya, Moran Security, Moscow, Mosfilm, Mostotrest, Motovilikha Plants, MTS, NEWSru, Nizhnekamskneftekhim, NLMK, Norilsk Nickel, North-West Telecom, Novatek, Novolipetsk Steel, Novoroscement, OAO Kondopoga, OAO TMK, Oboronprom, OGK-1, OGK-2, OGK-3, OGK-6, OMZ, Otkritie Holding, Petersburg - Channel 5, Petersburg Fuel, Petrodvorets Watch Factory, Pharmstandard, PhosAgro, PIK Group, PMC Shchit, Polyus, Power Machines, Progress State Research and Production Rocket Space Center, PROMT, Protek, Putin, Rambler, Razgulay, RBC, Red&White, REGNUM, Rolf Group, Rosatom, Rosenergomash, Rosgosstrakh, Rosneft, Rosselkhozbank, Rosseti, Rossotrudnichestvo, Rostec, Rostelecom, Rostselmash, Roszarubezhneft, RSB-group, Rusa, Rusal, Ruselectronics, RusHydro, Rusia, Ruso, Russkiy Mir Foundation, RussNeft, S.P. Korolev Rocket and Space Energia, S7 Airlines, Sakhalin Energy, Sberbank, Sergey Lavrov, Severnaya Verf, Severstal, Shvabe Holding, Siberian Coal Energy, Sibirtelecom, Sibur, Sinara Group, Sistema, Sitronics, Skolkovo Foundation, Sodrugestvo, SOGAZ, Sollers JSC, Southern Telecom, Sovcomflot, Sozvezdie, Stroygazmontazh, StroyTransNefteGaz, SU-155, Sukhoi, Surgutneftegas, Svyazinvest, Svyaznoy, T Plus, T-Platforms, Tactical Missiles, Tashir, Tasma, Tatneft, Technodinamika, Tecmash, TNK-BP, TogliattiAzot, Transmashholding, Transneft, Trolza, TsUM Trading House, Tupolev, TV Tsentr, Tverskoy Vagonostroitelniy Zavod, UAZ, UCL Holding, Unipro, United Aircraft, United Confectioners, United Engine, United Shipbuilding, Ural Mining and Metallurgical, Uralkali, Uralmash, Uralsib, Uralsvyazinform, Uralvagonzavod, UTair Aviation, VAZInterService, VimpelCom, VK, Vnesheconombank, Voenizdat, VolgaTelecom, Volgotanker, Vologodskiy mechanical plant, Volzhanin, Voronezh Aircraft Production Association, VSMPO-AVISMA, VTB Bank, Wagner Group, Wimm-Bill-Dann Foods, X5 Retail, Yandex, Yota, Yuganskneftegaz, Zarubezhneft, Zerich Capital Management, ZiL, Alisher Usmanov, Andrei Bokarev, Arkady Rotenberg, Coda Story, Dmitry Pumpyansky, Feniks, Gennady Timchenko, German Khan, Global Research, Hlavne Spravy, Igor Altushkin, International Investment Bank, Ivan Savvidis, Katehon, Leonid Fedun, Leonid Mikhelson, Newsfront, Oleg Deripaska, Oleg Tinkov, Perviy Kanal, Ria Novosti, Roman Abramovich, Rossiya 24, Sergei Popov, Sputnik, Strategic Culture Foundation, Structura, Suleiman Kerimov, The Moscow Times, Vagit Alekperov, Viktor Vekselberg, Vladimir Bogdanov, Vladimir Lisin, Vladimir Potanin, Yuri Kovalchuk
+
+**China**: 361 Degrees, Aerospace Long-March International Trade, Aigo, Alibaba, Amer International, Amoi, Anta Sports, Architectural Reconnaissance and Design Institute of the Tibet Autonomous Region, Asian Infrastructure Investment Bank, AVIC International Holding, Baidu, Bank of Communications, BeiDou, Beifang Investigation, Design & Research, BGI, Bolisi, Bosideng, Brilliance Auto, BYD Auto, ByteDance, CAMC Engineering, CCCC Highway Consultants, Changan Automobile, Changhe, Changhong, China Mobile, China Telecom, China Unicom, Chunlan Group, CITIC Group, CloudWalk, CNHLS, Comac, Commercial Press, Confucius institute, COSCO, Country Garden, Dahua, Dalian Hi-Think Computer, Dashang Group, Dayun Group, Dicos, DJI, Dongfang Electric, Dongfeng Motor, DXY.cn, Eisoo, Eno, ERKE, Evergrande Group, FAW Group, Feicheng Acid Chemicals, Feiyue, Founder Group, Fushi Copperweld, GAC Group, Geely, Goldwind, Gome, Great Leap Brewing, Gree Electric, GreenTree Inns, Gushan Environmental Energy, Hafei, Haier, Hasee, Hefei Meiling, Hikvision, Hisense, HiSilicon, Housing Development, Hu Jintao, Huaneng Power International, Huanqiu Contracting & Engineering, Huawei, Huayi Brothers Media, Huiyuan Juice, Hytera, iFlytek, Industrial Bank, Inspur, JD.com, JDB Group, Jiangling Motors, Jianlibao Group, Jiuguang Department Store, Joyoung, JXD, Kingsoft, Kingway Brewery, Lanzhou University, Lenovo, Li-Ning, Little Sheep, Loncin Holdings, Lonking, Mailman Group, Maoye International, Megvii, Meiya Pico, Meizu, Mengniu Dairy, Meters/bonwe, Midea Group, Mingyang Wind Power, Miniso, Mr. Lee, Nanjing Automobile, Neusoft, Ningbo Bird, Norinco, Opple Lighting, Pacific Construction, Panda Electronics, Peak Sport Products, Pearl River Piano, People's Liberation Army, PetroChina, Qihoo 360, SAIC Motor, Sany, SenseTime, Septwolves, Shenyang Aircraft, Shougang, Shui On Land, Simcere Pharmaceutical, Sinoenergy, SinoHydro, Sinopec International Petroleum Service, Sinopec, Sinopharm Group, Sinosteel, Sinovac Biotech, SIPPR Engineering, SK Hydro, Skyworth, SmithStreetSolutions, Suning Commerce, Suntech Power, TCL Corporation, Tebian Electric Apparatus, Telesail Technology, Tencent, Tianan Insurance, Tongrentang, Topray Solar, TP-Link, Trands, Tsingtao Brewery, Uniview, Vanke, Vinda International, Vsun, Wanda Group, WuXi AppTec, WuXi PharmaTech, Xi Jinping, Xiaomi, XIBU Drilling Engineering, Yangzijiang Shipbuilding Holdings, Yili Group, YITU, Yonyou, Yutong Group, Zhongjin Gold, Zhongjin Lingnan, Zhongxing Technologies, Zhouzhou Electrical Locomotive Works, Zijin Mining, Zoomlion, ZTE, ZX Auto, 21vianet, Aero Engine Of China, Aerospace Ch Uav, Aerospace Communications Holdings, Aerosun Corporation, Agricultural Bank Of China, Amd–Chinese Joint Venture, Anyang Forging Press Numerical Control Equipment, Apus Group, Aviation Industry Of China, Avic Aviation High-Technology, Avic Heavy Machinery, Avic Jonhon Optronic Technology, Avic Shenyang Aircraft, Avic Xi'an Aircraft Industry, Baiyin Nonferrous, Bank Of China, Bank Of Ningbo, Baowu, Batx, Beiman Special Steel, Boyle Chemical, Cai Qi, Canaton, Ceiec, Chang Guang Satellite Technology, Changsha Jingjia Microelectronics, Changsha Tianyi Space Science And Technology Research Institute, China Academy Of Launch Vehicle Technology, China Aerospace Science And Industry, China Aerospace Science And Technology, China Avionics Systems, China Coal Energy, China Communications Construction, China Construction Bank, China Electronics, China General Nuclear Power, China Head Aerospace Technology, China Life Insurance, China Marine Information Electronics, China Minmetals, China North Industries, China Northern Rare Earth, China Nuclear Engineering, China Railway Construction, China Railway Engineering, China Resources, China Satellite Communications, China Shenhua Energy, China Shipbuilding Industry, China South Industries, China Spacesat, China State Construction Engineering, China State Shipbuilding, China Sunergy, China Taly Aviation Technologies, Chinese Engineering And Mining, CMOC Group, Cnooc Limited, Costar Group, Csc Financial, Cssc Offshore & Marine Engineering, Dalian Golden Sun Import And Export, Dalian Ocean Fishing, Dandong Zhongsheng Industry & Trade, Datong Coal Mining, Dawning Information Industry, Ding Xuexiang, Dobot, Dongbei Special Steel, Dongling Group, Founder Bea Trust, Fujie Petrochemical Zhoushan, Fuzhou Honglong Ocean Fishing, Gigadevice, Global Marine Ship Management, Granpect, Great Share International Logistics, Guilin Alpha Rubber & Plastics Technology, Guo Shuqing, Han Zheng, Hanhong Pharmaceutical Technology, Hansteel, Haokun Energy, He Lifeng, Hengli Group, Hesteel Company, Hesteel Group, Hong Kong Link, Hu Chunhua, Huang Runqiu, Industrial And Commercial Bank Of China, Inner Mongolia First Machinery, Insta360, IRC Limited, Jasic Technology, Jetion Holdings, Jin Zhuanglong, Jincheng Anthracite Mining, Jinhu Minsheng Pharmaceutical Machinery, Kaifeng Pingmei New Carbon Materials Technology, Kowloon–Canton Railway, Kweichow Moutai, Ldk Solar, Leon Technology, Li Guoying, Li Qiang, Li Xi, Li Xiaopeng, Linfen Investment, Liu Guozhong, Liu He, Liu Jinguo, Liu Kun, Lumena, Luo Wen, Ma Xiaowei, Magindustries, Makeblock, Masteel Group, Moxing Cartoon, Mtr Corporation, Multi Well Trading, Nanjing Panda Electronics, Nanjing Sample Technology, Naz Technology, Nenking Group, Netposa Technologies, Nexgo, Ni Hong, Ningbo More Interest I/E, Nings Cartoon Studio, North Navigation Control Technology, Panan Test Engineering, Pax Technology, Pingtan Guansheng Ocean Fishing, Proven Glory Capital, Proven Honour Capital, Qingdao Cemo Technology Develop, Qingdao Zhongrongtong Trade Development, Raybeam Optronics, Rising Nonferrous Metals Share, Rongyu Group, Sanming Sino-Euro Import And Export, Semiconductor Manufacturing International, Shanxi Coking, Shaoguan Iron And Steel, Shvabe Opto-Electronics, Sino Machinery, Sinochem, Sinovel, Sun Chunlan, Sunshine Kaidi, Sunway Tech, Taiyuan Coal Gasification, Tang Renjian, Tang Yijun, Tangsteel, Tdpmolds, Teda Holding, Tianyi International Dalian, Tonly Electronics Holdings, Triliance Petrochemical, Ubs Securities, Uu Innovation Technology, Wang Guanghua, Wang Huning, Wang Qishan, Wang Wentao, Wang Xiaohong, Wang Yi, Wang Yong, Wang Zhigang, Wanhua Chemical, Wuhan Financial Holdings, Wuhan Global Sensor Technology, Wuhan Maiwe Communication, Wuhan Sanjiang Import And Export, Wuhan Shuokang Biological Technology, Wuhan Tongsheng Technology, Wuhan Xiaoruizhi Science And Technology, Wuhan Yuancheng Gongchuang Technology, Xiamen Meiya Pico Information, Xiao Jie, Xingtai Dong Chuang New Material Technology, Xishan Coal Electricity, Yanbian Silverstar Network Technology, Yang Xiaodu, Yanzhou Coal Mining, Yason General Machinery, Yi Gang, Yi Technology, Yilufa Electronics, Ying Yong, Yitu Limited, Youli Technology Development, Zhang Guoqing, Zhang Jun, Zhao Leji, Zhaoxin, Zhonggu Storage And Transportation, Zhonghang Electronic Measuring Instruments, Zhongman Petroleum And Natural Gas, Zhou Zuyi, Beijing, Shanghai, Fujian, Guangdong, Zhejiang, Hebei, Shandong, Shaanxi, Tianjin, Jiangxi, Xinjiang, Shenzhen, Jiangsu, Xi'an, Chengdu, Guangzhou, Guangxi, Sichuan, China National, Yantai, Suzhou, Hengshui, Hainan, Yunnan, Hunan, Henan, Guizhou, Hubei, Anhui, Gansu, Heilongjiang, Qinghai, Jilin, Chongqing, Harbin, Ping An, Ant Group, Nutech, Hangzhou, Chinese government, Chinese compan, Chinese military, Chinese army, Chinese media, Chinese econom, Chinese investment, Chinese technolog, Chinese polic, Chinese official, Chinese embass, Chinese influence, Chinese cyber, Chinese surveillance, Chinese censorship, Chinese propaganda, Chinese communist party, Chinese news, Chinese agenc
+
+### Identifying Keywords 
+
+To develop our list of keywords, we began by identifying generic strings that are likely to flag Chinese or Russian involvement (i.e. "Chinese official"). To augment this list, we consulted a number of sources. For Russia, we downloaded the Specially Designated Nationals List published by the Office of Foreign Assets Control, which identifies people, companies, and military vessels determined to be involved in activities that threaten or undermine U.S. foreign policy or national security objectives. More specifically, these individuals and companies are owned or controlled by, or acting on behalf of targeted countries. Their assets are blocked and U.S. citizens are generally prohibited from dealing with them. We took every entity where the sanction program contained the word “Russia” and then removed all individuals and military carriers. The programs are not country-specific, so we also removed companies that were not Russian by using the information listed in the last column of the dataset. We removed 4 names that were already in the document and 2 names that were duplicates of each other. This left us with 2,153 names. We added Russian oligarchs from *Forbes’ Ultimate Guide To Russian Oligarchs* and *Forbes’ list of Russian Oligarch Billionaires Who Haven’t Been Sanctioned*. We added Russian company names from the list of Treasury Sanctions Actors Supporting Kremlin-Directed Malign Influence Efforts. We also read through relevant lists in the *GEC Special Report: Russia’s Pillars of Disinformation and Propaganda* to add additional Russian company names.
+
+For China, we searched for Chinese companies from the same SDN List by searching for “China” in the company name and in the last column of the dataset. There were no programs specific to China. We also searched for Chinese companies from the Consolidated Sanctions List, which is another list created by the OFAC of non-SDN names/companies that are part of OFAC’s sanctions regulations. In the Consolidated Sanctions List, we searched for company names that were part of the NS-CMIC program, which stands for Non-SDN Chinese Military-Industrial Complex Companies. After removing duplicates, this yielded 169 Chinese companies. We added the names of Chinese politicians from the US-China Business Council’s list of Chinese Government Leadership and Wikipedia’s List of leaders of the People's Republic of China. We added Chinese state-owned enterprises from Wikipedia’s list of State-owned enterprises of China and Wikipedia’s list of largest Chinese companies. We added more Chinese companies from Wikipedia’s list of Chinese technology companies and Wikipedia’s list of Chinese mining companies.
+
+Many Chinese company names include company suffixes, such as “Co., Ltd”, “Limited”, “Corporation”, “Company”, “Group” and combinations of these words. In some cases, these suffixes were removed to simplify string matching and prevent false negatives. For firm names that include a company suffix, if the firm name (excluding the company suffix) is more than one word, we remove the suffixes (e.g., “Nanjing Panda Electronics Company Limited” becomes “Nanjing Panda Electronics”). For company names that are only one word (e.g., “IRC Limited”), we retain the company suffixes. Chinese companies are often named after Provinces; to capture these companies, we included the names of provinces with at least one namesake firm.
+
+Below is an incomplete list of sources consulted during keyword development:
+
+- [Specially Designated Nationals List](https://sanctionslist.ofac.treas.gov/Home/SdnList)
+- [Consolidated Sanctions List](https://sanctionslist.ofac.treas.gov/Home/ConsolidatedList)
+- [Forbes Ultimate Guide to Russian Oligarchs](https://www.forbes.com/sites/giacomotognini/2022/04/07/the-forbes-ultimate-guide-to-russian-oligarchs/)
+- [Forbes Russian Oligarch Billionaires Who Haven’t Been Sanctioned](https://www.forbes.com/sites/johnhyatt/2022/04/07/these-50-russian-oligarch-billionaires-havent-been-sanctioned/)
+- [Treasury Sanctions Actors Supporting Kremlin-Directed Malign Influence Efforts](https://home.treasury.gov/news/press-releases/jy2195)
+- [Russia’s Pillars of Disinformation and Propaganda Report](https://www.state.gov/russias-pillars-of-disinformation-and-propaganda-report/)
+- [Chinese Government Leadership - US-China Business Council](https://www.uschina.org/resources/chinese-government-leadership)
+- [Wikipedia - List of leaders of the People's Republic of China](https://en.wikipedia.org/wiki/List_of_leaders_of_the_People%27s_Republic_of_China)
+- [Wikipedia - State-owned enterprises of China](https://en.wikipedia.org/wiki/State-owned_enterprises_of_China#:~:text=A%20state%2Downed%20enterprise%20of,behalf%20of%20an%20owner%20government)
+- [Wikipedia - List of largest Chinese companies](https://en.wikipedia.org/wiki/List_of_largest_Chinese_companies)
+- [Wikipedia - Technology companies of China](https://en.wikipedia.org/wiki/Category:Technology_companies_of_China)
+- [Chinese Mining Companies - Investopedia](https://www.investopedia.com/insight/chinese-mining-companies/)
+
+
+### Validating the Keyword List
+
+We tested several versions of this keyword list to identify the list with the best balance between false positives and false negatives. To do so, we pulled a random sample using the new Chinese keywords for Serbia, Zimbabwe, and the Philippines. For 20 articles in each event classification, we read through the article to determine if the article was actually about Chinese influence. We then counted up the number of times each keyword appeared as a true positive or false positive. To reduce the computation cost of an extensive keyword list, we removed any keywords that was not contained in at least one article in this sample of countries between 2020 and 2024. Across these four countries, the share of total articles classified as Russian or Chinese influence that were correctly classified ranged from 74% to 83%.
+
+
+## Assessing Outlet Independence
+
+MLP collects extensive news data from various national news sources across countries. Bias is checked for all our sources at a three-month frequency due to:
+
+- **Frequent changes** in coverage of sources.
+- **Changes in ownership** of sources.
+
+When we forecast, tracking our accuracy is essential for reporting purposes. Weighting helps enhance the accuracy of MLP civic space forecasting. The bias check exercise assists in assigning weights during the forecasting stage of the MLP pipeline. This is achieved by evaluating the level of independence of all media sources for a country and their respective volumes. If the majority of articles for a country originate from independent sources, no weighting is required.
+
+### Task
+
+- **Assess** and **report** the bias of the media sources we are currently scraping.
+- **Formulate** a standardized and formal process to assess bias.
+
+### Bias Categories and Coding Guide
+
+**1. Ideology**
+Political ideology of the source is coded as follows:
+
+- 1 = Right
+- 2 = Right-centre
+- 3 = Centre
+- 4 = Left-centre
+- 5 = Left
+
+**2. Independence vs Pro-regime**
+Determine whether the source operates as a regime mouthpiece, exhibits a bias in favor of political actors, or maintains independence (whether investigative or neutral). It is possible for a source to align with a certain ideology without being influenced by political parties, government, or oligarchs.
+
+- 1 = Pro-regime
+- 2 = Opposition
+- 3 = Independent
+
+**3. Government Owned**
+Indicate if the source is partially or completely owned by the country's government.
+
+- 1 = Government-owned
+- 0 = Not government-owned
+
+**Process**
+
+1. Start by checking the information about a country’s newspapers provided in the sources listed in the appendix (e.g., BBC or RSF) to assess and record the bias of each newspaper.
+2. If step 1 does not provide enough information, dive deeper into country-specific analyses of the local media, reports on media ownership, etc.
+3. If steps 1 and 2 are not sufficient, perform a subjective review of the news reported on the website to get a sense of bias.
+4. If steps 1, 2, and 3 are not successful, report as unable to assess independence.
+
+**Helpful sources:**
+
+- BBC Media Guide country profile: search the web for *Country Name BBC Media Guide*
+- RSF- Reporters Without Borders country profile: [RSF Country Profiles](https://rsf.org/en)
+- World Newspapers country profile: [World Newspapers Country Profiles](https://www.world-newspapers.com/countries)
+- Freedom House: [Freedom House Country Profiles](https://freedomhouse.org/countries/freedom-world/scores)
+
+
+## Source Weighting
+
+The weighting process adjusts article counts from state-owned and independent sources when aggregating civic space data at the country-month level. In countries where more than 50% of articles come from state-owned sources, the code increases the influence of independent sources by applying a weight based on the ratio of state-owned to independent articles. This ensures that independent media retains influence when state-owned coverage dominates. The weighting is recalculated each month, meaning that the balance of influence can shift over time depending on the mix of articles from state-owned and independent sources in any given month. We impose equal weighting on independent and non-independent sources by multiplying the count of articles for each *RAI* event by a weight calculated by subtracting the number of articles from non-independent sources from the result of dividing the number of non-independent articles by 0.5 and dividing this value by the number of articles from independent sources for each month. Weighting is currently applied to India, Malaysia, Sri Lanka, Angola, DR Congo, Belarus, Philippines, Paraguay, Zambia, and Zimbabwe. 
+
+## Dominant Themes at Higher Frequency
+
+As an alternative visualization, we break our data into three historical periods: 2012-2016, 2017-2021, and 2022-2024. This provides two five-year windows at the beginning of our series followed by a smaller snapshot of the very recent past. 2012-2016 includes Russia's annexation of Crimea, 2016-2021 includes the onset of the COVID-19 pandemic, and 2022-2023 includes Russia's invasion of Ukraine. @fig-plot_dominant-theme provides a visualization of themes at the monthly-level.
+
+
+```{r, fig.width=8,fig.height=7}
+#| echo: false
+#| warning: false
+#| fig-pos: "!h"
+#| label: fig-plot_dominant-theme
+#| fig-cap: "Share of RAI activity across RAI tools over time, measured as the normalized share of all articles reporting on RAI events that correspond with each tool. We drop the last three months of data to avoid composition effects driven by changes in the last month of available data across countries."
+
+df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+  filter(! influencer %in% "Combined") |>
+  filter(! country == "Timor Leste") |>
+  select(country, date, influencer, starts_with("rai_idx"), -rai_idx_total) |>
+  pivot_longer(starts_with("rai_idx"), names_to = "theme") |>
+  mutate(theme = gsub("rai\\_idx\\_", "", theme))
+
+df$theme = factor(df$theme)
+df$theme = factor(df$theme, levels = gsub("rai_idx_", "", rai_vars_select$variable[2:7]), labels = rai_vars_select$name[2:7])
+
+theme_idx = unique(df$theme)
+
+df = df |>
+  group_by(date, influencer, theme) |>
+  summarise(value = sum(value) ) |>
+  ungroup()
+
+df = df |>
+  group_by(influencer, date) |>
+  mutate(value = value / sum(value)) |>
+  # make it a factor for plotting labels
+  mutate(influencer = factor(influencer, levels = c("China", "Russia"))) |>
+  filter( date < max(df$date)-91) # drop last 3 months to avoid composition effects
+
+ggplot(df , 
+       aes(x = date, y = value, fill = theme)
+       ) +
+  geom_area(na.rm = TRUE) +
+  facet_wrap(~influencer, ncol = 1) +
+  scale_fill_brewer("Theme", type = "qual") +
+  scale_y_continuous(labels = scales::percent_format(scale = 100)) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") + # Customize the x-axis for yearly labels
+  theme_bw() +
+  theme(legend.position = "top") +
+  labs(x = "", y = "")
+
+# ggsave(here::here("writing/output/plot_dominant-theme.png"), height = 8, width = 7, dpi = 700)
+
+rm(dip_av)
+
+```
+
+
+
+```{r, fig.width=7.5, fig.height=10}
+#| echo: false
+#| warning: false
+#| label: fig-map_russia-influence-share
+#| fig-cap: "Share of RAI activity by Russia and China, measured as the normalized share of all articles reporting on RAI activities that focus on Russian influence events."
+
+
+# Pull map data and create versions for each historical period
+map = map_data('world')
+map = map %>% filter(region != "Antarctica")
+
+map1 = map %>%
+  mutate(period = "2012-2016")
+
+map2 = map %>%
+  mutate(period = "2017-2021")
+
+map3 = map %>%
+  mutate(period = "2022-2024")
+
+# Pull RAI data
+df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+  mutate(period = case_when(
+    date < "2017-01-01" ~ "2012-2016",
+    date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
+    TRUE ~ "2022-2024"
+    )
+  ) |>
+  filter(influencer %in% c("Russia", "China")) |>
+  select(country, date, rai_idx_total, influencer, period) |>
+  pivot_wider(names_from = "influencer", values_from = "rai_idx_total") 
+  
+df <- df |>
+  group_by(country, period) |>
+  arrange(date) 
+
+df <- df |>
+  group_by(country, period) |>
+  summarize(russia_share = mean(Russia) / (mean(Russia) + mean(China)),
+            .groups = "drop") 
+
+
+## Maps
+map = bind_rows(map1, map2, map3)
+
+df[df$country == "DR Congo",]$country = "Democratic Republic of the Congo"
+map = left_join(map, df %>% dplyr::rename(region = country) )
+
+# set map parameters
+map_theme = theme(axis.title.x = element_blank(), axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.title.y = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(),
+        legend.key = element_rect(),
+        legend.key.height = unit(.4, 'cm'),
+        legend.key.width = unit(.4, 'cm'),
+        legend.text = element_text(size = 5), legend.title=element_text(size = 6),
+        legend.position = c(.22, .78), legend.box.background = element_rect(colour = "black"),
+        plot.margin=unit(c(4, 4, 0, 4),"pt"))
+
+x_lim = c(-90,142)
+y_lim = c(-33, 52)
+
+a = ggplot(map %>% filter(period == "2012-2016"), 
+       aes(x = long, y = lat, group = group, fill = russia_share)) +
+  geom_polygon(colour = "black", size=0.15) +
+  facet_wrap(~period, ncol = 1) +
+  scale_fill_distiller(palette = 'RdYlBu', direction = 1, name = "Russian share",
+                       limits = c(min(df$russia_share), max(df$russia_share)), 
+                       labels = scales::label_percent()) + 
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+b = ggplot(map %>% filter(period == "2017-2021"), 
+       aes(x = long, y = lat, group = group, fill = russia_share)) +
+  geom_polygon(colour = "black", size=0.15) +
+  facet_wrap(~period, ncol = 1) +
+  scale_fill_distiller(palette = 'RdYlBu', direction = 1, name = "Russian share",
+                       limits = c(min(df$russia_share), max(df$russia_share)), 
+                       labels = scales::label_percent()) + 
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+c = ggplot(map %>% filter(period == "2022-2024"), 
+       aes(x = long, y = lat, group = group, fill = russia_share)) +
+  geom_polygon(colour = "black", size=0.15) +
+  facet_wrap(~period, ncol = 1) +
+  scale_fill_distiller(palette = 'RdYlBu', direction = 1, name = "Russian share",
+                       limits = c(min(df$russia_share), max(df$russia_share)), 
+                       labels = scales::label_percent()) + 
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+fig = gridExtra::grid.arrange(a,b,c)
+
+```
+
+{{< pagebreak >}}
+
+```{r, fig.width=7,fig.height=6}
+#| echo: false
+#| warning: false
+#| fig-pos: "!t"
+#| label: fig-map_dominant-theme
+#| fig-cap: "RAI tool with the greatest volume of reporting by country, measured as the normalized share of all articles reporting on RAI events that correspond with each tool. The left panel captures reports of Chinese influence and the right panel captures reports of Russian influence."
+
+df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+  mutate(period = case_when(
+    date < "2017-01-01" ~ "2012-2016",
+    date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
+    TRUE ~ "2022-2024"
+    )
+  ) |>
+  filter(influencer %in% "China") |>
+  select(country, date, period, starts_with("rai_idx"), -rai_idx_total) |>
+  pivot_longer(starts_with("rai_idx"), names_to = "theme") |>
+  mutate(theme = gsub("rai\\_idx\\_", "", theme))
+  
+df <- df |>
+  group_by(country, period, theme) |>
+  arrange(date) 
+
+df <- df |>
+  group_by(country, period, theme) |>
+    summarize(mean_value = mean(value),
+              .groups = "drop")
+
+df <- df |>
+  group_by(country, period) |>
+  mutate(share = mean_value / sum(mean_value))
+
+df$theme = factor(df$theme)
+df$theme = factor(df$theme, levels = gsub("rai_idx_", "", rai_vars_select$variable[2:7]), labels = rai_vars_select$name[2:7])
+
+df <- df |>
+  group_by(country, period) |>
+  slice_max(share)
+
+# Summary states for text
+ds = df |>
+  group_by(period, theme) |>
+  summarise(countries = n())
+
+
+## Maps
+map = bind_rows(map1, map2, map3)
+
+df[df$country == "DR Congo",]$country = "Democratic Republic of the Congo"
+map = left_join(map, df %>% dplyr::rename(region = country) )
+
+# set map parameters
+map_theme = theme(axis.title.x = element_blank(), axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.title.y = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(),
+        legend.position = "none",
+        plot.margin=unit(c(4, 4, 0, 4),"pt"))
+
+x_lim = c(-90,142)
+y_lim = c(-33, 52)
+
+pal <- leaflet::colorFactor("Accent", domain = df$theme)
+# map = map %>% mutate(theme = replace_na(as.character(theme), "No")) %>% mutate(theme = forcats::fct_relevel(theme, c(rai_vars_select$name[2:7], "No")))
+
+a = ggplot(map %>% filter(period == "2012-2016"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+  
+
+b = ggplot(map %>% filter(period == "2017-2021"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+c = ggplot(map %>% filter(period == "2022-2024"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+
+df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+  mutate(period = case_when(
+    date < "2017-01-01" ~ "2012-2016",
+    date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
+    TRUE ~ "2022-2024"
+    )
+  ) |>
+  filter(influencer %in% "Russia") |>
+  select(country, date, period, starts_with("rai_idx"), -rai_idx_total) |>
+  pivot_longer(starts_with("rai_idx"), names_to = "theme") |>
+  mutate(theme = gsub("rai\\_idx\\_", "", theme))
+  
+df <- df |>
+  group_by(country, period, theme) |>
+  arrange(date) 
+
+df <- df |>
+  group_by(country, period, theme) |>
+    summarize(mean_value = mean(value),
+              .groups = "drop")
+
+df <- df |>
+  group_by(country, period) |>
+  mutate(share = mean_value / sum(mean_value))
+
+df$theme = factor(df$theme)
+df$theme = factor(df$theme, levels = gsub("rai_idx_", "", rai_vars_select$variable[2:7]), labels = rai_vars_select$name[2:7])
+
+df <- df |>
+  group_by(country, period) |>
+  slice_max(share)
+
+# Summary states for text
+ds = df |>
+  group_by(period, theme) |>
+  summarise(countries = n())
+
+## Maps
+map = bind_rows(map1, map2, map3)
+
+df[df$country == "DR Congo",]$country = "Democratic Republic of the Congo"
+map = left_join(map, df %>% dplyr::rename(region = country) )
+
+
+d = ggplot(map %>% filter(period == "2012-2016"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+  
+
+e = ggplot(map %>% filter(period == "2017-2021"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+f = ggplot(map %>% filter(period == "2022-2024"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+# Create dummy map with all themes
+tmap = map |>
+  filter(period == "2012-2016") |>
+  mutate(theme = case_when(region == "Belarus" ~ "Backlash",
+                           region == "Georgia" ~ "Domestic Interference",
+                           TRUE ~ theme))
+
+
+legend = ggplot(tmap %>% filter(period == "2012-2016"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() +
+  theme(legend.position = "top",
+        legend.text = element_text(size = 5), legend.title=element_blank())
+
+rm(tmap)
+
+g <- ggplotGrob(legend)
+legend <- g$grobs[[which(g$layout$name == "guide-box-top")]]
+
+# Arrange the plots in a 2-row by 3-column grid
+plots_grid <- plot_grid(a, d, b, e, c, f, nrow = 3)
+
+# Create text labels as ggplot objects
+left_label <- ggdraw() + draw_label("China") + theme_void() + theme(plot.margin = margin(0, 0, 0, 0))
+right_label <- ggdraw() + draw_label("Russia") + theme_void() + theme(plot.margin = margin(0, 0, 0, 0))
+
+# Arrange the legend with text labels on both sides
+legend_row <- plot_grid(left_label, legend, right_label, ncol = 3, rel_widths = c(1, 2, 1))
+
+
+# Combine the legend (in its own row) with the plots grid
+# You may need to adjust `rel_heights` depending on the size of your legend and desired layout
+final_layout <- plot_grid(
+  legend_row, # Center the legend
+  plots_grid,
+  nrow = 2,
+  rel_heights = c(0.1, 1) # Adjust these as needed
+)
+
+final_layout
+
+# ggsave(here::here("writing/output/map_dominant-theme.png"), final_layout, height = 6, width = 7, dpi = 700)
+
+rm(a, b, c, d, e, f, g, fig, x_lim, y_lim, right_label, left_label, legend, legend_row, plots_grid, map, map_theme, final_layout)
+
+```
+
+{{< pagebreak >}}
+
+
+```{r, fig.width=8,fig.height=10}
+#| echo: false
+#| warning: false
+#| label: fig-plot_period_levels
+#| fig-cap: "Percent change in average monthly RAI articles per 10k published articles. Countries ordered by size of percent change in Russian influence between last two periods."
+
+
+df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+  mutate(period = case_when(
+    date < "2017-01-01" ~ "2012-2016",
+    date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
+    TRUE ~ "2022-2024"
+    )
+  ) |>
+  select(country, date, rai_idx_total, period, influencer)
+  
+df <- df |>
+  filter(! influencer=="Combined") |>
+  group_by(country, period, influencer) |>
+  summarize(mean_total_rai = mean(rai_idx_total, na.rm = T),
+            .groups = "drop") |>
+  arrange(country, influencer, period)
+
+
+dfp <- df |>
+  group_by(country, influencer) |>
+  mutate(percentage_change = (mean_total_rai / lag(mean_total_rai) - 1) * 100) |>
+  mutate(increase = mean_total_rai[3] - mean_total_rai[2]) |>
+  filter(!is.na(percentage_change))
+
+
+dfpr = dfp |>
+  filter(influencer == "Russia" & period == "2022-2024") |>
+  group_by(country) |>
+  arrange(percentage_change)
+
+
+ann_text <- data.frame(country = factor("South Sudan", levels =  unique(dfpr$country)), 
+                       percentage_change = 2500, 
+                       lab = "* Boxes display mean increase in\nabsolute number of RAI articles\nper 10k published articles\nbetween second and\nthird period", 
+                       influencer = factor("Russia", levels = c("China", "Russia")), 
+                       mean_total_rai = 100)
+
+write.csv(dfpr, here::here("writing", "output", "dfpr.csv"))
+
+dfp |>
+  mutate(country = factor(country, levels =  unique(dfpr$country))  ) |>
+  ggplot(aes(x = percentage_change, y = country ) ) + 
+  geom_line(aes(group = country), color = "gray80") +
+  geom_point(aes(color = period)) +
+  facet_wrap(~influencer) +
+  geom_label(data = dfp %>% group_by(country, influencer) |> slice_tail(n=1),
+             aes(label = round(increase, digits = 0), group = influencer), size = 2, hjust = .5,
+             nudge_x = 400, color = "#66a182") +
+  theme_bw() +
+  scale_x_continuous(labels = scales::percent_format( scale=1 )) +
+  geom_text(aes(x = percentage_change, y = country, label=lab),
+            data = ann_text, size = 3) +
+  scale_color_manual("Percent change between time\nperiods", 
+                       labels = c("2012-2016 and 2017-2021", "2017-2021 and 2022-2024"),
+                       values = c("#edae49", "#66a182")) +
+  labs(x = "Percent change in average monthly RAI articles per 10k published articles", y = "") +
+  theme(legend.text = element_text(size = 6), legend.title = element_text(size = 6),
+        legend.position = c(.38, .85), legend.box.background = element_rect(colour = "black")) 
+
+ggsave(here::here("writing/output/plot_period_levels.png"), height = 10, width = 7.5, dpi = 700)
+
+# descriptive stats for text
+# table(dfp$percentage_change <= 0, dfp$period, dfp$influencer)
+# cor(dfp[dfp$period == "2022-2024",]$percentage_change, dfp[dfp$period == "2022-2024",]$mean_total_rai, use = "complete.obs")
+# cor(dfp[dfp$period == "2022-2024" & dfp$influencer == "Russia",]$percentage_change, dfp[dfp$period == "2022-2024" & dfp$influencer == "Russia",]$mean_total_rai)
+# cor(dfp[dfp$period == "2017-2021" & dfp$influencer == "Russia",]$percentage_change, dfp[dfp$period == "2017-2021" & dfp$influencer == "China",]$percentage_change)
+
+rc1 = cor(dfp[dfp$period == "2022-2024" & dfp$influencer == "Russia",]$percentage_change, dfp[dfp$period == "2017-2021" & dfp$influencer == "Russia",]$mean_total_rai)
+
+dfp_c_share <- dfp |>
+  arrange(country, period) |>
+  group_by(country, period) |>
+  mutate(c_share = mean_total_rai[1] / (mean_total_rai[1] + mean_total_rai[2]) )
+
+rc2 = cor(dfp_c_share[dfp_c_share$period == "2022-2024" & dfp_c_share$influencer == "Russia",]$percentage_change, dfp_c_share[dfp_c_share$period == "2017-2021" & dfp_c_share$influencer == "China",]$c_share)
+
+rc3 = cor(dfp[dfp$period == "2022-2024" & dfp$influencer == "Russia",]$percentage_change, dfp[dfp$period == "2022-2024" & dfp$influencer == "China",]$percentage_change)
+rc4 = cor(dfp[dfp$period == "2017-2021" & dfp$influencer == "Russia",]$percentage_change, dfp[dfp$period == "2017-2021" & dfp$influencer == "China",]$percentage_change)
+
+rc_list = c(rc1, rc2, rc3, rc4)
+rc_list = lapply(rc_list, round, digits = 2)
+
+rm(rc1, rc2, rc3, rc4, ann_text, dfpr, dfp_c_share, dfp)
+
+```
+
+
+{{< pagebreak >}}
+
+::: {.latex}
+\clearpage
+:::
+
+## Descriptive Figures with Alternative Aggregation
+
+In this section, we present figures from the *Describing Authoritarian Influence Using RAI* Section of the main text after changing our calculation so that aggregation is performed *before* normalization. This prevents giving equal weight to the share of articles reporting on events attributed to Russia or China for months in which there is very little activity as we do to months with high levels of activity. This method is more sensitive to outliers and measurement error. However, results are very similar to those presented in the main text.
+
+```{r, fig.width=8,fig.height=7}
+#| echo: false
+#| warning: false
+#| fig-pos: "!h"
+#| label: fig-plot_dominant-theme-alt
+#| fig-cap: "Share of RAI activity across RAI tools over time, measured as the normalized share of all articles reporting on RAI events that correspond with each tool. We drop the last three months of data to avoid composition effects driven by changes in the last month of available data across countries."
+
+df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+  filter( country != "Timor Leste") |>
+  filter(! influencer %in% "Combined") |>
+  select(country, date, influencer, article_total, starts_with("rai_idx"), -rai_idx_total) |>
+  pivot_longer(starts_with("rai_idx"), names_to = "theme") |>
+  mutate(theme = gsub("rai\\_idx\\_", "", theme)) |>
+  # De-normalize
+  mutate(value = (value * article_total)/10000 )
+
+
+df$theme = factor(df$theme)
+df$theme = factor(df$theme, levels = gsub("rai_idx_", "", rai_vars_select$variable[2:7]), labels = rai_vars_select$name[2:7])
+
+theme_idx = unique(df$theme)
+
+df = df |>
+  group_by(date, influencer, theme) |>
+  summarise(value = sum(value),
+            article_total = sum(article_total)) |>
+  ungroup()
+
+
+df = df |>
+  group_by(influencer, date) |>
+  mutate(value = value / sum(value)) |>
+  # make it a factor for plotting labels
+  mutate(influencer = factor(influencer, levels = c("China", "Russia"))) |> 
+  filter( date < max(df$date)-91) # drop last 3 months to avoid composition effects
+
+
+
+ggplot(df , 
+       aes(x = date, y = value, fill = theme)
+       ) +
+  geom_area(na.rm = TRUE) +
+  facet_wrap(~influencer, ncol = 1) +
+  scale_fill_brewer("Theme", type = "qual") +
+  scale_y_continuous(labels = scales::percent_format(scale = 100)) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") + # Customize the x-axis for yearly labels
+  theme_bw() +
+  theme(legend.position = "top") +
+  labs(x = "", y = "")
+
+
+rm(dip_av)
+
+```
+
+::: {.latex}
+\clearpage
+:::
+
+
+```{r, fig.width=7.5, fig.height=10}
+#| echo: false
+#| warning: false
+#| fig-pos: "!h"
+#| label: fig-map_russia-influence-share-alt
+#| fig-cap: "Share of RAI activity by Russia and China, measured as the normalized share of all articles reporting on RAI activities that focus on Russian influence events."
+
+# Pull map data and create versions for each historical period
+map = map_data('world')
+map = map %>% filter(region != "Antarctica")
+
+map1 = map %>%
+  mutate(period = "2012-2016")
+
+map2 = map %>%
+  mutate(period = "2017-2021")
+
+map3 = map %>%
+  mutate(period = "2022-2024")
+
+# Pull RAI data
+df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+  mutate(period = case_when(
+    date < "2017-01-01" ~ "2012-2016",
+    date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
+    TRUE ~ "2022-2024"
+    )
+  ) |>
+  filter(influencer %in% c("Russia", "China")) |>
+  # Un-normalize in order to *not* put equal weight on years 
+  mutate(rai_idx_total = (rai_idx_total * article_total) / 10000) |>
+  select(country, date, rai_idx_total, influencer, period, article_total) |>
+  pivot_wider(names_from = "influencer", values_from = "rai_idx_total") |>
+  group_by(country, period) |>
+  arrange(date) |>
+  # Re-normalize during summarization command
+  summarize(Russia = sum(Russia ),
+            China = sum(China),
+            article_total = sum(article_total),
+            .groups = "drop") |>
+  mutate(Russia = Russia / article_total,
+         China = China /  article_total) |>
+  mutate(russia_share = Russia / (Russia + China ))
+
+
+
+## Maps
+map = bind_rows(map1, map2, map3)
+
+df[df$country == "DR Congo",]$country = "Democratic Republic of the Congo"
+map = left_join(map, df %>% dplyr::rename(region = country) )
+
+# set map parameters
+map_theme = theme(axis.title.x = element_blank(), axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.title.y = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(),
+        legend.key = element_rect(),
+        legend.key.height = unit(.4, 'cm'),
+        legend.key.width = unit(.4, 'cm'),
+        legend.text = element_text(size = 5), legend.title=element_text(size = 6),
+        legend.position = c(.22, .78), legend.box.background = element_rect(colour = "black"),
+        plot.margin=unit(c(4, 4, 0, 4),"pt"))
+
+x_lim = c(-90,142)
+y_lim = c(-33, 52)
+
+a = ggplot(map %>% filter(period == "2012-2016"), 
+       aes(x = long, y = lat, group = group, fill = russia_share)) +
+  geom_polygon(colour = "black", size=0.15) +
+  facet_wrap(~period, ncol = 1) +
+  scale_fill_distiller(palette = 'RdYlBu', direction = 1, name = "Russian share",
+                       limits = c(min(df$russia_share), max(df$russia_share)), 
+                       labels = scales::label_percent()) + 
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+b = ggplot(map %>% filter(period == "2017-2021"), 
+       aes(x = long, y = lat, group = group, fill = russia_share)) +
+  geom_polygon(colour = "black", size=0.15) +
+  facet_wrap(~period, ncol = 1) +
+  scale_fill_distiller(palette = 'RdYlBu', direction = 1, name = "Russian share",
+                       limits = c(min(df$russia_share), max(df$russia_share)), 
+                       labels = scales::label_percent()) + 
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+c = ggplot(map %>% filter(period == "2022-2024"), 
+       aes(x = long, y = lat, group = group, fill = russia_share)) +
+  geom_polygon(colour = "black", size=0.15) +
+  facet_wrap(~period, ncol = 1) +
+  scale_fill_distiller(palette = 'RdYlBu', direction = 1, name = "Russian share",
+                       limits = c(min(df$russia_share), max(df$russia_share)), 
+                       labels = scales::label_percent()) + 
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+fig = gridExtra::grid.arrange(a,b,c)
+
+```
+
+{{< pagebreak >}}
+
+```{r}
+#| echo: false
+#| warning: false
+
+# df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+#   filter( country != "Timor Leste") |>
+#   filter(! influencer %in% "Combined") |>
+#   select(country, date, influencer, article_total, starts_with("rai_idx"), -rai_idx_total) |>
+#   pivot_longer(starts_with("rai_idx"), names_to = "theme") |>
+#   mutate(theme = gsub("rai\\_idx\\_", "", theme)) |>
+#   # De-normalize
+#   mutate(value = (value * article_total)/10000 )
+# 
+# 
+# df$theme = factor(df$theme)
+# df$theme = factor(df$theme, levels = gsub("rai_idx_", "", rai_vars_select$variable[2:7]), labels = rai_vars_select$name[2:7])
+# 
+# theme_idx = unique(df$theme)
+# 
+# df = df |>
+#   group_by(date, influencer, theme) |>
+#   summarise(value = sum(value),
+#             article_total = sum(article_total)) |>
+#   ungroup()
+# 
+# dip_av = df |>
+#   mutate(period = case_when(
+#     date < "2017-01-01" ~ "2012-2016",
+#     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
+#     TRUE ~ "2022-2024"
+#     )
+#   ) |>
+#   group_by(period, theme, influencer) |>
+#   summarise(value = sum(value),
+#             article_total = sum(article_total) ) |>
+#   ungroup() |>
+#   group_by(period, influencer) |>
+#   mutate(value = value / sum(value)) |>
+#   filter(theme == "Diplomacy")
+# 
+# cd1 = paste0(round(dip_av[dip_av$influencer == "China" & dip_av$period == "2012-2016",]$value*100, digits=0), "%")
+# cd2 = paste0(round(dip_av[dip_av$influencer == "China" & dip_av$period == "2017-2021",]$value*100, digits=0), "%")
+# cd3 = paste0(round(dip_av[dip_av$influencer == "China" & dip_av$period == "2022-2024",]$value*100, digits=0), "%")
+# 
+# rd1 = paste0(round(dip_av[dip_av$influencer == "Russia" & dip_av$period == "2012-2016",]$value*100, digits=0), "%")
+# rd2 = paste0(round(dip_av[dip_av$influencer == "Russia" & dip_av$period == "2017-2021",]$value*100, digits=0), "%")
+# rd3 = paste0(round(dip_av[dip_av$influencer == "Russia" & dip_av$period == "2022-2024",]$value*100, digits=0), "%")
+
+```
+
+{{< pagebreak >}}
+
+
+```{r, fig.width=7,fig.height=6}
+#| echo: false
+#| warning: false
+#| fig-pos: "!h"
+#| label: fig-map_dominant-theme-alt
+#| fig-cap: "RAI tool with the greatest volume of reporting by country, measured as the normalized share of all articles reporting on RAI events that correspond with each tool. The left panel captures reports of Chinese influence and the right panel captures reports of Russian influence."
+
+df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+  mutate(period = case_when(
+    date < "2017-01-01" ~ "2012-2016",
+    date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
+    TRUE ~ "2022-2024"
+    )
+  ) |>
+  filter(influencer %in% "China") |>
+  select(country, date, period, article_total, starts_with("rai_idx"), -rai_idx_total) |>
+  pivot_longer(starts_with("rai_idx"), names_to = "theme") |>
+  mutate(theme = gsub("rai\\_idx\\_", "", theme)) |>
+  # De-normalize
+  mutate(value = (value * article_total)/10000 )
+  
+df <- df |>
+  group_by(country, period, theme) |>
+  arrange(date) |>
+  # Re-normalize
+  summarize(value = sum( value ) ,
+            article_total = sum(article_total),
+              .groups = "drop") |>
+  mutate(mean_value = (value / article_total) * 10000 )
+
+df <- df |>
+  group_by(country, period) |>
+  mutate(share = mean_value / sum(mean_value))
+
+df$theme = factor(df$theme)
+df$theme = factor(df$theme, levels = gsub("rai_idx_", "", rai_vars_select$variable[2:7]), labels = rai_vars_select$name[2:7])
+
+df <- df |>
+  group_by(country, period) |>
+  slice_max(share)
+
+# Summary states for text
+ds = df |>
+  group_by(period, theme) |>
+  summarise(countries = n())
+
+
+## Maps
+map = bind_rows(map1, map2, map3)
+
+df[df$country == "DR Congo",]$country = "Democratic Republic of the Congo"
+map = left_join(map, df %>% dplyr::rename(region = country) )
+
+# set map parameters
+map_theme = theme(axis.title.x = element_blank(), axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.title.y = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(),
+        legend.position = "none",
+        plot.margin=unit(c(4, 4, 0, 4),"pt"))
+
+x_lim = c(-90,142)
+y_lim = c(-33, 52)
+
+pal <- leaflet::colorFactor("Accent", domain = df$theme)
+# map = map %>% mutate(theme = replace_na(as.character(theme), "No")) %>% mutate(theme = forcats::fct_relevel(theme, c(rai_vars_select$name[2:7], "No")))
+
+a = ggplot(map %>% filter(period == "2012-2016"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+  
+
+b = ggplot(map %>% filter(period == "2017-2021"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+c = ggplot(map %>% filter(period == "2022-2024"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+
+df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+  mutate(period = case_when(
+    date < "2017-01-01" ~ "2012-2016",
+    date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
+    TRUE ~ "2022-2024"
+    )
+  ) |>
+  filter(influencer %in% "Russia") |>
+  select(country, date, period, article_total, starts_with("rai_idx"), -rai_idx_total) |>
+  pivot_longer(starts_with("rai_idx"), names_to = "theme") |>
+  mutate(theme = gsub("rai\\_idx\\_", "", theme)) |>
+  # De-normalize
+  mutate(value = (value * article_total)/10000 )
+  
+df <- df |>
+  group_by(country, period, theme) |>
+  arrange(date) |>
+  # Re-normalize
+  summarize(value = sum( value ) ,
+            article_total = sum(article_total),
+              .groups = "drop") |>
+  mutate(mean_value = (value / article_total) * 10000 )
+
+df <- df |>
+  group_by(country, period) |>
+  mutate(share = mean_value / sum(mean_value))
+
+
+df$theme = factor(df$theme)
+df$theme = factor(df$theme, levels = gsub("rai_idx_", "", rai_vars_select$variable[2:7]), labels = rai_vars_select$name[2:7])
+
+df <- df |>
+  group_by(country, period) |>
+  slice_max(share)
+
+# Summary states for text
+ds = df |>
+  group_by(period, theme) |>
+  summarise(countries = n())
+
+## Maps
+map = bind_rows(map1, map2, map3)
+
+df[df$country == "DR Congo",]$country = "Democratic Republic of the Congo"
+map = left_join(map, df %>% dplyr::rename(region = country) )
+
+
+d = ggplot(map %>% filter(period == "2012-2016"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+  
+
+e = ggplot(map %>% filter(period == "2017-2021"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+f = ggplot(map %>% filter(period == "2022-2024"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+# Create dummy map with all themes
+tmap = map |>
+  filter(period == "2012-2016") |>
+  mutate(theme = case_when(region == "Belarus" ~ "Backlash",
+                           region == "Georgia" ~ "Domestic Interference",
+                           TRUE ~ theme))
+
+
+legend = ggplot(tmap %>% filter(period == "2012-2016"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() +
+  theme(legend.position = "top",
+        legend.text = element_text(size = 5), legend.title=element_blank())
+
+rm(tmap)
+
+g <- ggplotGrob(legend)
+legend <- g$grobs[[which(g$layout$name == "guide-box-top")]]
+
+# Arrange the plots in a 2-row by 3-column grid
+plots_grid <- plot_grid(a, d, b, e, c, f, nrow = 3)
+
+# Create text labels as ggplot objects
+left_label <- ggdraw() + draw_label("China") + theme_void() + theme(plot.margin = margin(0, 0, 0, 0))
+right_label <- ggdraw() + draw_label("Russia") + theme_void() + theme(plot.margin = margin(0, 0, 0, 0))
+
+# Arrange the legend with text labels on both sides
+legend_row <- plot_grid(left_label, legend, right_label, ncol = 3, rel_widths = c(1, 2, 1))
+
+
+# Combine the legend (in its own row) with the plots grid
+# You may need to adjust `rel_heights` depending on the size of your legend and desired layout
+final_layout <- plot_grid(
+  legend_row, # Center the legend
+  plots_grid,
+  nrow = 2,
+  rel_heights = c(0.1, 1) # Adjust these as needed
+)
+
+final_layout
+
+rm(a, b, c, d, e, f, g, fig, x_lim, y_lim, right_label, left_label, legend, legend_row, plots_grid, map, map_theme, final_layout)
+
+```
+
+{{< pagebreak >}}
+
+
+::: {.latex}
+\clearpage
+:::
+
+## Increased Russian Activity Figures with Alternative Aggregation 
+
+
+In this section, we present figures from the *Increased Russian Activity* Section of the main text after changing our calculation so that aggregation is performed *before* normalization. This prevents giving equal weight to the share of articles reporting on events attributed to Russia or China for months in which there is very little activity as we do to months with high levels of activity. This method is more sensitive to outliers and measurement error. However, results are very similar to those presented in the main text.
+
+```{r, fig.width=8,fig.height=4}
+#| echo: false
+#| warning: false
+#| fig-pos: "!h"
+#| label: fig-plot_level-increase
+#| fig-cap: "Levels of RAI activity over time, measured as the normalized share of all articles reporting on RAI events. Not all countries have been updated to include data for the last 3 months of the time-series, so we remove the final three months from the date in order to eliminate composition changes. The vertical dashed lines marks the month of Russia's annexation of Crimea in March 2014 and invasion of Ukraine in February 2022."
+
+
+# rai_df <- rai.atari::rai
+rai_df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv"))
+
+rai_df <- rai_df |>
+  select(country, influencer, date, rai_idx_total, article_total) |>
+  filter(influencer != "Combined") |>
+  filter(country != "Timor Leste") |>
+  mutate(rai_idx_total_raw = (rai_idx_total * article_total) / 10000) |>
+  group_by(influencer, date) |>
+  summarize(rai_idx_total_raw = (sum(rai_idx_total_raw) / sum(article_total)) * 10000,
+            .groups = "drop")
+
+third_to_max_date <- sort(unique(rai_df$date), decreasing = TRUE)[3]
+
+ggplot(rai_df %>%
+         filter(! date > third_to_max_date ), 
+       aes(x = date, y = rai_idx_total_raw, color = influencer,
+           linetype = influencer)) +
+  geom_line() +
+  geom_vline( xintercept = as.numeric(as.Date("2014-02-01")), linetype="dashed" ) +
+  geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed" ) + 
+  scale_linetype_manual("Influencer", values = c("solid", "solid")) +
+  scale_color_manual("Influencer", values = c("#ef0000","#1C3578")) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") + # Customize the x-axis for yearly labels
+  theme_bw() +
+  labs(x = "", y = "RAI articles per 10k published articles") +
+  theme(legend.text = element_text(size = 5), legend.title=element_text(size = 6),
+        legend.position = c(.11, .78), legend.box.background = element_rect(colour = "black"))
+        
+rm(third_to_max_date, rai_global )
+
+```
+
+{{< pagebreak >}}
+
+```{r, fig.width=8,fig.height=10}
+#| echo: false
+#| warning: false
+#| fig-pos: "H"
+#| label: fig-plot_period_levels_alt
+#| fig-cap: "Percent change in average monthly RAI articles per 10k published articles. Countries ordered by size of percent change in Russian influence between last two periods."
+
+
+df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+  mutate(period = case_when(
+    date < "2017-01-01" ~ "2012-2016",
+    date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
+    TRUE ~ "2022-2024"
+    )
+  ) |>
+  filter(! influencer=="Combined") |>
+
+  # Un-normalize in order to *not* put equal weight on years
+  mutate(rai_idx_total = (rai_idx_total * article_total) / 10000) |>
+  select(country, date, rai_idx_total, influencer, period, article_total) 
+
+
+# Need to re-normalize  
+df <- df |>
+  group_by(country, period, influencer) |>
+  summarize(value = sum( rai_idx_total ) ,
+            article_total = sum(article_total),
+              .groups = "drop") |>
+  mutate(mean_total_rai = (value / article_total) * 10000 ) |>
+  arrange(country, influencer, period)
+
+
+dfp <- df |>
+  group_by(country, influencer) |>
+  mutate(percentage_change = (mean_total_rai / lag(mean_total_rai) - 1) * 100) |>
+  mutate(increase = mean_total_rai[3] - mean_total_rai[2]) |>
+  filter(!is.na(percentage_change))
+
+dfpr = dfp |>
+  filter(influencer == "Russia" & period == "2022-2024") |>
+  group_by(country) |>
+  arrange(percentage_change)
+
+
+ann_text <- data.frame(country = factor("South Sudan", levels =  unique(dfpr$country)), 
+                       percentage_change = 1300, 
+                       lab = "* Boxes display mean increase in\nabsolute number of RAI articles\nper 10k published articles\nbetween second and\nthird period", 
+                       influencer = factor("Russia", levels = c("China", "Russia")), 
+                       mean_total_rai = 100)
+
+write.csv(dfpr, here::here("writing", "output", "dfpr.csv"))
+
+dfp |>
+  mutate(country = factor(country, levels =  unique(dfpr$country))  ) |>
+  ggplot(aes(x = percentage_change, y = country ) ) + 
+  geom_line(aes(group = country), color = "gray80") +
+  geom_point(aes(color = period)) +
+  facet_wrap(~influencer) +
+  geom_label(data = dfp %>% group_by(country, influencer) |> slice_tail(n=1),
+             aes(label = round(increase, digits = 0), group = influencer), size = 2, hjust = .5,
+             nudge_x = 400, color = "#66a182") +
+  theme_bw() +
+  scale_x_continuous(labels = scales::percent_format( scale=1 )) +
+  geom_text(aes(x = percentage_change, y = country, label=lab),
+            data = ann_text, size = 3) +
+  scale_color_manual("Percent change between time\nperiods", 
+                       labels = c("2012-2016 and 2017-2021", "2017-2021 and 2022-2024"),
+                       values = c("#edae49", "#66a182")) +
+  labs(x = "Percent change in average monthly RAI articles per 10k published articles", y = "") +
+  theme(legend.text = element_text(size = 6), legend.title = element_text(size = 6),
+        legend.position = c(.38, .85), legend.box.background = element_rect(colour = "black")) 
+
+rm(rc1, rc2, rc3, rc4, ann_text, dfpr, dfp_c_share, dfp)
+
+```
+
+{{< pagebreak >}}
+
+
+## Operationalizing Economic Dependence
+
+We operationalize economic dependence by identifying commodities on which Russia is heavily reliant, either for imports or exports, and then identifying countries that trade in those commodities. We use comprehensive data on global imports and exports from UN COMTRAD at the HS4 level, covering roughly 1,000 commodity codes. We consider average trade flows from 2015--2019; prior to the invasion of Ukraine but before the osnet of COVID. We use constant 2015 US Dollars to measure trade value.
+
+First, we define criteria to categorize countries as import-reliant or export-reliant on specific commodities. Second, we identify countries that are major exporters of commodities on which Russia is import-reliant, referred to as *Import-Reliance Exporters (IREs)*. Third, we identify countries that are import-reliant on commodities for which Russia is export-reliant, which we term *Export-Reliance Importers (ERIs)*. 
+
+### Import Reliance
+
+To identify commodities on which Russia is import-reliant, we focus on commodities that constitute a significant share of Russia's overall trade and which Russia cannot produce domestically. Commodities must meet two criteria. First, we focus on commodities that constitute at least 0.1% of the value of all Russian trade (exports + imports) from 2015-2019. A threshold above 0.1% ensures that the commodity is relatively important to Russia’s economy. Second, we require that more than 80% of Russia's total trade in a given commodity comes from imports. Empirically, a low ratio of exports to imports indicates a limited ability to produce the commodity domestically [@saltarelli2020export]. 
+
+![Commodities on which Russia is import-reliant](import_reliance_heading.png){#fig-import_reliance_heading fig-align="center"}
+
+We consider Russia to be import-reliant on commodities that meet both criteria. @fig-import_reliance_heading plots these commodities. Labeled points correspond with the top product under each commodity-heading. Key commodities include motor vehicles, machinery, medicaments, and telephone sets.
+
+{{< pagebreak >}}
+
+### Import Reliance Exporters
+
+Next, we identify countries that export commodities on which Russia is import-reliant, referred to as *Import Reliance Exporters (IREs)*. A country qualifies as an *IRE* if, for at least one commodity on which Russia is import-reliant, the value of the country's total exports exceeds 100% of the value of Russia’s total imports of that commodity. This ensures that the country has a substantial supply of at least one commodity on which Russia is heavily dependent. @fig-import_reliance_heading_exporters plots countries that qualify is *IREs*. Our sample of *IREs* includes 2 countries in Africa, 5 countries in the Americas, 8 countries in Asia, and 2 countries in Eastern Europe. 
+
+![Courtries exporting commodities on which Russia is import-reliant](import_reliance_heading_exporters.png){#fig-import_reliance_heading_exporters fig-align="center"}
+
+{{< pagebreak >}}
+
+### Export Reliance
+
+Next, we identify commodities on which Russia is export-reliant. Export-reliance refers to commodities that Russia likely depends on for domestic economic stability and foreign exchange earnings. Commodities must meet two criteria for Russia to be considered export-reliant on them. First, the total value of Russia’s trade in that commodity (exports + imports) must exceed 0.1% of the value of all Russian trade. Second, the commodity must be among the 100 highest-value exports in constant 2015 USD from 2015-2019. @fig-export_reliance_heading plots these commodities. Labeled points correspond with the top product under each commodity-heading. Key commodities include petroleum oils and gases, metals, and motor vehicles (including parts and equipment).
+
+![Commodities on which Russia is export-reliant](export_reliance_heading.png){#fig-export_reliance_heading fig-align="center"}
+
+{{< pagebreak >}}
+
+### Export Reliance Importers
+
+Finally, we identify countries that are import-reliant on commodities on which Russia is export reliant, which we term *Export Reliance Importers (ERIs)*. A country qualifies as an *ERI* if it is import-reliant on at least 10 distinct commodities for which Russia is export-reliant and its imports of commodities for which Russia is export-reliant are worth at least 15 billion constant 2015 US Dollars. This insures that countries are reliant on broad range of key Russian exports that constitute a significant share of the country’s overall trade portfolio. @fig-export_reliance_heading_importers plots countries that qualify is *ERIs*. Our sample of *ERIs* includes 2 countries in Africa, 4 countries in the Americas, 7 countries in Asia, and 1 country in Eastern Europe. 
+
+![Countries import-reliant on commodities on which Russia is export-reliant](export_reliance_heading_importers.png){#fig-export_reliance_heading_importers fig-align="center"}
+
+
+{{< pagebreak >}}
+
+## Change-point Months for all Themes
+
+
+```{r, fig.width=8,fig.height=6}
+#| echo: false
+#| warning: false
+#| fig-pos: "!h"
+#| label: fig-changepoint_themes
+#| fig-cap: "Frequency of changepoint dates in Russian influence time-series for all target countries. We identify one changepoint for each country. change-points capture increases in the mean of the time-series."
+
+
+rai_df <- readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv"))
+rai_df <- rai_df %>%
+  select(country, influencer, date, rai_idx_bal:rai_idx_sp)
+
+# List of unique country names in your dataframe
+unique_countries <- unique(rai_df$country)
+
+result_df <- data.frame()
+
+# Loop through each country
+for (country_name in unique_countries) {
+  for (j in names(rai_df)[4:9]  ){
+    # Filter the dataframe for the current country
+    dat = rai_df |> filter(country == country_name & influencer == "Russia")
+    
+    # Calculate cpt.mean() for the current country
+    cpt_result <- cpt.mean( dat[[j]] , method = "BinSeg", Q = 1)
+    cpt_result = cpt_result@cpts[1]
+    
+    country_result <- data.frame(country = country_name, col = j, t(cpt_result))
+    result_df <- rbind(result_df, country_result)
+
+  }
+
+}
+
+result_dfi = result_df
+for (i in names(result_dfi)[3]  ) {
+  result_dfi[ , i] = NA
+  result_dfi[ , i] = as.Date(result_dfi[ , i])
+  
+  for (j in 1:nrow(result_dfi) ) {
+    result_dfi[j , i] = unique(rai_df$date)[result_df[j , i]+1]
+    
+  }
+  
+}
+
+dat2 = result_dfi |>
+  rename(date = t.cpt_result.,
+         theme = col) |>
+  group_by(theme, date) |>
+  summarise(count = n() )
+
+write.csv(dat2, here::here("writing", "output", "change-points_plot.csv"))
+
+break.vec <- c(as.Date("2012-01-01"),
+               seq(from = as.Date("2012-02-01"), to = as.Date(max(rai$date)),
+                   by = "month"),
+               as.Date(max(rai$date)))
+des_break = break.vec[c(TRUE, FALSE, FALSE, FALSE, FALSE)]
+
+dat2$theme = factor(dat2$theme)
+dat2$theme = factor(dat2$theme, levels = rai_vars_select$variable[2:7], labels = rai_vars_select$name[2:7])
+
+# Define periods to shade
+shaded_periods <- data.frame(
+  start = as.Date(c("2021-07-15")),
+  end = as.Date(c("2022-01-15"))
+)
+
+
+ggplot(dat2 , 
+       aes(x=date, y = count) ) + geom_bar(stat="identity") +
+  scale_x_date(breaks = des_break, labels = scales::date_format("%Y-%b")) +
+  theme_bw() + 
+  facet_wrap(~theme, ncol = 1) +
+  geom_rect(data = shaded_periods, aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf), 
+            fill = "red", alpha = 0.2, inherit.aes = FALSE) +
+  geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed", color = "red" ) +
+  labs(x = "", y = "Frequency of changepoint dates") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.text.y = element_text(size = 6))
+
+
+rm( country_result, df, rai, rai_df, result_df)
+
+
+```
+
+![OLS regression predicting number of countries targeted for Russian influence for each 6-month period from January 2024 through 2012. Pre-invasion is a binary indicator for the 6 months before invasion of Ukraine](figures/change-point-regression.png){#fig-change-point-regression fig-align="center" width="650"}
+
+{{< pagebreak >}}
+
+
+## Change-point Months in Time-Series
+
+```{r, fig.width=8,fig.height=4}
+#| echo: false
+#| warning: false
+#| fig-pos: "!h"
+#| label: fig-dip_changepoints
+#| fig-cap: "Timing of changepoint dates in Russian influence time-series for all target countries. Red points are the start of a new period."
+
+rai_df <- readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv"))
+rai_df <- rai_df %>%
+  select(country, influencer, date, rai_idx_bal:rai_idx_sp)
+
+# List of unique country names in your dataframe
+unique_countries <- unique(rai_df$country)
+
+result_df <- data.frame()
+
+# Loop through each country
+for (country_name in unique_countries) {
+  for (j in names(rai_df)[4:9]  ){
+    # Filter the dataframe for the current country
+    dat = rai_df |> filter(country == country_name & influencer == "Russia")
+    
+    # Calculate cpt.mean() for the current country
+    cpt_result <- cpt.mean( dat[[j]] , method = "BinSeg", Q = 1)
+    cpt_result = cpt_result@cpts[1]
+    
+    country_result <- data.frame(country = country_name, col = j, t(cpt_result))
+    result_df <- rbind(result_df, country_result)
+
+  }
+
+}
+
+result_dfi = result_df
+for (i in names(result_dfi)[3]  ) {
+  result_dfi[ , i] = NA
+  result_dfi[ , i] = as.Date(result_dfi[ , i])
+  
+  for (j in 1:nrow(result_dfi) ) {
+    result_dfi[j , i] = unique(rai_df$date)[result_df[j , i]+1]
+    
+  }
+  
+}
+
+dat = result_dfi %>%
+  rename(cp = t.cpt_result.) %>%
+  filter(cp %in% c("2022-01-01", "2021-12-01", "2021-11-01", "2021-10-01", "2021-09-01", "2021-08-01") )
+
+
+# rai_df <- rai.atari::rai %>% 
+rai_df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+  filter(influencer == "Russia" & country %in% unique(dat$country)) 
+
+dip2 = dat %>% filter(col == "rai_idx_dip")
+
+dip = rai_df %>% 
+  select(country, date, rai_idx_dip) %>% 
+  filter(country %in% dip2$country) %>%
+  mutate(cpm = case_when( paste(country, date) %in% paste(dip2$country, dip2$cp) ~ 1,
+                          TRUE ~ 0)
+  )
+
+# Setup label mapping dataframe
+choices_df = data.frame(
+  id = rai_vars_select$variable[2:7],
+  names = rai_vars_select$name[2:7]
+)
+
+## Identify countries with a spike in diplomacy in the 3 mos before invasion
+ggplot(dip, aes(x = date, y =  rai_idx_dip)) +
+  geom_line(linewidth = 1, color = "black", linetype=1) +
+  facet_wrap(~country, scales = "free_y") +
+  theme_bw() +
+  geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed", color = "#66a182" ) +
+  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max(rai_df$date)), by = "6 months"), labels = scales::date_format("%Y-%b"),
+               limits = as.Date(c("2019-01-01", as.Date(max(rai_df$date)))), expand = c(.01,.01) ) +
+  theme(plot.title = element_text(hjust = 0, size = 18),  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.title.x = element_blank()) +
+  geom_point(data = filter(dip, cpm == 1), aes(x = date, y = rai_idx_dip), 
+             color = "red", size = 2) +
+  labs(y = "Diplomacy")
+
+
+# ggsave(here::here("writing/output/dip_changepoints.png"), height = 4, width = 7, dpi = 700)
+
+
+
+```
+
+{{< pagebreak >}}
+
+```{r, fig.width=8,fig.height=4}
+#| echo: false
+#| warning: false
+#| fig-pos: "!h"
+#| label: fig-hp_changepoints
+#| fig-cap: "Timing of changepoint dates in Russian influence time-series for all target countries. Red points are the start of a new period."
+
+
+
+# rai_df <- rai.atari::rai %>% 
+rai_df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+  filter(influencer == "Russia" & country %in% unique(dat$country)) 
+
+dip2 = dat %>% filter(col == "rai_idx_hp")
+
+dip = rai_df %>% 
+  select(country, date, rai_idx_hp) %>% 
+  filter(country %in% dip2$country) %>%
+  mutate(cpm = case_when( paste(country, date) %in% paste(dip2$country, dip2$cp) ~ 1,
+                          TRUE ~ 0)
+  )
+
+# Setup label mapping dataframe
+choices_df = data.frame(
+  id = rai_vars_select$variable[2:7],
+  names = rai_vars_select$name[2:7]
+)
+
+## Identify countries with a spike in diplomacy in the 3 mos before invasion
+ggplot(dip, aes(x = date, y =  rai_idx_hp)) +
+  geom_line(linewidth = 1, color = "black", linetype=1) +
+  facet_wrap(~country, scales = "free_y") +
+  theme_bw() +
+  geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed", color = "#66a182" ) +
+  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max(rai_df$date)), by = "6 months"), labels = scales::date_format("%Y-%b"),
+               limits = as.Date(c("2019-01-01", as.Date(max(rai_df$date)))), expand = c(.01,.01) ) +
+  theme(plot.title = element_text(hjust = 0, size = 18),  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.title.x = element_blank()) +
+  geom_point(data = filter(dip, cpm == 1), aes(x = date, y = rai_idx_hp), 
+             color = "red", size = 2) +
+  labs(y = "Hard Power")
+
+
+# ggsave(here::here("writing/output/hp_changepoints.png"), height = 4, width = 7, dpi = 700)
+
+
+```
+
+{{< pagebreak >}}
+
+```{r, fig.width=8,fig.height=4}
+#| echo: false
+#| warning: false
+#| fig-pos: "!h"
+#| label: fig-ep_changepoints
+#| fig-cap: "Timing of changepoint dates in Russian influence time-series for all target countries. Red points are the start of a new period."
+
+
+
+# rai_df <- rai.atari::rai %>% 
+rai_df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+  filter(influencer == "Russia" & country %in% unique(dat$country)) 
+
+dip2 = dat %>% filter(col == "rai_idx_ep")
+
+dip = rai_df %>% 
+  select(country, date, rai_idx_ep) %>% 
+  filter(country %in% dip2$country) %>%
+  mutate(cpm = case_when( paste(country, date) %in% paste(dip2$country, dip2$cp) ~ 1,
+                          TRUE ~ 0)
+  )
+
+# Setup label mapping dataframe
+choices_df = data.frame(
+  id = rai_vars_select$variable[2:7],
+  names = rai_vars_select$name[2:7]
+)
+
+## Identify countries with a spike in diplomacy in the 3 mos before invasion
+ggplot(dip, aes(x = date, y =  rai_idx_ep)) +
+  geom_line(linewidth = 1, color = "black", linetype=1) +
+  facet_wrap(~country, scales = "free_y") +
+  theme_bw() +
+  geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed", color = "#66a182" ) +
+  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max(rai_df$date)), by = "6 months"), labels = scales::date_format("%Y-%b"),
+               limits = as.Date(c("2019-01-01", as.Date(max(rai_df$date)))), expand = c(.01,.01) ) +
+  theme(plot.title = element_text(hjust = 0, size = 18),  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.title.x = element_blank()) +
+  geom_point(data = filter(dip, cpm == 1), aes(x = date, y = rai_idx_ep), 
+             color = "red", size = 2) +
+  labs(y = "Economic Power")
+
+
+# ggsave(here::here("writing/output/ep_changepoints.png"), height = 4, width = 7, dpi = 700)
+
+
+```
+
+{{< pagebreak >}}
+
+
+```{r, fig.width=8,fig.height=4}
+#| echo: false
+#| warning: false
+#| fig-pos: "!h"
+#| label: fig-di_changepoints
+#| fig-cap: "Timing of changepoint dates in Russian influence time-series for all target countries. Red points are the start of a new period."
+
+
+
+# rai_df <- rai.atari::rai %>% 
+rai_df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+  filter(influencer == "Russia" & country %in% unique(dat$country)) 
+
+dip2 = dat %>% filter(col == "rai_idx_di")
+
+dip = rai_df %>% 
+  select(country, date, rai_idx_di) %>% 
+  filter(country %in% dip2$country) %>%
+  mutate(cpm = case_when( paste(country, date) %in% paste(dip2$country, dip2$cp) ~ 1,
+                          TRUE ~ 0)
+  )
+
+# Setup label mapping dataframe
+choices_df = data.frame(
+  id = rai_vars_select$variable[2:7],
+  names = rai_vars_select$name[2:7]
+)
+
+## Identify countries with a spike in diplomacy in the 3 mos before invasion
+ggplot(dip, aes(x = date, y =  rai_idx_di)) +
+  geom_line(linewidth = 1, color = "black", linetype=1) +
+  facet_wrap(~country, scales = "free_y") +
+  theme_bw() +
+  geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed", color = "#66a182" ) +
+  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max(rai_df$date)), by = "6 months"), labels = scales::date_format("%Y-%b"),
+               limits = as.Date(c("2019-01-01", as.Date(max(rai_df$date)))), expand = c(.01,.01) ) +
+  theme(plot.title = element_text(hjust = 0, size = 18),  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.title.x = element_blank()) +
+  geom_point(data = filter(dip, cpm == 1), aes(x = date, y = rai_idx_di), 
+             color = "red", size = 2) +
+  labs(y = "Domestic Interference")
+
+
+# ggsave(here::here("writing/output/di_changepoints.png"), height = 4, width = 7, dpi = 700)
+
+```
+
+{{< pagebreak >}}
+
+  
+
+```{r, fig.width=8,fig.height=4}
+#| echo: false
+#| warning: false
+#| fig-pos: "!h"
+#| label: fig-sp_changepoints
+#| fig-cap: "Timing of changepoint dates in Russian influence time-series for all target countries. Red points are the start of a new period."
+
+# rai_df <- rai.atari::rai %>% 
+rai_df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+  filter(influencer == "Russia" & country %in% unique(dat$country)) 
+
+dip2 = dat %>% filter(col == "rai_idx_sp")
+
+dip = rai_df %>% 
+  select(country, date, rai_idx_sp) %>% 
+  filter(country %in% dip2$country) %>%
+  mutate(cpm = case_when( paste(country, date) %in% paste(dip2$country, dip2$cp) ~ 1,
+                          TRUE ~ 0)
+  )
+
+# Setup label mapping dataframe
+choices_df = data.frame(
+  id = rai_vars_select$variable[2:7],
+  names = rai_vars_select$name[2:7]
+)
+
+## Identify countries with a spike in diplomacy in the 3 mos before invasion
+ggplot(dip, aes(x = date, y =  rai_idx_sp)) +
+  geom_line(linewidth = 1, color = "black", linetype=1) +
+  facet_wrap(~country, scales = "free_y") +
+  theme_bw() +
+  geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed", color = "#66a182" ) +
+  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max(rai_df$date)), by = "6 months"), labels = scales::date_format("%Y-%b"),
+               limits = as.Date(c("2019-01-01", as.Date(max(rai_df$date)))), expand = c(.01,.01) ) +
+  theme(plot.title = element_text(hjust = 0, size = 18),  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.title.x = element_blank()) +
+  geom_point(data = filter(dip, cpm == 1), aes(x = date, y = rai_idx_sp), 
+             color = "red", size = 2) +
+  labs(y = "Soft Power")
+
+# ggsave(here::here("writing/output/sp_changepoints.png"), height = 4, width = 7, dpi = 700)
+
+```
+
+
+{{< pagebreak >}}
+
+## References {.unnumbered}
+
+::: {#refs}
+:::
