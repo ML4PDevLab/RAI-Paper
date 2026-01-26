@@ -2,3 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
+
+# Generated slide outputs
+writing/slides/output/
+writing/slides/*_files/
+.DS_Store
