@@ -3,7 +3,25 @@
 .RData
 .Ruserdata
 
+# Quarto local cache/home used for sandboxed renders
+.quarto_home/
+.quarto_cache/
+
 # Generated slide outputs
 writing/slides/output/
 writing/slides/*_files/
 .DS_Store
+
+# macOS
+.DS_Store
+
+# local deps / binaries (do not commit)
+.Rlib/
+.localbin/
+
+# large generated artifacts (adjust if you truly want them versioned)
+writing/output/
+*.bundle
+
+# model/data archives (usually store elsewhere)
+*.zip

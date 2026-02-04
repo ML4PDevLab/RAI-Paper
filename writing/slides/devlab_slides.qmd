@@ -42,8 +42,9 @@ library(readr)
 #rai <- rai.atari::rai 
 
 # load(file = here::here("rai.atari/data/rai.rda"))
-rai = readr::read_csv(here::here("writing", "output", "rai_4_5_24.csv"))
-load(file = here::here("data/rai_vars.rda"))
+rai = readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
+rai_vars = readr::read_csv(here::here("data", "rai_vars.csv")) %>%
+  dplyr::rename(variable = id)
 
 rai_vars_select = bind_rows(
   data.frame(
@@ -430,7 +431,7 @@ c
 #| warning: false
 
 # df <- rai.atari::rai |>
-df = readr::read_csv(here::here("writing", "output", "rai_4_5_24.csv")) |>
+df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
   filter(! influencer %in% "Combined") |>
   select(country, date, influencer, starts_with("rai_idx"), -rai_idx_total) |>
   pivot_longer(starts_with("rai_idx"), names_to = "theme") |>

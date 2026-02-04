@@ -8,6 +8,10 @@ This repo contains the replication data and files for *Foreign Influence by Auth
 - The `writing/output` subfolder contains output (tables, figures, and data) from R code in the `writing/full_paper.qmd` document.
 - The `writing/mermaid_output.qmd` write-out a png that visualizes the data production pipeline. Note: this relies on webshot and ghostscript, so may not run on all machines.
 
+## Updating Data
+
+- Run `code/refresh_rai_from_mlp_intro.R` to build `writing/output/rai_latest.csv` from the `mlp-data-intro` pipeline output and copy `data/rai_vars.csv` into this repo.
+
 ## Deriving and Testing Expectations of Russian Influence Behavior
 ## AI-assisted Qualitative Case Studies
 

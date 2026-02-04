@@ -42,8 +42,9 @@ library(readr)
 #rai <- rai.atari::rai 
 
 # load(file = here::here("rai.atari/data/rai.rda"))
-rai = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv"))
-load(file = here::here("data/rai_vars.rda"))
+rai = readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
+rai_vars = readr::read_csv(here::here("data", "rai_vars.csv")) %>%
+  dplyr::rename(variable = id)
 
 rai_vars_select = bind_rows(
   data.frame(

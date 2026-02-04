@@ -1,0 +1,22 @@
+id,name,theme,theme_name
+arms_transfer_security_aid_assistance,Arms Transfer/Security Aid/Assistance,hp,Hard Power
+bribery_economic_corruption,Bribery/Economic Corruption,bal,Backlash
+diplomatic_mediation,Diplomatic Mediation,dip,Diplomacy
+diplomatic_ties,Diplomatic Ties,dip,Diplomacy
+diplomatic_action,Diplomatic Action,dip,Diplomacy
+diplomatic_statement,Diplomatic Statement,dip,Diplomacy
+diplomatic_meeting,Diplomatic Meeting,dip,Diplomacy
+foreign_aid_assistance,Foreign Aid/Assistance,ep,Economic Power
+intelligence_counterintelligence,Intelligence/Counterintelligence,di,Domestic Interference
+foreign_investment,Foreign Investment,ep,Economic Power
+joint_security_force_exercise,Joint Security Force Exercise,hp,Hard Power
+media_campaign_intervention,Media Campaign/Intervention,sp,Soft Power
+political_process_policy_intervention,Political Process/Policy Intervention,di,Domestic Interference
+social_academic_cultural_activity,Social/Academic/Cultural Activity,sp,Soft Power
+security_engagement,Security Engagement,hp,Hard Power
+military_activity,Military Activity,hp,Hard Power
+cyber_attack,Cyber Attack,di,Domestic Interference
+tech_transfer_investment,Technology Transfer/Investment,ep,Economic Power
+trade_agreement_exchange,Trade Agreement/Exchange,ep,Economic Power
+trade_financial_sanction,Trade/Financial Sanction,ep,Economic Power
+transnational_organization_crime,Transnational Organized Crime,bal,Backlash

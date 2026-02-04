@@ -32,8 +32,12 @@ library(kableExtra)
 library(ggplot2)
 library(changepoint)
 library(cowplot)
-library(ml4p.forecast)
-library(rai.atari)
+source(here::here("code", "local_sources.R"))
+# library(rai.atari)
+
+rai = readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
+rai_vars = readr::read_csv(here::here("data", "rai_vars.csv")) %>%
+  dplyr::rename(variable = id)
 
 rai_vars_select = bind_rows(
   data.frame(
@@ -53,107 +57,64 @@ rai_vars_select = bind_rows(
 <!-- AidData's data on foreign aid and state financing comes from human review of official government sources from China and aid/finance receiving countries. For each project identified during this review of official sources, coders seek to collect information on 70 unique characteristics, including project start and end dates, fees, terms, and implementing organizations. When possible, this includes the specific dates on which projects begin and end. This process is complemented by a systematic search of media content sourced from Factiva, a media monitoring company, to collect information on additional project details. Public diplomacy event data is compiled using a similar methodology. These data are available at the country-year level, meaning that AidData provides the number of times each event occurred in each country in each year. These data have been a boon to researchers and policymakers alike.  -->
 
 
-## Event Definitions
+## Category Definitions
 
 ### Diplomacy
 
-- Diplomatic Action  
-  - Any action where a foreign authoritarian actor engages in diplomatic sanctions.  
-  - **Example:** “Russia expelled 23 British diplomats...”
-
-- Diplomatic Visit  
-  - Any action where a foreign authoritarian actor visits with local officials.  
-  - **Example:** “The 3rd Meeting of the Brazil-China Global Strategic Dialogue was held...”
-
-- Diplomatic Engagement  
-  - Any action where a foreign authoritarian actor engages in mediation between a local actor and others.  
-  - **Example:** “Russia said on Tuesday it was ready to facilitate...”
-
-- Diplomatic Relations  
-  - Any action where a foreign authoritarian actor provides legitimacy through agreements or support.  
-  - **Example:** “The comprehensive strategic partnership between Argentina and China was signed...”
-
-- Diplomatic Statement  
-  - Any action where a foreign authoritarian actor engages in public discourse regarding local actors.  
-  - **Example:** “The Maldives is a case in point...”
+- **Diplomatic Mediation:** Articles reporting on efforts or initiatives aimed at mediating disputes or conflicts between countries or third parties through diplomatic channels. This can also refer to the refusal, failure, or withdrawal of mediation efforts.
+- **Diplomatic Ties:** Articles reporting on actions that expand or reduce the extent of diplomatic relations between two countries.
+- **Diplomatic Action:** Articles reporting on the implementation or removal of punitive diplomatic actions or restrictions imposed by one country on another country’s government or citizens, including things like expelling diplomats or imposing travel bans. This excludes trade and financial sanctions.
+- **Diplomatic Statement:** Articles reporting on a public statement made by members or representatives of one country’s government about the actions of another country’s government, citizens, or firms.
+- **Diplomatic Meeting:** Articles reporting on meetings between members or representatives of one country’s government and another country with the purpose of conducting official government business. This can also refer to the cancellation of meetings.
 
 ### Domestic Interference
 
-- Cyber Operation  
-  - Any action where a foreign authoritarian actor engages in cyber intrusion or intelligence activities.  
-  - **Example:** “Colombian authorities are investigating...”
-
-- Intelligence Operation  
-  - Any action where a foreign authoritarian actor engages in intelligence or covert operations.  
-  - **Example:** “Ukraine's security service SBU said on Wednesday it had captured...”
-
-- Policy Intervention  
-  - Any action where a foreign authoritarian actor intervenes in local political processes.  
-  - **Example:** “China has reportedly also donated funding to preferred political campaigns...”
-
-- Technology Transfer  
-  - Any action where a foreign authoritarian actor provides technology.  
-  - **Example:** “Technology linked to Chinese companies... supply AI surveillance technology...”
+- **Intelligence/Counterintelligence:** Articles reporting on efforts by one country’s government or illicit partners to engage in espionage, intelligence operations, or secretly surveil another country’s government, businesses, or citizens. This also includes counterintelligence efforts.
+- **Cyber Attack:** Articles reporting on attempts by one country’s government or illicit partners to conduct a cyber attack that disrupts the functioning of public infrastructure, government entities and administration, or private business in another country.
+- **Political Process/Policy Intervention:** Articles reporting on attempts by state or non-state actors in one country to influence the decisions of policymakers in a separate country through engagement with policymakers or policy processes. This can also refer to the cancellation of such efforts.
 
 ### Economic Power
 
-- Aid Operation  
-  - Any action where a foreign authoritarian actor provides economic support.  
-  - **Example:** “Recognizing Mongolia’s difficult situation, China Exim Bank agreed...”
-
-- Investment Action  
-  - Any action where a foreign authoritarian actor engages in investment in local projects.  
-  - **Example:** “Most significantly, a $3 billion portion of the Central Asia-China gas pipeline...”
-
-- Trade Action  
-  - Any action where a foreign authoritarian actor implements trade sanctions.  
-  - **Example:** “Moscow’s threat to halt imports of Argentine beef...”
-
-- Trade Agreement  
-  - Any action where a foreign authoritarian actor signs a trade agreement.  
-  - **Example:** “November 30, 2017... economic and trade exchanges with the Philippine Chinese Economic...”
+- **Foreign Aid/Assistance:** Articles reporting on the provision of aid by one nation to another, including humanitarian aid, development assistance, and economic support. This can also refer to the refusal or withdrawal of such assistance.
+- **Foreign Investment:** Articles reporting on efforts by individuals, business, or government bodies from one country to make large financial investments in the private or public sector of another country. This can also refer to the refusal or withdrawal of such investments.
+- **Technology Transfer/Investment:** Articles reporting on the transfer of advanced technology with significant commercial or public sector applications by government or corporate entities of one country to another country. This can also refer to the cancellation of such transfers.
+- **Trade Agreement/Exchange:** Articles reporting on efforts by governments to increase the amount of trade or economic exchange with a separate country. This can also refer to the cancellation of such efforts.
+- **Trade/Financial Sanction:** Articles reporting on efforts by one government to restrict or regulate economic engagement or financial transactions with individuals, companies, or government entities in another country. This can also refer to the cancellation of such efforts.
 
 ### Hard Power
 
-- Security Engagement  
-  - Any action where a foreign authoritarian actor enters into a security agreement with local actors.  
-  - **Example:** “Russia and Bolivia signed a defense cooperation agreement...”
-
-- Security Exercise  
-  - Any action where a foreign authoritarian actor engages in joint security exercises or training.  
-  - **Example:** “Thailand regularly conducts counter-terrorism exercises with China...”
-
-- Security Presence  
-  - Any action where a foreign authoritarian actor deploys security forces.  
-  - **Example:** “China prepares to deploy nuclear submarines...”
-
-- Security Transfer  
-  - Any action where a foreign authoritarian actor provides security technology or supports military forces.  
-  - **Example:** “Bolivia is in discussions with Moscow to purchase transport helicopters...”
+- **Arms Transfer/Security Aid/Assistance:** Articles reporting on the transfer of arms, the giving of military or security aid, or the provision of other military assistance from one nation’s government to another nation’s government. This can also refer to the refusal or withdrawal of such assistance.
+- **Joint Security Force Exercise:** Articles reporting on joint military exercises between the armed forces of two countries. This can also refer to the cancellation of such exercises.
+- **Security Engagement:** Articles reporting on official agreements or cooperation between the armed forces of countries aimed at enhancing an ability to engage in collective security or joint military responses. This can also refer to the cancellation of such agreements.
+- **Military Activity:** Articles reporting on any security force activity by one country’s military within the territory of another country.
 
 ### Soft Power
 
-- Cultural Activity  
-  - Any action where a foreign authoritarian actor engages in student or social exchange programs.  
-  - **Example:** “In March 2017... promote Russia’s academic offerings among Latin American students...”
-
-- Diaspora Activation  
-  - Any action where a foreign authoritarian actor mobilizes citizens in a foreign nation to engage in domestic politics.  
-  - **Example:** “A Chinese-born businessman, Jian was elected... linked his nomination to the donation...”
-
-- Media Campaign  
-  - Any action where a foreign authoritarian actor interacts with local media.  
-  - **Example:** “Grupo America... closed an agreement with China Daily...”
+- **Media Campaign/Intervention:** Articles reporting on campaigns conducted by state and non-state actors in one country to distribute information or misinformation to citizens in another country in order to influence public opinion. This can also refer to the cancellation of such campaigns.
+- **Social/Academic/Cultural Activity:** Articles reporting on efforts by one country to use social, academic, or cultural activities to promote their country’s values or culture among the citizens of another country. This can also refer to the cancellation of such activities.
 
 ### Backlash
 
-- Corruption  
-  - Any action where a foreign authoritarian actor engages in bribery or corruption.  
-  - **Example:** “Malaysia's new government... believes that two of the contracts, for pipelines, were used to launder money...”
+- **Bribery/Economic Corruption:** Articles reporting on instances of bribery or corruption involving government, private sector, or illicit actors from two nations.
+- **Transnational Organized Crime:** Articles reporting on organized criminal groups from one country operating in another country.
 
-- Organized Crime  
-  - Any action where a foreign authoritarian actor engages in organized crime.  
-  - **Example:** “The Philippines said Friday it has detained hundreds of Chinese workers...”
+### Other / Unclassified
+
+- **-999:** Articles that lack clear relevance to any established category, or do not fit the specific criteria of defined classes, are to be classified under this placeholder.
+
+## Classifier Training and Evaluation
+
+This section provides a compact snapshot of the training data and test performance for the new ModernBERT-based classifier. We include only the most essential figures.
+
+### Training Data Balance
+
+![Class distribution in the labeled training data (22 labels including `-999`).](figures/training/fig2_class_dist.png){#fig-train_class_dist fig-align="center" width="600"}
+
+### Test Set Performance
+
+![Per-class precision, recall, and F1 on the held-out test set.](figures/training/fig7_classification_report.png){#fig-train_class_report fig-align="center" width="600"}
+
+![Confusion matrix on the held-out test set (row-normalized recall).](figures/training/fig9_confusion_normalized.png){#fig-train_confusion_norm fig-align="center" width="600"}
 
 
 ## Distribution of Domestic Sources in HQMARC
@@ -166,14 +127,14 @@ rai_vars_select = bind_rows(
 
 library(ISOcodes)
 
-rai = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv"))
+rai = readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
 
 # Initialize an empty dataframe to store the results
 result_df <- data.frame(country = character(), lsources_len = integer(), stringsAsFactors = FALSE)
 
 sum_lengths <- 0
 for (i in unique(rai$country)) {
-  lsources_len = ml4p.forecast::local_source_select(i)$lsources
+  lsources_len = local_source_select(i)$lsources
   len = length(lsources_len)
   
   # Append the country and the length to the dataframe
@@ -246,7 +207,6 @@ for(i in 1:nrow(lan)) {
 #| warning: false
 
 library(knitr)
-library(ml4p.forecast)
 opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
 
 cat("  -  International Sources:")
@@ -272,7 +232,7 @@ for (country in isources) {
 
 library(countrycode)
 
-rai = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv"))
+rai = readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
 rai$region <- countrycode::countrycode(rai$country, "country.name", "region")
 
 
@@ -468,7 +428,7 @@ for (country in countries_asia) {
 
 ## Using Keyword to Detect Influence 
 
-We begin by identifying articles that report on one of our 22 foreign influence events. Next, we apply keyword filters to detect whether the main event being reported on involves Russian and Chinese agencies, companies, or officials. Specifically, articles get classified as Russian or Chinese influence respectively if they meet one of these two criteria.
+We begin by identifying articles that report on one of our 21 foreign influence categories. Next, we apply keyword filters to detect whether the main influence category being reported on involves Russian and Chinese agencies, companies, or officials. Specifically, articles get classified as Russian or Chinese influence respectively if they meet one of these two criteria.
 
 - Contains one or more of the following keywords in the *title*:
   + **China**: China, Chinese
@@ -510,7 +470,7 @@ Below is an incomplete list of sources consulted during keyword development:
 
 ### Validating the Keyword List
 
-We tested several versions of this keyword list to identify the list with the best balance between false positives and false negatives. To do so, we pulled a random sample using the new Chinese keywords for Serbia, Zimbabwe, and the Philippines. For 20 articles in each event classification, we read through the article to determine if the article was actually about Chinese influence. We then counted up the number of times each keyword appeared as a true positive or false positive. To reduce the computation cost of an extensive keyword list, we removed any keywords that was not contained in at least one article in this sample of countries between 2020 and 2024. Across these four countries, the share of total articles classified as Russian or Chinese influence that were correctly classified ranged from 74% to 83%.
+We tested several versions of this keyword list to identify the list with the best balance between false positives and false negatives. To do so, we pulled a random sample using the new Chinese keywords for Serbia, Zimbabwe, and the Philippines. For 20 articles in each category classification, we read through the article to determine if the article was actually about Chinese influence. We then counted up the number of times each keyword appeared as a true positive or false positive. To reduce the computation cost of an extensive keyword list, we removed any keywords that was not contained in at least one article in this sample of countries between 2020 and 2024. Across these four countries, the share of total articles classified as Russian or Chinese influence that were correctly classified ranged from 74% to 83%.
 
 
 ## Assessing Outlet Independence
@@ -568,7 +528,7 @@ Indicate if the source is partially or completely owned by the country's governm
 
 ## Source Weighting
 
-The weighting process adjusts article counts from state-owned and independent sources when aggregating civic space data at the country-month level. In countries where more than 50% of articles come from state-owned sources, the code increases the influence of independent sources by applying a weight based on the ratio of state-owned to independent articles. This ensures that independent media retains influence when state-owned coverage dominates. The weighting is recalculated each month, meaning that the balance of influence can shift over time depending on the mix of articles from state-owned and independent sources in any given month. We impose equal weighting on independent and non-independent sources by multiplying the count of articles for each *RAI* event by a weight calculated by subtracting the number of articles from non-independent sources from the result of dividing the number of non-independent articles by 0.5 and dividing this value by the number of articles from independent sources for each month. Weighting is currently applied to India, Malaysia, Sri Lanka, Angola, DR Congo, Belarus, Philippines, Paraguay, Zambia, and Zimbabwe. 
+The weighting process adjusts article counts from state-owned and independent sources when aggregating civic space data at the country-month level. In countries where more than 50% of articles come from state-owned sources, the code increases the influence of independent sources by applying a weight based on the ratio of state-owned to independent articles. This ensures that independent media retains influence when state-owned coverage dominates. The weighting is recalculated each month, meaning that the balance of influence can shift over time depending on the mix of articles from state-owned and independent sources in any given month. We impose equal weighting on independent and non-independent sources by multiplying the count of articles for each *RAI* category by a weight calculated by subtracting the number of articles from non-independent sources from the result of dividing the number of non-independent articles by 0.5 and dividing this value by the number of articles from independent sources for each month. Weighting is currently applied to India, Malaysia, Sri Lanka, Angola, DR Congo, Belarus, Philippines, Paraguay, Zambia, and Zimbabwe. 
 
 ## Dominant Themes at Higher Frequency
 
@@ -580,9 +540,9 @@ As an alternative visualization, we break our data into three historical periods
 #| warning: false
 #| fig-pos: "!h"
 #| label: fig-plot_dominant-theme
-#| fig-cap: "Share of RAI activity across RAI tools over time, measured as the normalized share of all articles reporting on RAI events that correspond with each tool. We drop the last three months of data to avoid composition effects driven by changes in the last month of available data across countries."
+#| fig-cap: "Share of RAI activity across RAI tools over time, measured as the normalized share of all articles classified into RAI categories that correspond with each tool. We drop the last three months of data to avoid composition effects driven by changes in the last month of available data across countries."
 
-df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
   filter(! influencer %in% "Combined") |>
   filter(! country == "Timor Leste") |>
   select(country, date, influencer, starts_with("rai_idx"), -rai_idx_total) |>
@@ -630,7 +590,7 @@ rm(dip_av)
 #| echo: false
 #| warning: false
 #| label: fig-map_russia-influence-share
-#| fig-cap: "Share of RAI activity by Russia and China, measured as the normalized share of all articles reporting on RAI activities that focus on Russian influence events."
+#| fig-cap: "Share of RAI activity by Russia and China, measured as the normalized share of all articles reporting on RAI activities that focus on Russian influence categories."
 
 
 # Pull map data and create versions for each historical period
@@ -647,7 +607,7 @@ map3 = map %>%
   mutate(period = "2022-2024")
 
 # Pull RAI data
-df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
@@ -733,9 +693,9 @@ fig = gridExtra::grid.arrange(a,b,c)
 #| warning: false
 #| fig-pos: "!t"
 #| label: fig-map_dominant-theme
-#| fig-cap: "RAI tool with the greatest volume of reporting by country, measured as the normalized share of all articles reporting on RAI events that correspond with each tool. The left panel captures reports of Chinese influence and the right panel captures reports of Russian influence."
+#| fig-cap: "RAI tool with the greatest volume of reporting by country, measured as the normalized share of all articles classified into RAI categories that correspond with each tool. The left panel captures reports of Chinese influence and the right panel captures reports of Russian influence."
 
-df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
@@ -822,7 +782,7 @@ c = ggplot(map %>% filter(period == "2022-2024"),
   map_theme
 
 
-df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
@@ -914,8 +874,7 @@ legend = ggplot(tmap %>% filter(period == "2012-2016"),
 
 rm(tmap)
 
-g <- ggplotGrob(legend)
-legend <- g$grobs[[which(g$layout$name == "guide-box-top")]]
+legend <- cowplot::get_legend(legend)
 
 # Arrange the plots in a 2-row by 3-column grid
 plots_grid <- plot_grid(a, d, b, e, c, f, nrow = 3)
@@ -941,7 +900,7 @@ final_layout
 
 # ggsave(here::here("writing/output/map_dominant-theme.png"), final_layout, height = 6, width = 7, dpi = 700)
 
-rm(a, b, c, d, e, f, g, fig, x_lim, y_lim, right_label, left_label, legend, legend_row, plots_grid, map, map_theme, final_layout)
+rm(a, b, c, d, e, f, fig, x_lim, y_lim, right_label, left_label, legend, legend_row, plots_grid, map, map_theme, final_layout)
 
 ```
 
@@ -955,7 +914,7 @@ rm(a, b, c, d, e, f, g, fig, x_lim, y_lim, right_label, left_label, legend, lege
 #| fig-cap: "Percent change in average monthly RAI articles per 10k published articles. Countries ordered by size of percent change in Russian influence between last two periods."
 
 
-df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
@@ -1049,16 +1008,16 @@ rm(rc1, rc2, rc3, rc4, ann_text, dfpr, dfp_c_share, dfp)
 
 ## Descriptive Figures with Alternative Aggregation
 
-In this section, we present figures from the *Describing Authoritarian Influence Using RAI* Section of the main text after changing our calculation so that aggregation is performed *before* normalization. This prevents giving equal weight to the share of articles reporting on events attributed to Russia or China for months in which there is very little activity as we do to months with high levels of activity. This method is more sensitive to outliers and measurement error. However, results are very similar to those presented in the main text.
+In this section, we present figures from the *Describing Authoritarian Influence Using RAI* Section of the main text after changing our calculation so that aggregation is performed *before* normalization. This prevents giving equal weight to the share of articles reporting on RAI activity attributed to Russia or China for months in which there is very little activity as we do to months with high levels of activity. This method is more sensitive to outliers and measurement error. However, results are very similar to those presented in the main text.
 
 ```{r, fig.width=8,fig.height=7}
 #| echo: false
 #| warning: false
 #| fig-pos: "!h"
 #| label: fig-plot_dominant-theme-alt
-#| fig-cap: "Share of RAI activity across RAI tools over time, measured as the normalized share of all articles reporting on RAI events that correspond with each tool. We drop the last three months of data to avoid composition effects driven by changes in the last month of available data across countries."
+#| fig-cap: "Share of RAI activity across RAI tools over time, measured as the normalized share of all articles classified into RAI categories that correspond with each tool. We drop the last three months of data to avoid composition effects driven by changes in the last month of available data across countries."
 
-df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
   filter( country != "Timor Leste") |>
   filter(! influencer %in% "Combined") |>
   select(country, date, influencer, article_total, starts_with("rai_idx"), -rai_idx_total) |>
@@ -1116,7 +1075,7 @@ rm(dip_av)
 #| warning: false
 #| fig-pos: "!h"
 #| label: fig-map_russia-influence-share-alt
-#| fig-cap: "Share of RAI activity by Russia and China, measured as the normalized share of all articles reporting on RAI activities that focus on Russian influence events."
+#| fig-cap: "Share of RAI activity by Russia and China, measured as the normalized share of all articles reporting on RAI activities that focus on Russian influence categories."
 
 # Pull map data and create versions for each historical period
 map = map_data('world')
@@ -1132,7 +1091,7 @@ map3 = map %>%
   mutate(period = "2022-2024")
 
 # Pull RAI data
-df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
@@ -1221,7 +1180,7 @@ fig = gridExtra::grid.arrange(a,b,c)
 #| echo: false
 #| warning: false
 
-# df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+# df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
 #   filter( country != "Timor Leste") |>
 #   filter(! influencer %in% "Combined") |>
 #   select(country, date, influencer, article_total, starts_with("rai_idx"), -rai_idx_total) |>
@@ -1275,9 +1234,9 @@ fig = gridExtra::grid.arrange(a,b,c)
 #| warning: false
 #| fig-pos: "!h"
 #| label: fig-map_dominant-theme-alt
-#| fig-cap: "RAI tool with the greatest volume of reporting by country, measured as the normalized share of all articles reporting on RAI events that correspond with each tool. The left panel captures reports of Chinese influence and the right panel captures reports of Russian influence."
+#| fig-cap: "RAI tool with the greatest volume of reporting by country, measured as the normalized share of all articles classified into RAI categories that correspond with each tool. The left panel captures reports of Chinese influence and the right panel captures reports of Russian influence."
 
-df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
@@ -1366,7 +1325,7 @@ c = ggplot(map %>% filter(period == "2022-2024"),
   map_theme
 
 
-df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
@@ -1461,8 +1420,7 @@ legend = ggplot(tmap %>% filter(period == "2012-2016"),
 
 rm(tmap)
 
-g <- ggplotGrob(legend)
-legend <- g$grobs[[which(g$layout$name == "guide-box-top")]]
+legend <- cowplot::get_legend(legend)
 
 # Arrange the plots in a 2-row by 3-column grid
 plots_grid <- plot_grid(a, d, b, e, c, f, nrow = 3)
@@ -1486,7 +1444,7 @@ final_layout <- plot_grid(
 
 final_layout
 
-rm(a, b, c, d, e, f, g, fig, x_lim, y_lim, right_label, left_label, legend, legend_row, plots_grid, map, map_theme, final_layout)
+rm(a, b, c, d, e, f, fig, x_lim, y_lim, right_label, left_label, legend, legend_row, plots_grid, map, map_theme, final_layout)
 
 ```
 
@@ -1500,18 +1458,18 @@ rm(a, b, c, d, e, f, g, fig, x_lim, y_lim, right_label, left_label, legend, lege
 ## Increased Russian Activity Figures with Alternative Aggregation 
 
 
-In this section, we present figures from the *Increased Russian Activity* Section of the main text after changing our calculation so that aggregation is performed *before* normalization. This prevents giving equal weight to the share of articles reporting on events attributed to Russia or China for months in which there is very little activity as we do to months with high levels of activity. This method is more sensitive to outliers and measurement error. However, results are very similar to those presented in the main text.
+In this section, we present figures from the *Increased Russian Activity* Section of the main text after changing our calculation so that aggregation is performed *before* normalization. This prevents giving equal weight to the share of articles reporting on RAI activity attributed to Russia or China for months in which there is very little activity as we do to months with high levels of activity. This method is more sensitive to outliers and measurement error. However, results are very similar to those presented in the main text.
 
 ```{r, fig.width=8,fig.height=4}
 #| echo: false
 #| warning: false
 #| fig-pos: "!h"
 #| label: fig-plot_level-increase
-#| fig-cap: "Levels of RAI activity over time, measured as the normalized share of all articles reporting on RAI events. Not all countries have been updated to include data for the last 3 months of the time-series, so we remove the final three months from the date in order to eliminate composition changes. The vertical dashed lines marks the month of Russia's annexation of Crimea in March 2014 and invasion of Ukraine in February 2022."
+#| fig-cap: "Levels of RAI activity over time, measured as the normalized share of all articles classified into RAI categories. Not all countries have been updated to include data for the last 3 months of the time-series, so we remove the final three months from the date in order to eliminate composition changes. The vertical dashed lines marks the month of Russia's annexation of Crimea in March 2014 and invasion of Ukraine in February 2022."
 
 
 # rai_df <- rai.atari::rai
-rai_df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv"))
+rai_df = readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
 
 rai_df <- rai_df |>
   select(country, influencer, date, rai_idx_total, article_total) |>
@@ -1553,7 +1511,7 @@ rm(third_to_max_date, rai_global )
 #| fig-cap: "Percent change in average monthly RAI articles per 10k published articles. Countries ordered by size of percent change in Russian influence between last two periods."
 
 
-df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
@@ -1676,7 +1634,7 @@ Finally, we identify countries that are import-reliant on commodities on which R
 #| fig-cap: "Frequency of changepoint dates in Russian influence time-series for all target countries. We identify one changepoint for each country. change-points capture increases in the mean of the time-series."
 
 
-rai_df <- readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv"))
+rai_df <- readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
 rai_df <- rai_df %>%
   select(country, influencer, date, rai_idx_bal:rai_idx_sp)
 
@@ -1768,9 +1726,9 @@ rm( country_result, df, rai, rai_df, result_df)
 #| warning: false
 #| fig-pos: "!h"
 #| label: fig-dip_changepoints
-#| fig-cap: "Timing of changepoint dates in Russian influence time-series for all target countries. Red points are the start of a new period."
+#| fig-cap: "Timing of changepoint dates in Russian influence time-series. Red points mark the identified change-point for each country."
 
-rai_df <- readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv"))
+rai_df <- readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
 rai_df <- rai_df %>%
   select(country, influencer, date, rai_idx_bal:rai_idx_sp)
 
@@ -1812,9 +1770,14 @@ dat = result_dfi %>%
   rename(cp = t.cpt_result.) %>%
   filter(cp %in% c("2022-01-01", "2021-12-01", "2021-11-01", "2021-10-01", "2021-09-01", "2021-08-01") )
 
+if (nrow(dat) == 0) {
+  # Fallback: plot all change-points if none fall in the pre-invasion window
+  dat = result_dfi %>% rename(cp = t.cpt_result.)
+}
+
 
 # rai_df <- rai.atari::rai %>% 
-rai_df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+rai_df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
   filter(influencer == "Russia" & country %in% unique(dat$country)) 
 
 dip2 = dat %>% filter(col == "rai_idx_dip")
@@ -1825,6 +1788,11 @@ dip = rai_df %>%
   mutate(cpm = case_when( paste(country, date) %in% paste(dip2$country, dip2$cp) ~ 1,
                           TRUE ~ 0)
   )
+
+max_date <- max(rai_df$date, na.rm = TRUE)
+if (!is.finite(max_date)) {
+  max_date <- max(readr::read_csv(here::here("writing", "output", "rai_latest.csv"))$date, na.rm = TRUE)
+}
 
 # Setup label mapping dataframe
 choices_df = data.frame(
@@ -1838,8 +1806,8 @@ ggplot(dip, aes(x = date, y =  rai_idx_dip)) +
   facet_wrap(~country, scales = "free_y") +
   theme_bw() +
   geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed", color = "#66a182" ) +
-  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max(rai_df$date)), by = "6 months"), labels = scales::date_format("%Y-%b"),
-               limits = as.Date(c("2019-01-01", as.Date(max(rai_df$date)))), expand = c(.01,.01) ) +
+  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max_date), by = "6 months"), labels = scales::date_format("%Y-%b"),
+               limits = as.Date(c("2019-01-01", as.Date(max_date))), expand = c(.01,.01) ) +
   theme(plot.title = element_text(hjust = 0, size = 18),  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         axis.title.x = element_blank()) +
   geom_point(data = filter(dip, cpm == 1), aes(x = date, y = rai_idx_dip), 
@@ -1865,7 +1833,7 @@ ggplot(dip, aes(x = date, y =  rai_idx_dip)) +
 
 
 # rai_df <- rai.atari::rai %>% 
-rai_df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+rai_df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
   filter(influencer == "Russia" & country %in% unique(dat$country)) 
 
 dip2 = dat %>% filter(col == "rai_idx_hp")
@@ -1876,6 +1844,11 @@ dip = rai_df %>%
   mutate(cpm = case_when( paste(country, date) %in% paste(dip2$country, dip2$cp) ~ 1,
                           TRUE ~ 0)
   )
+
+max_date <- max(rai_df$date, na.rm = TRUE)
+if (!is.finite(max_date)) {
+  max_date <- max(readr::read_csv(here::here("writing", "output", "rai_latest.csv"))$date, na.rm = TRUE)
+}
 
 # Setup label mapping dataframe
 choices_df = data.frame(
@@ -1889,8 +1862,8 @@ ggplot(dip, aes(x = date, y =  rai_idx_hp)) +
   facet_wrap(~country, scales = "free_y") +
   theme_bw() +
   geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed", color = "#66a182" ) +
-  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max(rai_df$date)), by = "6 months"), labels = scales::date_format("%Y-%b"),
-               limits = as.Date(c("2019-01-01", as.Date(max(rai_df$date)))), expand = c(.01,.01) ) +
+  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max_date), by = "6 months"), labels = scales::date_format("%Y-%b"),
+               limits = as.Date(c("2019-01-01", as.Date(max_date))), expand = c(.01,.01) ) +
   theme(plot.title = element_text(hjust = 0, size = 18),  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         axis.title.x = element_blank()) +
   geom_point(data = filter(dip, cpm == 1), aes(x = date, y = rai_idx_hp), 
@@ -1915,7 +1888,7 @@ ggplot(dip, aes(x = date, y =  rai_idx_hp)) +
 
 
 # rai_df <- rai.atari::rai %>% 
-rai_df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+rai_df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
   filter(influencer == "Russia" & country %in% unique(dat$country)) 
 
 dip2 = dat %>% filter(col == "rai_idx_ep")
@@ -1926,6 +1899,11 @@ dip = rai_df %>%
   mutate(cpm = case_when( paste(country, date) %in% paste(dip2$country, dip2$cp) ~ 1,
                           TRUE ~ 0)
   )
+
+max_date <- max(rai_df$date, na.rm = TRUE)
+if (!is.finite(max_date)) {
+  max_date <- max(readr::read_csv(here::here("writing", "output", "rai_latest.csv"))$date, na.rm = TRUE)
+}
 
 # Setup label mapping dataframe
 choices_df = data.frame(
@@ -1939,8 +1917,8 @@ ggplot(dip, aes(x = date, y =  rai_idx_ep)) +
   facet_wrap(~country, scales = "free_y") +
   theme_bw() +
   geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed", color = "#66a182" ) +
-  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max(rai_df$date)), by = "6 months"), labels = scales::date_format("%Y-%b"),
-               limits = as.Date(c("2019-01-01", as.Date(max(rai_df$date)))), expand = c(.01,.01) ) +
+  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max_date), by = "6 months"), labels = scales::date_format("%Y-%b"),
+               limits = as.Date(c("2019-01-01", as.Date(max_date))), expand = c(.01,.01) ) +
   theme(plot.title = element_text(hjust = 0, size = 18),  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         axis.title.x = element_blank()) +
   geom_point(data = filter(dip, cpm == 1), aes(x = date, y = rai_idx_ep), 
@@ -1966,7 +1944,7 @@ ggplot(dip, aes(x = date, y =  rai_idx_ep)) +
 
 
 # rai_df <- rai.atari::rai %>% 
-rai_df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+rai_df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
   filter(influencer == "Russia" & country %in% unique(dat$country)) 
 
 dip2 = dat %>% filter(col == "rai_idx_di")
@@ -1977,6 +1955,11 @@ dip = rai_df %>%
   mutate(cpm = case_when( paste(country, date) %in% paste(dip2$country, dip2$cp) ~ 1,
                           TRUE ~ 0)
   )
+
+max_date <- max(rai_df$date, na.rm = TRUE)
+if (!is.finite(max_date)) {
+  max_date <- max(readr::read_csv(here::here("writing", "output", "rai_latest.csv"))$date, na.rm = TRUE)
+}
 
 # Setup label mapping dataframe
 choices_df = data.frame(
@@ -1990,8 +1973,8 @@ ggplot(dip, aes(x = date, y =  rai_idx_di)) +
   facet_wrap(~country, scales = "free_y") +
   theme_bw() +
   geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed", color = "#66a182" ) +
-  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max(rai_df$date)), by = "6 months"), labels = scales::date_format("%Y-%b"),
-               limits = as.Date(c("2019-01-01", as.Date(max(rai_df$date)))), expand = c(.01,.01) ) +
+  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max_date), by = "6 months"), labels = scales::date_format("%Y-%b"),
+               limits = as.Date(c("2019-01-01", as.Date(max_date))), expand = c(.01,.01) ) +
   theme(plot.title = element_text(hjust = 0, size = 18),  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         axis.title.x = element_blank()) +
   geom_point(data = filter(dip, cpm == 1), aes(x = date, y = rai_idx_di), 
@@ -2015,7 +1998,7 @@ ggplot(dip, aes(x = date, y =  rai_idx_di)) +
 #| fig-cap: "Timing of changepoint dates in Russian influence time-series for all target countries. Red points are the start of a new period."
 
 # rai_df <- rai.atari::rai %>% 
-rai_df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+rai_df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
   filter(influencer == "Russia" & country %in% unique(dat$country)) 
 
 dip2 = dat %>% filter(col == "rai_idx_sp")
@@ -2026,6 +2009,11 @@ dip = rai_df %>%
   mutate(cpm = case_when( paste(country, date) %in% paste(dip2$country, dip2$cp) ~ 1,
                           TRUE ~ 0)
   )
+
+max_date <- max(rai_df$date, na.rm = TRUE)
+if (!is.finite(max_date)) {
+  max_date <- max(readr::read_csv(here::here("writing", "output", "rai_latest.csv"))$date, na.rm = TRUE)
+}
 
 # Setup label mapping dataframe
 choices_df = data.frame(
@@ -2039,8 +2027,8 @@ ggplot(dip, aes(x = date, y =  rai_idx_sp)) +
   facet_wrap(~country, scales = "free_y") +
   theme_bw() +
   geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed", color = "#66a182" ) +
-  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max(rai_df$date)), by = "6 months"), labels = scales::date_format("%Y-%b"),
-               limits = as.Date(c("2019-01-01", as.Date(max(rai_df$date)))), expand = c(.01,.01) ) +
+  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date(max_date), by = "6 months"), labels = scales::date_format("%Y-%b"),
+               limits = as.Date(c("2019-01-01", as.Date(max_date))), expand = c(.01,.01) ) +
   theme(plot.title = element_text(hjust = 0, size = 18),  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         axis.title.x = element_blank()) +
   geom_point(data = filter(dip, cpm == 1), aes(x = date, y = rai_idx_sp), 
