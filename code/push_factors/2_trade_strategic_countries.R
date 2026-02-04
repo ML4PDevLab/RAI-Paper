@@ -12,7 +12,7 @@ dat = read_csv(here::here("data/trade_dat_headings.csv"))
 c_list = tradestatistics::ots_countries
 
 # Get MLP country list
-countries = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) %>%
+countries = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
   select(country) %>%
   distinct()
 

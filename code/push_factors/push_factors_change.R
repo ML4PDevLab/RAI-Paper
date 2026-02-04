@@ -10,7 +10,7 @@ library(readr)
 library(kableExtra)
 
 # Read-in and clean RAI data ----------------------------------------------
-df = readr::read_csv(here::here("writing", "output", "rai_8_30_24.csv")) |>
+df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
   filter(influencer=="Russia") |>
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",

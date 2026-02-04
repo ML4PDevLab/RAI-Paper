@@ -1,21 +1,22 @@
 variable,theme
+arms_transfer_security_aid_assistance,Hard Power
+bribery_economic_corruption,Backlash
 diplomatic_mediation,Diplomacy
-diplomatic_recognition,Diplomacy
-diplomatic_sanction,Diplomacy
+diplomatic_ties,Diplomacy
+diplomatic_action,Diplomacy
 diplomatic_statement,Diplomacy
-diplomatic_visit,Diplomacy
+diplomatic_meeting,Diplomacy
+foreign_aid_assistance,Economic Power
 intelligence_counterintelligence,Domestic Interference
+foreign_investment,Economic Power
+joint_security_force_exercise,Hard Power
+media_campaign_intervention,Soft Power
 political_process_policy_intervention,Domestic Interference
-surveillance,Domestic Interference
-economic_aid_assistance,Economic Power
-investment,Economic Power
+social_academic_cultural_activity,Soft Power
+security_engagement,Hard Power
+military_activity,Hard Power
+cyber_attack,Domestic Interference
 tech_transfer_investment,Economic Power
 trade_agreement_exchange,Economic Power
 trade_financial_sanction,Economic Power
-arms_transfer_security_aid_assistance,Hard Power
-joint_security_force_exercise,Hard Power
-security_cooperation,Hard Power
-security_force_facility_presence,Hard Power
-diaspora_activation,Soft Power
-media_campaign_intervention,Soft Power
-professional_cultural_exchange,Soft Power
+transnational_organization_crime,Backlash
