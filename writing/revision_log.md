@@ -30,3 +30,8 @@
 - Clarified scope conditions, interpretation (reporting salience vs. verified actions), and the descriptive nature of the analyses.
 - Added an explicit note that AI-assisted summaries are used only for audit/validation and do not feed into *RAI* measures.
 - Expanded limitations to note cross-country differences in media capacity and the resulting caution for comparisons.
+
+**2026-02-04 (Appendix figure fixes)**
+- Normalized country names to match `map_data('world')` (DR Congo, Macedonia, Timor Leste) to restore missing map shading.
+- Increased change-point plot dimensions to improve readability in figures 20–24.
+- Re-rendered `writing/appendix.pdf` and `writing/full_paper.pdf` to reflect these fixes.

@@ -47,6 +47,27 @@ rai_vars_select = bind_rows(
   rai_vars
 )
 
+# Map country names to ggplot2's map_data('world') conventions
+normalize_map_country <- function(x) {
+  dplyr::recode(
+    x,
+    "DR Congo" = "Democratic Republic of the Congo",
+    "Macedonia" = "North Macedonia",
+    "Timor Leste" = "Timor-Leste",
+    .default = x
+  )
+}
+
+# Keep plots readable by showing only the top-N countries by peak activity
+select_top_countries <- function(df, value_col, n = 12) {
+  df %>%
+    group_by(country) %>%
+    summarise(mx = max(.data[[value_col]], na.rm = TRUE), .groups = "drop") %>%
+    arrange(desc(mx)) %>%
+    slice_head(n = n) %>%
+    pull(country)
+}
+
 ```
 
 
@@ -631,7 +652,7 @@ df <- df |>
 ## Maps
 map = bind_rows(map1, map2, map3)
 
-df[df$country == "DR Congo",]$country = "Democratic Republic of the Congo"
+df$country <- normalize_map_country(df$country)
 map = left_join(map, df %>% dplyr::rename(region = country) )
 
 # set map parameters
@@ -736,7 +757,7 @@ ds = df |>
 ## Maps
 map = bind_rows(map1, map2, map3)
 
-df[df$country == "DR Congo",]$country = "Democratic Republic of the Congo"
+df$country <- normalize_map_country(df$country)
 map = left_join(map, df %>% dplyr::rename(region = country) )
 
 # set map parameters
@@ -822,7 +843,7 @@ ds = df |>
 ## Maps
 map = bind_rows(map1, map2, map3)
 
-df[df$country == "DR Congo",]$country = "Democratic Republic of the Congo"
+df$country <- normalize_map_country(df$country)
 map = left_join(map, df %>% dplyr::rename(region = country) )
 
 
@@ -1119,7 +1140,7 @@ df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
 ## Maps
 map = bind_rows(map1, map2, map3)
 
-df[df$country == "DR Congo",]$country = "Democratic Republic of the Congo"
+df$country <- normalize_map_country(df$country)
 map = left_join(map, df %>% dplyr::rename(region = country) )
 
 # set map parameters
@@ -1279,7 +1300,7 @@ ds = df |>
 ## Maps
 map = bind_rows(map1, map2, map3)
 
-df[df$country == "DR Congo",]$country = "Democratic Republic of the Congo"
+df$country <- normalize_map_country(df$country)
 map = left_join(map, df %>% dplyr::rename(region = country) )
 
 # set map parameters
@@ -1368,7 +1389,7 @@ ds = df |>
 ## Maps
 map = bind_rows(map1, map2, map3)
 
-df[df$country == "DR Congo",]$country = "Democratic Republic of the Congo"
+df$country <- normalize_map_country(df$country)
 map = left_join(map, df %>% dplyr::rename(region = country) )
 
 
@@ -1460,7 +1481,7 @@ rm(a, b, c, d, e, f, fig, x_lim, y_lim, right_label, left_label, legend, legend_
 
 In this section, we present figures from the *Increased Russian Activity* Section of the main text after changing our calculation so that aggregation is performed *before* normalization. This prevents giving equal weight to the share of articles reporting on RAI activity attributed to Russia or China for months in which there is very little activity as we do to months with high levels of activity. This method is more sensitive to outliers and measurement error. However, results are very similar to those presented in the main text.
 
-```{r, fig.width=8,fig.height=4}
+```{r, fig.width=9,fig.height=7}
 #| echo: false
 #| warning: false
 #| fig-pos: "!h"
@@ -1721,12 +1742,12 @@ rm( country_result, df, rai, rai_df, result_df)
 
 ## Change-point Months in Time-Series
 
-```{r, fig.width=8,fig.height=4}
+```{r, fig.width=9,fig.height=6}
 #| echo: false
 #| warning: false
 #| fig-pos: "!h"
 #| label: fig-dip_changepoints
-#| fig-cap: "Timing of changepoint dates in Russian influence time-series. Red points mark the identified change-point for each country."
+#| fig-cap: "Timing of changepoint dates in Russian influence time-series for the top 12 countries by peak Diplomacy reporting. Red points mark the identified change-point for each country."
 
 rai_df <- readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
 rai_df <- rai_df %>%
@@ -1789,6 +1810,9 @@ dip = rai_df %>%
                           TRUE ~ 0)
   )
 
+top_countries <- select_top_countries(dip, "rai_idx_dip", n = 12)
+dip <- dip %>% filter(country %in% top_countries)
+
 max_date <- max(rai_df$date, na.rm = TRUE)
 if (!is.finite(max_date)) {
   max_date <- max(readr::read_csv(here::here("writing", "output", "rai_latest.csv"))$date, na.rm = TRUE)
@@ -1823,12 +1847,12 @@ ggplot(dip, aes(x = date, y =  rai_idx_dip)) +
 
 {{< pagebreak >}}
 
-```{r, fig.width=8,fig.height=4}
+```{r, fig.width=9,fig.height=6}
 #| echo: false
 #| warning: false
 #| fig-pos: "!h"
 #| label: fig-hp_changepoints
-#| fig-cap: "Timing of changepoint dates in Russian influence time-series for all target countries. Red points are the start of a new period."
+#| fig-cap: "Timing of changepoint dates in Russian influence time-series for the top 12 countries by peak Hard Power reporting. Red points mark the identified change-point for each country."
 
 
 
@@ -1844,6 +1868,9 @@ dip = rai_df %>%
   mutate(cpm = case_when( paste(country, date) %in% paste(dip2$country, dip2$cp) ~ 1,
                           TRUE ~ 0)
   )
+
+top_countries <- select_top_countries(dip, "rai_idx_hp", n = 12)
+dip <- dip %>% filter(country %in% top_countries)
 
 max_date <- max(rai_df$date, na.rm = TRUE)
 if (!is.finite(max_date)) {
@@ -1878,12 +1905,12 @@ ggplot(dip, aes(x = date, y =  rai_idx_hp)) +
 
 {{< pagebreak >}}
 
-```{r, fig.width=8,fig.height=4}
+```{r, fig.width=9,fig.height=6}
 #| echo: false
 #| warning: false
 #| fig-pos: "!h"
 #| label: fig-ep_changepoints
-#| fig-cap: "Timing of changepoint dates in Russian influence time-series for all target countries. Red points are the start of a new period."
+#| fig-cap: "Timing of changepoint dates in Russian influence time-series for the top 12 countries by peak Economic Power reporting. Red points mark the identified change-point for each country."
 
 
 
@@ -1899,6 +1926,9 @@ dip = rai_df %>%
   mutate(cpm = case_when( paste(country, date) %in% paste(dip2$country, dip2$cp) ~ 1,
                           TRUE ~ 0)
   )
+
+top_countries <- select_top_countries(dip, "rai_idx_ep", n = 12)
+dip <- dip %>% filter(country %in% top_countries)
 
 max_date <- max(rai_df$date, na.rm = TRUE)
 if (!is.finite(max_date)) {
@@ -1934,12 +1964,12 @@ ggplot(dip, aes(x = date, y =  rai_idx_ep)) +
 {{< pagebreak >}}
 
 
-```{r, fig.width=8,fig.height=4}
+```{r, fig.width=9,fig.height=6}
 #| echo: false
 #| warning: false
 #| fig-pos: "!h"
 #| label: fig-di_changepoints
-#| fig-cap: "Timing of changepoint dates in Russian influence time-series for all target countries. Red points are the start of a new period."
+#| fig-cap: "Timing of changepoint dates in Russian influence time-series for the top 12 countries by peak Domestic Interference reporting. Red points mark the identified change-point for each country."
 
 
 
@@ -1955,6 +1985,9 @@ dip = rai_df %>%
   mutate(cpm = case_when( paste(country, date) %in% paste(dip2$country, dip2$cp) ~ 1,
                           TRUE ~ 0)
   )
+
+top_countries <- select_top_countries(dip, "rai_idx_di", n = 12)
+dip <- dip %>% filter(country %in% top_countries)
 
 max_date <- max(rai_df$date, na.rm = TRUE)
 if (!is.finite(max_date)) {
@@ -1990,12 +2023,12 @@ ggplot(dip, aes(x = date, y =  rai_idx_di)) +
 
   
 
-```{r, fig.width=8,fig.height=4}
+```{r, fig.width=9,fig.height=6}
 #| echo: false
 #| warning: false
 #| fig-pos: "!h"
 #| label: fig-sp_changepoints
-#| fig-cap: "Timing of changepoint dates in Russian influence time-series for all target countries. Red points are the start of a new period."
+#| fig-cap: "Timing of changepoint dates in Russian influence time-series for the top 12 countries by peak Soft Power reporting. Red points mark the identified change-point for each country."
 
 # rai_df <- rai.atari::rai %>% 
 rai_df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
@@ -2009,6 +2042,9 @@ dip = rai_df %>%
   mutate(cpm = case_when( paste(country, date) %in% paste(dip2$country, dip2$cp) ~ 1,
                           TRUE ~ 0)
   )
+
+top_countries <- select_top_countries(dip, "rai_idx_sp", n = 12)
+dip <- dip %>% filter(country %in% top_countries)
 
 max_date <- max(rai_df$date, na.rm = TRUE)
 if (!is.finite(max_date)) {

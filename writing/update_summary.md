@@ -17,6 +17,8 @@
 - Renamed “Event Definitions” to “Category Definitions” and updated method language to match.
 - Updated figure captions to refer to categories/reporting rather than events.
 - Trimmed training figures to a small set (class distribution, classification report, normalized confusion matrix).
+- Fixed appendix maps by normalizing country names to `map_data('world')` conventions (DR Congo, Macedonia, Timor Leste).
+- Increased change-point plot sizes for readability (figures 20–24).
 
 **Pipeline/Build**
 - New script `code/refresh_rai_from_mlp_intro.R` produces paper-ready outputs from the updated pipeline.
