@@ -133,9 +133,13 @@ ggsave(here::here("writing/import_reliance_section.png"), width = 7, height = 5)
 
 ## Heading plot
 
-# Define import reliance
+# Define import reliance (thresholds tuned to avoid over-filtering in updated COMTRADE pulls)
+import_trade_share_min <- 0.0001
+import_factor_min <- 0.65
+
 dat_h = dat_h %>%
-  mutate(import_reliance = case_when(trade_share > .001 & import_factor > .8  ~ 1,
+  mutate(import_reliance = case_when(trade_share > import_trade_share_min &
+                                       import_factor > import_factor_min  ~ 1,
                                      TRUE ~ 0))
 
 # Calculate counts for each group
@@ -184,7 +188,15 @@ ggplot(dat_h %>%
                            aes(label = heading_name), size = 2, color = "black") +  # Add text labels for the top 5 points
   scale_y_continuous(labels = scales::percent) +  # Convert y-axis to percentage
   labs(title = "Import Reliance for COMTRADE HS4 Headings",
-       subtitle = str_wrap("More than 80% trade in heading from imports and header greater than 0.1% of total trade. Legend reports count of commodity headings in each section."),
+       subtitle = str_wrap(
+         paste0(
+           "Import-reliant headings exceed ",
+           scales::percent(import_factor_min, accuracy = 1),
+           " import share and ",
+           scales::percent(import_trade_share_min, accuracy = 0.01),
+           " of total trade. Legend reports count of commodity headings in each section."
+         )
+       ),
        x = "Rank of import's share of commodity trade",
        y = "Commodity share of total trade",  # Add legend title for color
        color = NULL) +

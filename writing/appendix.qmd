@@ -35,7 +35,17 @@ library(cowplot)
 source(here::here("code", "local_sources.R"))
 # library(rai.atari)
 
-rai = readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
+sample_countries <- readr::read_csv(here::here("data", "sample_countries.csv"))
+use_sample_countries <- FALSE
+rai_end_date <- as.Date("2025-08-01")
+read_rai <- function() {
+  df <- readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
+  if (use_sample_countries) {
+    df <- df |> dplyr::filter(country %in% sample_countries$country)
+  }
+  df |> dplyr::filter(date <= rai_end_date)
+}
+rai = read_rai()
 rai_vars = readr::read_csv(here::here("data", "rai_vars.csv")) %>%
   dplyr::rename(variable = id)
 
@@ -148,7 +158,7 @@ This section provides a compact snapshot of the training data and test performan
 
 library(ISOcodes)
 
-rai = readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
+rai = read_rai()
 
 # Initialize an empty dataframe to store the results
 result_df <- data.frame(country = character(), lsources_len = integer(), stringsAsFactors = FALSE)
@@ -253,7 +263,7 @@ for (country in isources) {
 
 library(countrycode)
 
-rai = readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
+rai = read_rai()
 rai$region <- countrycode::countrycode(rai$country, "country.name", "region")
 
 
@@ -553,7 +563,7 @@ The weighting process adjusts article counts from state-owned and independent so
 
 ## Dominant Themes at Higher Frequency
 
-As an alternative visualization, we break our data into three historical periods: 2012-2016, 2017-2021, and 2022-2024. This provides two five-year windows at the beginning of our series followed by a smaller snapshot of the very recent past. 2012-2016 includes Russia's annexation of Crimea, 2016-2021 includes the onset of the COVID-19 pandemic, and 2022-2023 includes Russia's invasion of Ukraine. @fig-plot_dominant-theme provides a visualization of themes at the monthly-level.
+As an alternative visualization, we break our data into three historical periods: 2012-2016, 2017-2021, and 2022-2025 (through August 2025). This provides two five-year windows at the beginning of our series followed by a smaller snapshot of the very recent past. 2012-2016 includes Russia's annexation of Crimea, 2017-2021 includes the onset of the COVID-19 pandemic, and 2022-2025 includes Russia's invasion of Ukraine and its aftermath. @fig-plot_dominant-theme provides a visualization of themes at the monthly-level.
 
 
 ```{r, fig.width=8,fig.height=7}
@@ -563,7 +573,7 @@ As an alternative visualization, we break our data into three historical periods
 #| label: fig-plot_dominant-theme
 #| fig-cap: "Share of RAI activity across RAI tools over time, measured as the normalized share of all articles classified into RAI categories that correspond with each tool. We drop the last three months of data to avoid composition effects driven by changes in the last month of available data across countries."
 
-df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
+df = read_rai() |>
   filter(! influencer %in% "Combined") |>
   filter(! country == "Timor Leste") |>
   select(country, date, influencer, starts_with("rai_idx"), -rai_idx_total) |>
@@ -625,14 +635,14 @@ map2 = map %>%
   mutate(period = "2017-2021")
 
 map3 = map %>%
-  mutate(period = "2022-2024")
+  mutate(period = "2022-2025")
 
 # Pull RAI data
-df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
+df = read_rai() %>%
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
-    TRUE ~ "2022-2024"
+    TRUE ~ "2022-2025"
     )
   ) |>
   filter(influencer %in% c("Russia", "China")) |>
@@ -692,7 +702,7 @@ b = ggplot(map %>% filter(period == "2017-2021"),
   theme_bw() + 
   map_theme
 
-c = ggplot(map %>% filter(period == "2022-2024"), 
+c = ggplot(map %>% filter(period == "2022-2025"), 
        aes(x = long, y = lat, group = group, fill = russia_share)) +
   geom_polygon(colour = "black", size=0.15) +
   facet_wrap(~period, ncol = 1) +
@@ -716,11 +726,11 @@ fig = gridExtra::grid.arrange(a,b,c)
 #| label: fig-map_dominant-theme
 #| fig-cap: "RAI tool with the greatest volume of reporting by country, measured as the normalized share of all articles classified into RAI categories that correspond with each tool. The left panel captures reports of Chinese influence and the right panel captures reports of Russian influence."
 
-df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
+df = read_rai() |>
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
-    TRUE ~ "2022-2024"
+    TRUE ~ "2022-2025"
     )
   ) |>
   filter(influencer %in% "China") |>
@@ -793,7 +803,7 @@ b = ggplot(map %>% filter(period == "2017-2021"),
   theme_bw() + 
   map_theme
 
-c = ggplot(map %>% filter(period == "2022-2024"), 
+c = ggplot(map %>% filter(period == "2022-2025"), 
        aes(x = long, y = lat, group = group, fill = theme)) +
   geom_polygon(colour = "black", size=0.15) +
   scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
@@ -803,11 +813,11 @@ c = ggplot(map %>% filter(period == "2022-2024"),
   map_theme
 
 
-df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
+df = read_rai() |>
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
-    TRUE ~ "2022-2024"
+    TRUE ~ "2022-2025"
     )
   ) |>
   filter(influencer %in% "Russia") |>
@@ -866,7 +876,7 @@ e = ggplot(map %>% filter(period == "2017-2021"),
   theme_bw() + 
   map_theme
 
-f = ggplot(map %>% filter(period == "2022-2024"), 
+f = ggplot(map %>% filter(period == "2022-2025"), 
        aes(x = long, y = lat, group = group, fill = theme)) +
   geom_polygon(colour = "black", size=0.15) +
   scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
@@ -935,32 +945,44 @@ rm(a, b, c, d, e, f, fig, x_lim, y_lim, right_label, left_label, legend, legend_
 #| fig-cap: "Percent change in average monthly RAI articles per 10k published articles. Countries ordered by size of percent change in Russian influence between last two periods."
 
 
-df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
+df <- read_rai() |>
+  select(country, date, rai_idx_total, influencer) |>
+  filter(! influencer=="Combined")
+
+all_dates <- seq(min(df$date, na.rm = TRUE), rai_end_date, by = "1 month")
+
+df <- df |>
+  tidyr::complete(country, influencer, date = all_dates,
+                  fill = list(rai_idx_total = 0)) |>
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
-    TRUE ~ "2022-2024"
-    )
-  ) |>
-  select(country, date, rai_idx_total, period, influencer)
-  
-df <- df |>
-  filter(! influencer=="Combined") |>
+    TRUE ~ "2022-2025"
+  )) |>
+  select(country, date, rai_idx_total, period, influencer) |>
   group_by(country, period, influencer) |>
-  summarize(mean_total_rai = mean(rai_idx_total, na.rm = T),
+  summarize(mean_total_rai = mean(rai_idx_total, na.rm = TRUE),
             .groups = "drop") |>
   arrange(country, influencer, period)
 
 
 dfp <- df |>
   group_by(country, influencer) |>
-  mutate(percentage_change = (mean_total_rai / lag(mean_total_rai) - 1) * 100) |>
+  mutate(
+    baseline = lag(mean_total_rai),
+    percentage_change = case_when(
+      is.na(baseline) ~ NA_real_,
+      baseline == 0 & mean_total_rai == 0 ~ 0,
+      baseline == 0 & mean_total_rai > 0 ~ 100 * mean_total_rai,
+      TRUE ~ (mean_total_rai / baseline - 1) * 100
+    )
+  ) |>
   mutate(increase = mean_total_rai[3] - mean_total_rai[2]) |>
   filter(!is.na(percentage_change))
 
 
 dfpr = dfp |>
-  filter(influencer == "Russia" & period == "2022-2024") |>
+  filter(influencer == "Russia" & period == "2022-2025") |>
   group_by(country) |>
   arrange(percentage_change)
 
@@ -973,21 +995,26 @@ ann_text <- data.frame(country = factor("South Sudan", levels =  unique(dfpr$cou
 
 write.csv(dfpr, here::here("writing", "output", "dfpr.csv"))
 
+x_min <- min(dfp$percentage_change, na.rm = TRUE)
+x_max <- max(dfp$percentage_change, na.rm = TRUE)
+
 dfp |>
   mutate(country = factor(country, levels =  unique(dfpr$country))  ) |>
   ggplot(aes(x = percentage_change, y = country ) ) + 
-  geom_line(aes(group = country), color = "gray80") +
-  geom_point(aes(color = period)) +
+  geom_line(aes(group = country), color = "gray80", alpha = 0.6) +
+  geom_point(aes(color = period), size = 1.6, alpha = 0.85) +
   facet_wrap(~influencer) +
   geom_label(data = dfp %>% group_by(country, influencer) |> slice_tail(n=1),
              aes(label = round(increase, digits = 0), group = influencer), size = 2, hjust = .5,
              nudge_x = 400, color = "#66a182") +
   theme_bw() +
-  scale_x_continuous(labels = scales::percent_format( scale=1 )) +
+  scale_x_continuous(labels = scales::percent_format( scale=1 ), limits = c(x_min, x_max),
+                     breaks = scales::pretty_breaks(n = 6)) +
+  geom_vline(xintercept = 0, color = "gray70", linewidth = 0.3) +
   geom_text(aes(x = percentage_change, y = country, label=lab),
             data = ann_text, size = 3) +
   scale_color_manual("Percent change between time\nperiods", 
-                       labels = c("2012-2016 and 2017-2021", "2017-2021 and 2022-2024"),
+                       labels = c("2012-2016 and 2017-2021", "2017-2021 and 2022-2025"),
                        values = c("#edae49", "#66a182")) +
   labs(x = "Percent change in average monthly RAI articles per 10k published articles", y = "") +
   theme(legend.text = element_text(size = 6), legend.title = element_text(size = 6),
@@ -997,20 +1024,20 @@ ggsave(here::here("writing/output/plot_period_levels.png"), height = 10, width =
 
 # descriptive stats for text
 # table(dfp$percentage_change <= 0, dfp$period, dfp$influencer)
-# cor(dfp[dfp$period == "2022-2024",]$percentage_change, dfp[dfp$period == "2022-2024",]$mean_total_rai, use = "complete.obs")
-# cor(dfp[dfp$period == "2022-2024" & dfp$influencer == "Russia",]$percentage_change, dfp[dfp$period == "2022-2024" & dfp$influencer == "Russia",]$mean_total_rai)
+# cor(dfp[dfp$period == "2022-2025",]$percentage_change, dfp[dfp$period == "2022-2025",]$mean_total_rai, use = "complete.obs")
+# cor(dfp[dfp$period == "2022-2025" & dfp$influencer == "Russia",]$percentage_change, dfp[dfp$period == "2022-2025" & dfp$influencer == "Russia",]$mean_total_rai)
 # cor(dfp[dfp$period == "2017-2021" & dfp$influencer == "Russia",]$percentage_change, dfp[dfp$period == "2017-2021" & dfp$influencer == "China",]$percentage_change)
 
-rc1 = cor(dfp[dfp$period == "2022-2024" & dfp$influencer == "Russia",]$percentage_change, dfp[dfp$period == "2017-2021" & dfp$influencer == "Russia",]$mean_total_rai)
+rc1 = cor(dfp[dfp$period == "2022-2025" & dfp$influencer == "Russia",]$percentage_change, dfp[dfp$period == "2017-2021" & dfp$influencer == "Russia",]$mean_total_rai)
 
 dfp_c_share <- dfp |>
   arrange(country, period) |>
   group_by(country, period) |>
   mutate(c_share = mean_total_rai[1] / (mean_total_rai[1] + mean_total_rai[2]) )
 
-rc2 = cor(dfp_c_share[dfp_c_share$period == "2022-2024" & dfp_c_share$influencer == "Russia",]$percentage_change, dfp_c_share[dfp_c_share$period == "2017-2021" & dfp_c_share$influencer == "China",]$c_share)
+rc2 = cor(dfp_c_share[dfp_c_share$period == "2022-2025" & dfp_c_share$influencer == "Russia",]$percentage_change, dfp_c_share[dfp_c_share$period == "2017-2021" & dfp_c_share$influencer == "China",]$c_share)
 
-rc3 = cor(dfp[dfp$period == "2022-2024" & dfp$influencer == "Russia",]$percentage_change, dfp[dfp$period == "2022-2024" & dfp$influencer == "China",]$percentage_change)
+rc3 = cor(dfp[dfp$period == "2022-2025" & dfp$influencer == "Russia",]$percentage_change, dfp[dfp$period == "2022-2025" & dfp$influencer == "China",]$percentage_change)
 rc4 = cor(dfp[dfp$period == "2017-2021" & dfp$influencer == "Russia",]$percentage_change, dfp[dfp$period == "2017-2021" & dfp$influencer == "China",]$percentage_change)
 
 rc_list = c(rc1, rc2, rc3, rc4)
@@ -1038,7 +1065,7 @@ In this section, we present figures from the *Describing Authoritarian Influence
 #| label: fig-plot_dominant-theme-alt
 #| fig-cap: "Share of RAI activity across RAI tools over time, measured as the normalized share of all articles classified into RAI categories that correspond with each tool. We drop the last three months of data to avoid composition effects driven by changes in the last month of available data across countries."
 
-df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
+df = read_rai() |>
   filter( country != "Timor Leste") |>
   filter(! influencer %in% "Combined") |>
   select(country, date, influencer, article_total, starts_with("rai_idx"), -rai_idx_total) |>
@@ -1109,14 +1136,14 @@ map2 = map %>%
   mutate(period = "2017-2021")
 
 map3 = map %>%
-  mutate(period = "2022-2024")
+  mutate(period = "2022-2025")
 
 # Pull RAI data
-df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
+df = read_rai() %>%
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
-    TRUE ~ "2022-2024"
+    TRUE ~ "2022-2025"
     )
   ) |>
   filter(influencer %in% c("Russia", "China")) |>
@@ -1180,7 +1207,7 @@ b = ggplot(map %>% filter(period == "2017-2021"),
   theme_bw() + 
   map_theme
 
-c = ggplot(map %>% filter(period == "2022-2024"), 
+c = ggplot(map %>% filter(period == "2022-2025"), 
        aes(x = long, y = lat, group = group, fill = russia_share)) +
   geom_polygon(colour = "black", size=0.15) +
   facet_wrap(~period, ncol = 1) +
@@ -1201,7 +1228,7 @@ fig = gridExtra::grid.arrange(a,b,c)
 #| echo: false
 #| warning: false
 
-# df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
+# df = read_rai() |>
 #   filter( country != "Timor Leste") |>
 #   filter(! influencer %in% "Combined") |>
 #   select(country, date, influencer, article_total, starts_with("rai_idx"), -rai_idx_total) |>
@@ -1226,7 +1253,7 @@ fig = gridExtra::grid.arrange(a,b,c)
 #   mutate(period = case_when(
 #     date < "2017-01-01" ~ "2012-2016",
 #     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
-#     TRUE ~ "2022-2024"
+#     TRUE ~ "2022-2025"
 #     )
 #   ) |>
 #   group_by(period, theme, influencer) |>
@@ -1239,11 +1266,11 @@ fig = gridExtra::grid.arrange(a,b,c)
 # 
 # cd1 = paste0(round(dip_av[dip_av$influencer == "China" & dip_av$period == "2012-2016",]$value*100, digits=0), "%")
 # cd2 = paste0(round(dip_av[dip_av$influencer == "China" & dip_av$period == "2017-2021",]$value*100, digits=0), "%")
-# cd3 = paste0(round(dip_av[dip_av$influencer == "China" & dip_av$period == "2022-2024",]$value*100, digits=0), "%")
+# cd3 = paste0(round(dip_av[dip_av$influencer == "China" & dip_av$period == "2022-2025",]$value*100, digits=0), "%")
 # 
 # rd1 = paste0(round(dip_av[dip_av$influencer == "Russia" & dip_av$period == "2012-2016",]$value*100, digits=0), "%")
 # rd2 = paste0(round(dip_av[dip_av$influencer == "Russia" & dip_av$period == "2017-2021",]$value*100, digits=0), "%")
-# rd3 = paste0(round(dip_av[dip_av$influencer == "Russia" & dip_av$period == "2022-2024",]$value*100, digits=0), "%")
+# rd3 = paste0(round(dip_av[dip_av$influencer == "Russia" & dip_av$period == "2022-2025",]$value*100, digits=0), "%")
 
 ```
 
@@ -1257,11 +1284,11 @@ fig = gridExtra::grid.arrange(a,b,c)
 #| label: fig-map_dominant-theme-alt
 #| fig-cap: "RAI tool with the greatest volume of reporting by country, measured as the normalized share of all articles classified into RAI categories that correspond with each tool. The left panel captures reports of Chinese influence and the right panel captures reports of Russian influence."
 
-df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
+df = read_rai() |>
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
-    TRUE ~ "2022-2024"
+    TRUE ~ "2022-2025"
     )
   ) |>
   filter(influencer %in% "China") |>
@@ -1336,7 +1363,7 @@ b = ggplot(map %>% filter(period == "2017-2021"),
   theme_bw() + 
   map_theme
 
-c = ggplot(map %>% filter(period == "2022-2024"), 
+c = ggplot(map %>% filter(period == "2022-2025"), 
        aes(x = long, y = lat, group = group, fill = theme)) +
   geom_polygon(colour = "black", size=0.15) +
   scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
@@ -1346,11 +1373,11 @@ c = ggplot(map %>% filter(period == "2022-2024"),
   map_theme
 
 
-df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
+df = read_rai() |>
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
-    TRUE ~ "2022-2024"
+    TRUE ~ "2022-2025"
     )
   ) |>
   filter(influencer %in% "Russia") |>
@@ -1412,7 +1439,7 @@ e = ggplot(map %>% filter(period == "2017-2021"),
   theme_bw() + 
   map_theme
 
-f = ggplot(map %>% filter(period == "2022-2024"), 
+f = ggplot(map %>% filter(period == "2022-2025"), 
        aes(x = long, y = lat, group = group, fill = theme)) +
   geom_polygon(colour = "black", size=0.15) +
   scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
@@ -1490,15 +1517,16 @@ In this section, we present figures from the *Increased Russian Activity* Sectio
 
 
 # rai_df <- rai.atari::rai
-rai_df = readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
+rai_df = read_rai()
 
 rai_df <- rai_df |>
   select(country, influencer, date, rai_idx_total, article_total) |>
   filter(influencer != "Combined") |>
   filter(country != "Timor Leste") |>
-  mutate(rai_idx_total_raw = (rai_idx_total * article_total) / 10000) |>
+  mutate(article_total = replace_na(article_total, 0),
+         rai_idx_total_raw = (rai_idx_total * article_total) / 10000) |>
   group_by(influencer, date) |>
-  summarize(rai_idx_total_raw = (sum(rai_idx_total_raw) / sum(article_total)) * 10000,
+  summarize(rai_idx_total_raw = (sum(rai_idx_total_raw, na.rm = TRUE) / sum(article_total, na.rm = TRUE)) * 10000,
             .groups = "drop")
 
 third_to_max_date <- sort(unique(rai_df$date), decreasing = TRUE)[3]
@@ -1532,15 +1560,21 @@ rm(third_to_max_date, rai_global )
 #| fig-cap: "Percent change in average monthly RAI articles per 10k published articles. Countries ordered by size of percent change in Russian influence between last two periods."
 
 
-df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
+df <- read_rai() |>
+  filter(! influencer=="Combined") |>
+  select(country, date, rai_idx_total, influencer, article_total)
+
+all_dates <- seq(min(df$date, na.rm = TRUE), rai_end_date, by = "1 month")
+
+df <- df |>
+  tidyr::complete(country, influencer, date = all_dates,
+                  fill = list(rai_idx_total = 0, article_total = 0)) |>
+  mutate(article_total = replace_na(article_total, 0)) |>
   mutate(period = case_when(
     date < "2017-01-01" ~ "2012-2016",
     date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
-    TRUE ~ "2022-2024"
-    )
-  ) |>
-  filter(! influencer=="Combined") |>
-
+    TRUE ~ "2022-2025"
+  )) |>
   # Un-normalize in order to *not* put equal weight on years
   mutate(rai_idx_total = (rai_idx_total * article_total) / 10000) |>
   select(country, date, rai_idx_total, influencer, period, article_total) 
@@ -1549,8 +1583,8 @@ df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) |>
 # Need to re-normalize  
 df <- df |>
   group_by(country, period, influencer) |>
-  summarize(value = sum( rai_idx_total ) ,
-            article_total = sum(article_total),
+  summarize(value = sum( rai_idx_total, na.rm = TRUE ) ,
+            article_total = sum(article_total, na.rm = TRUE),
               .groups = "drop") |>
   mutate(mean_total_rai = (value / article_total) * 10000 ) |>
   arrange(country, influencer, period)
@@ -1558,12 +1592,20 @@ df <- df |>
 
 dfp <- df |>
   group_by(country, influencer) |>
-  mutate(percentage_change = (mean_total_rai / lag(mean_total_rai) - 1) * 100) |>
+  mutate(
+    baseline = lag(mean_total_rai),
+    percentage_change = case_when(
+      is.na(baseline) ~ NA_real_,
+      baseline == 0 & mean_total_rai == 0 ~ 0,
+      baseline == 0 & mean_total_rai > 0 ~ 100 * mean_total_rai,
+      TRUE ~ (mean_total_rai / baseline - 1) * 100
+    )
+  ) |>
   mutate(increase = mean_total_rai[3] - mean_total_rai[2]) |>
   filter(!is.na(percentage_change))
 
 dfpr = dfp |>
-  filter(influencer == "Russia" & period == "2022-2024") |>
+  filter(influencer == "Russia" & period == "2022-2025") |>
   group_by(country) |>
   arrange(percentage_change)
 
@@ -1590,7 +1632,7 @@ dfp |>
   geom_text(aes(x = percentage_change, y = country, label=lab),
             data = ann_text, size = 3) +
   scale_color_manual("Percent change between time\nperiods", 
-                       labels = c("2012-2016 and 2017-2021", "2017-2021 and 2022-2024"),
+                       labels = c("2012-2016 and 2017-2021", "2017-2021 and 2022-2025"),
                        values = c("#edae49", "#66a182")) +
   labs(x = "Percent change in average monthly RAI articles per 10k published articles", y = "") +
   theme(legend.text = element_text(size = 6), legend.title = element_text(size = 6),
@@ -1655,7 +1697,7 @@ Finally, we identify countries that are import-reliant on commodities on which R
 #| fig-cap: "Frequency of changepoint dates in Russian influence time-series for all target countries. We identify one changepoint for each country. change-points capture increases in the mean of the time-series."
 
 
-rai_df <- readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
+rai_df <- read_rai()
 rai_df <- rai_df %>%
   select(country, influencer, date, rai_idx_bal:rai_idx_sp)
 
@@ -1735,7 +1777,7 @@ rm( country_result, df, rai, rai_df, result_df)
 
 ```
 
-![OLS regression predicting number of countries targeted for Russian influence for each 6-month period from January 2024 through 2012. Pre-invasion is a binary indicator for the 6 months before invasion of Ukraine](figures/change-point-regression.png){#fig-change-point-regression fig-align="center" width="650"}
+![OLS regression predicting number of countries targeted for Russian influence for each 6-month period from January 2024 through 2012. Pre-invasion is a binary indicator for the 6 months before invasion of Ukraine](figures/change-point-regression.png){#fig-change-point-regression fig-align="center" width="100%"}
 
 {{< pagebreak >}}
 
@@ -1749,7 +1791,7 @@ rm( country_result, df, rai, rai_df, result_df)
 #| label: fig-dip_changepoints
 #| fig-cap: "Timing of changepoint dates in Russian influence time-series for the top 12 countries by peak Diplomacy reporting. Red points mark the identified change-point for each country."
 
-rai_df <- readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
+rai_df <- read_rai()
 rai_df <- rai_df %>%
   select(country, influencer, date, rai_idx_bal:rai_idx_sp)
 
@@ -1798,7 +1840,7 @@ if (nrow(dat) == 0) {
 
 
 # rai_df <- rai.atari::rai %>% 
-rai_df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
+rai_df = read_rai() %>%
   filter(influencer == "Russia" & country %in% unique(dat$country)) 
 
 dip2 = dat %>% filter(col == "rai_idx_dip")
@@ -1815,7 +1857,7 @@ dip <- dip %>% filter(country %in% top_countries)
 
 max_date <- max(rai_df$date, na.rm = TRUE)
 if (!is.finite(max_date)) {
-  max_date <- max(readr::read_csv(here::here("writing", "output", "rai_latest.csv"))$date, na.rm = TRUE)
+  max_date <- max(read_rai()$date, na.rm = TRUE)
 }
 
 # Setup label mapping dataframe
@@ -1857,7 +1899,7 @@ ggplot(dip, aes(x = date, y =  rai_idx_dip)) +
 
 
 # rai_df <- rai.atari::rai %>% 
-rai_df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
+rai_df = read_rai() %>%
   filter(influencer == "Russia" & country %in% unique(dat$country)) 
 
 dip2 = dat %>% filter(col == "rai_idx_hp")
@@ -1874,7 +1916,7 @@ dip <- dip %>% filter(country %in% top_countries)
 
 max_date <- max(rai_df$date, na.rm = TRUE)
 if (!is.finite(max_date)) {
-  max_date <- max(readr::read_csv(here::here("writing", "output", "rai_latest.csv"))$date, na.rm = TRUE)
+  max_date <- max(read_rai()$date, na.rm = TRUE)
 }
 
 # Setup label mapping dataframe
@@ -1915,7 +1957,7 @@ ggplot(dip, aes(x = date, y =  rai_idx_hp)) +
 
 
 # rai_df <- rai.atari::rai %>% 
-rai_df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
+rai_df = read_rai() %>%
   filter(influencer == "Russia" & country %in% unique(dat$country)) 
 
 dip2 = dat %>% filter(col == "rai_idx_ep")
@@ -1932,7 +1974,7 @@ dip <- dip %>% filter(country %in% top_countries)
 
 max_date <- max(rai_df$date, na.rm = TRUE)
 if (!is.finite(max_date)) {
-  max_date <- max(readr::read_csv(here::here("writing", "output", "rai_latest.csv"))$date, na.rm = TRUE)
+  max_date <- max(read_rai()$date, na.rm = TRUE)
 }
 
 # Setup label mapping dataframe
@@ -1974,7 +2016,7 @@ ggplot(dip, aes(x = date, y =  rai_idx_ep)) +
 
 
 # rai_df <- rai.atari::rai %>% 
-rai_df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
+rai_df = read_rai() %>%
   filter(influencer == "Russia" & country %in% unique(dat$country)) 
 
 dip2 = dat %>% filter(col == "rai_idx_di")
@@ -1991,7 +2033,7 @@ dip <- dip %>% filter(country %in% top_countries)
 
 max_date <- max(rai_df$date, na.rm = TRUE)
 if (!is.finite(max_date)) {
-  max_date <- max(readr::read_csv(here::here("writing", "output", "rai_latest.csv"))$date, na.rm = TRUE)
+  max_date <- max(read_rai()$date, na.rm = TRUE)
 }
 
 # Setup label mapping dataframe
@@ -2031,7 +2073,7 @@ ggplot(dip, aes(x = date, y =  rai_idx_di)) +
 #| fig-cap: "Timing of changepoint dates in Russian influence time-series for the top 12 countries by peak Soft Power reporting. Red points mark the identified change-point for each country."
 
 # rai_df <- rai.atari::rai %>% 
-rai_df = readr::read_csv(here::here("writing", "output", "rai_latest.csv")) %>%
+rai_df = read_rai() %>%
   filter(influencer == "Russia" & country %in% unique(dat$country)) 
 
 dip2 = dat %>% filter(col == "rai_idx_sp")
@@ -2048,7 +2090,7 @@ dip <- dip %>% filter(country %in% top_countries)
 
 max_date <- max(rai_df$date, na.rm = TRUE)
 if (!is.finite(max_date)) {
-  max_date <- max(readr::read_csv(here::here("writing", "output", "rai_latest.csv"))$date, na.rm = TRUE)
+  max_date <- max(read_rai()$date, na.rm = TRUE)
 }
 
 # Setup label mapping dataframe

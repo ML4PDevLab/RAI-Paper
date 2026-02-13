@@ -10,6 +10,82 @@ library(tidyr)
 library(readr)
 library(kableExtra)
 library(flextable)
+library(gt)
+
+# Optional: set to TRUE if you want all model figures regenerated
+generate_all_model_figures <- FALSE
+
+save_gt_png <- function(gt_obj, filename, width = 2400, height = 1200, res = 200) {
+  tmp_dir <- tempfile("gt_tex_")
+  dir.create(tmp_dir)
+  tmp_tex_fragment <- file.path(tmp_dir, "table_fragment.tex")
+  tmp_tex <- file.path(tmp_dir, "table.tex")
+  tmp_pdf <- file.path(tmp_dir, "table.pdf")
+  tmp_pdf_cropped <- file.path(tmp_dir, "table_cropped.pdf")
+
+  gt::gtsave(gt_obj, filename = tmp_tex_fragment)
+
+  fragment <- readLines(tmp_tex_fragment, warn = FALSE)
+  tex_doc <- c(
+    "\\documentclass[landscape]{article}",
+    "\\usepackage[margin=0.2in]{geometry}",
+    "\\usepackage{longtable}",
+    "\\usepackage{booktabs}",
+    "\\usepackage{array}",
+    "\\usepackage{colortbl}",
+    "\\usepackage{xcolor}",
+    "\\usepackage{graphicx}",
+    "\\usepackage{multirow}",
+    "\\usepackage{float}",
+    "\\usepackage{caption}",
+    "\\pagenumbering{gobble}",
+    "\\begin{document}",
+    "\\thispagestyle{empty}",
+    "\\centering",
+    "\\large",
+    fragment,
+    "\\end{document}"
+  )
+  writeLines(tex_doc, tmp_tex)
+
+  tex_bin <- Sys.getenv("TEX_BIN", Sys.getenv("LUALATEX_BIN", "xelatex"))
+  system2(tex_bin,
+          c("-interaction=nonstopmode",
+            "-halt-on-error",
+            "-output-directory", tmp_dir,
+            tmp_tex),
+          stdout = FALSE, stderr = FALSE)
+
+  if (!file.exists(tmp_pdf)) {
+    log_file <- file.path(tmp_dir, "table.log")
+    if (file.exists(log_file)) {
+      log_lines <- readLines(log_file, warn = FALSE)
+      message("LaTeX log excerpt:\n", paste(tail(log_lines, 40), collapse = "\n"))
+    }
+    stop("Failed to render gt table to PDF.")
+  }
+
+  # Crop excess whitespace if pdfcrop is available
+  if (nzchar(Sys.which("pdfcrop"))) {
+    system2("pdfcrop",
+            c(tmp_pdf, tmp_pdf_cropped),
+            stdout = FALSE, stderr = FALSE)
+  }
+
+  pdf_for_png <- if (file.exists(tmp_pdf_cropped)) tmp_pdf_cropped else tmp_pdf
+
+  system2("pdftoppm",
+          c("-singlefile", "-png", pdf_for_png,
+            file.path(tmp_dir, "table")),
+          stdout = FALSE, stderr = FALSE)
+
+  tmp_png <- file.path(tmp_dir, "table.png")
+  if (!file.exists(tmp_png)) {
+    stop("Failed to render gt table PNG.")
+  }
+
+  file.copy(tmp_png, filename, overwrite = TRUE)
+}
 
 
 # Read-in gpt summary data ------------------------------------------------
@@ -70,20 +146,22 @@ end_period <- as.Date("2022-01-31")
 start_period <- as.Date("2012-01-01")
 
 # Create six-month periods, going backward from the defined end period
+breaks_6m <- seq.Date(from = start_period, to = end_period, by = "6 months")
+labels_6m <- breaks_6m[-length(breaks_6m)]
+
 data <- cp %>%
-  mutate(period = cut(date, breaks = seq.Date(from = start_period, 
-                                              to = end_period , 
-                                              by = "6 months"), 
-                      labels = seq.Date(from = start_period, 
-                                        to = end_period, 
-                                        by = "6 months"), 
-                      right = FALSE))
+  mutate(period = cut(date,
+                      breaks = breaks_6m,
+                      labels = labels_6m,
+                      right = FALSE)) %>%
+  mutate(period = as.Date(as.character(period)))
 
 
 # Summarize the data by period
 summary_data <- data %>%
   group_by(period, theme) %>%
-  summarise(total_count = sum(count, na.rm = TRUE))
+  summarise(total_count = sum(count, na.rm = TRUE)) %>%
+  mutate(period = as.Date(period))
 
 # Create a complete sequence of six-month periods
 all_periods <- tibble(
@@ -153,16 +231,17 @@ for (i in seq_along(outcomes)) {
 }
 
 
-modelsummary(models,
-             coef_map = c('(Intercept)' = "Intercept",
-                          'final' = "Pre-Invasion"),
-             estimate  = "{estimate}{stars} ({std.error})",
-             #statistic = NULL,
-             gof_omit = 'IC|RMSE|Log|F|R2$|Std.',
-             statistic = c("p.value"),
-             output = here::here("writing", "figures", paste0("change-point-regression", ".png"))
-             
+cp_tab <- modelsummary(
+  models,
+  coef_map = c('(Intercept)' = "Intercept",
+               'final' = "Pre-Invasion"),
+  estimate  = "{estimate}{stars} ({std.error})",
+  #statistic = NULL,
+  gof_omit = 'IC|RMSE|Log|F|R2$|Std.',
+  statistic = c("p.value"),
+  output = "gt"
 )
+save_gt_png(cp_tab, here::here("writing", "figures", "change-point-regression.png"))
 
 # Compare historical averages ---------------------------------------------
 
@@ -310,22 +389,24 @@ for (i in seq_along(outcomes)) {
   }
 }
 
-for (outcome in model_names) {
-  modelsummary(
-    models[ grepl(outcome, names(models), fixed = T ) ],
-    coef_map = c('(Intercept)' = "Intercept",
-                 'impt_export_reliance_import_reliant' = "Importer",
-                 'expt_import_reliance_exporter' = 'Exporter', 
-                 'idp_UUF' = "UNIPD (West)",
-                 'idp_CHN' = "UNIPD (China)",
-                 'idp_RUS' = "UNIPD (Russia)",
-                 'dist' = "Distance (1k km)"),
-    col.names = NULL,  # This removes the column titles
-    estimate  = "{estimate}{stars} ({std.error})",
-    statistic = NULL,
-    gof_omit = 'IC|RMSE|Log|F|R2$|Std.',
-    output = here::here("writing", "figures", paste0(gsub("\\s", "_", gsub("\\(|\\)|%\\s","",outcome)), ".png"))
-  )
+if (generate_all_model_figures) {
+  for (outcome in model_names) {
+    modelsummary(
+      models[ grepl(outcome, names(models), fixed = T ) ],
+      coef_map = c('(Intercept)' = "Intercept",
+                   'impt_export_reliance_import_reliant' = "Importer",
+                   'expt_import_reliance_exporter' = 'Exporter', 
+                   'idp_UUF' = "UNIPD (West)",
+                   'idp_CHN' = "UNIPD (China)",
+                   'idp_RUS' = "UNIPD (Russia)",
+                   'dist' = "Distance (1k km)"),
+      col.names = NULL,  # This removes the column titles
+      estimate  = "{estimate}{stars} ({std.error})",
+      statistic = NULL,
+      gof_omit = 'IC|RMSE|Log|F|R2$|Std.',
+      output = here::here("writing", "figures", paste0(gsub("\\s", "_", gsub("\\(|\\)|%\\s","",outcome)), ".png"))
+    )
+  }
 }
 
 
@@ -336,14 +417,14 @@ names(tp_full) = gsub(" \\(True \\+\\) - full" ,"", names(tp_full) )
 tp_chn = models[ grepl("(True +) - c", names(models), fixed = T ) ]
 names(tp_chn) = gsub(" \\(True \\+\\) - chn" ,"", names(tp_chn) )
 
-tp_tab = c(tp_full[1], tp_chn[1],
-           tp_full[2], tp_chn[2],
-           tp_full[3], tp_chn[3])
+tp_models = c(tp_full[1], tp_chn[1],
+              tp_full[2], tp_chn[2],
+              tp_full[3], tp_chn[3])
 
-names(tp_tab) = NULL
+names(tp_models) = NULL
 
 tp_tab = modelsummary(
-  tp_tab, 
+  tp_models, 
   coef_map = c('(Intercept)' = "Intercept",
                'impt_export_reliance_import_reliant' = "Importer",
                'expt_import_reliance_exporter' = 'Exporter', 
@@ -360,6 +441,23 @@ tp_tab = modelsummary(
   tab_spanner(label = 'Hard Power', columns = 4:5) %>%
   tab_spanner(label = 'Economic Power', columns = 6:7) 
 
+save_gt_png(tp_tab, here::here("writing", "figures", "tp_full.png"))
 
-gt::gtsave(tp_tab, filename = here::here("writing", "figures", "tp_full.png"))
+# Also export a LaTeX tabular for direct inclusion in the paper
+tp_tex <- modelsummary(
+  tp_models, 
+  coef_map = c('(Intercept)' = "Intercept",
+               'impt_export_reliance_import_reliant' = "Importer",
+               'expt_import_reliance_exporter' = 'Exporter', 
+               'idp_UUF' = "UNIPD (West)",
+               'idp_CHN' = "UNIPD (China)",
+               'idp_RUS' = "UNIPD (Russia)",
+               'dist' = "Distance (1k km)"),
+  fmt = 2, 
+  estimate  = "{estimate}{stars} ({std.error})",
+  statistic = NULL,
+  gof_omit = 'IC|RMSE|Log|F|R2$|Std.',
+  output = "latex_tabular"
+)
+writeLines(tp_tex, here::here("writing", "figures", "tp_full.tex"))
 

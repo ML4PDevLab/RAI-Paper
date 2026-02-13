@@ -30,9 +30,15 @@ countries <- countries %>%
 
 
 
-# Merge
-# countries$country[!countries$country %in% ots_countries$country_name_english]
-countries = left_join(countries, c_list)
+# Merge using COMTRADE country names
+countries = left_join(
+  countries,
+  c_list,
+  by = c("country_name_english" = "country_name")
+)
+
+# Drop countries without COMTRADE ISO to avoid API errors
+countries = countries %>% filter(!is.na(country_iso))
 
 
 # Pull relevant data from API ---------------------------------------------
@@ -50,8 +56,9 @@ critical_exports = dat %>% filter(export_reliance == 1)
 cs = countries %>% filter(country != "Kosovo") %>% select(country_iso) %>% pull
 
 # Create a tidy dataset of trade statistics
+year_range <- 2015:2023
 tdat <- ots_create_tidy_data(
-  years = 2015:2019,          # Specify the range of years to include in the dataset
+  years = year_range,          # Specify the range of years to include in the dataset
   reporters = c(cs ),    # Specify the reporting country
   partners = c("all"),        # Include all partner countries
   commodities = c("all"),
@@ -88,7 +95,7 @@ expt = expt %>%
 expt = expt %>%
   group_by(country) %>%
   summarise(
-    continent_name_english = first(continent_name_english),
+    continent_name = first(continent_name),
     trade_value_usd_imp = sum(trade_value_usd_imp, na.rm = TRUE),
     trade_value_usd_exp = sum(trade_value_usd_exp, na.rm = TRUE),
     trade_value_usd_imp_rep = sum(trade_value_usd_imp_rep, na.rm = TRUE),
@@ -98,22 +105,27 @@ expt = expt %>%
     trade_value_usd_exp_rep_ratio_heading = heading_name[which.max(trade_value_usd_exp_rep_ratio)]
   )
 
+min_export_reliance_headings <- 50
+min_export_ratio <- 1
+
 expt = expt %>%
   mutate(import_reliance_exporter = case_when(
-    export_reliance_headings >= 70 & trade_value_usd_exp_rep_ratio > 1 ~ 1,
+    export_reliance_headings >= min_export_reliance_headings &
+      trade_value_usd_exp_rep_ratio > min_export_ratio ~ 1,
     TRUE ~ 0
   ))
 
 # Calculate the number of countries in each continent where import_reliance_exporter == 1
 counts <- expt %>%
   filter(import_reliance_exporter == 1) %>%
-  group_by(continent_name_english) %>%
+  group_by(continent_name) %>%
   summarise(count = n_distinct(country))
 
 # Create a new column in the original dataset with the continent name and the count
 expt <- expt %>%
-  left_join(counts, by = "continent_name_english") %>%
-  mutate(continent_with_count = paste0(continent_name_english, " (", count, ")"))
+  left_join(counts, by = "continent_name") %>%
+  mutate(count = replace_na(count, 0),
+         continent_with_count = paste0(continent_name, " (", count, ")"))
 
 
 ggplot(expt , aes(x = trade_value_usd_exp_rep_ratio, y = export_reliance_headings, color = continent_with_count)) +
@@ -125,9 +137,15 @@ ggplot(expt , aes(x = trade_value_usd_exp_rep_ratio, y = export_reliance_heading
                            max.overlaps = Inf,
                            aes(label = country), size = 2, color = "black") +  # Add text labels for the top 5 points
   scale_x_continuous(labels = scales::percent) +  # Convert y-axis to percentage
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 5), limits = c(75, NA)) +  # Ensure y-axis has whole numbers
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 5)) +  # Ensure y-axis has whole numbers
   labs(title = "Exporters of Russian Import Reliance Commodities",
-       subtitle = str_wrap("Labels are countries with at least one commodity where the ratio of country's exports to Russian imports exceeds 100%. Excludes countries with fewer than 75 exported commodities. Legend reports count of labeled countries by continent"),
+       subtitle = str_wrap(
+         paste0(
+           "Labels are countries with at least one commodity where the ratio of country's exports to Russian imports exceeds 100%. ",
+           "Excludes countries with fewer than ", min_export_reliance_headings,
+           " exported commodities. Legend reports count of labeled countries by continent."
+         )
+       ),
        x = "Ratio of country's exports to Russian imports for highest ratio commodity",
        y = "Count of import reliance commodities exported (jittered)",
        color = NULL) +  # Add legend title for color
@@ -166,7 +184,7 @@ impt = impt %>%
 impt = impt %>%
   group_by(country) %>%
   summarise(
-    continent_name_english = first(continent_name_english),
+    continent_name = first(continent_name),
     import_reliance_headings = n(), # count of Russia's export-reliance commodities that country is import reliant on  
     trade_value_usd_tbal_rep = min(trade_value_usd_tbal_rep), # Largest negative trade balance
     trade_share_rep = max(trade_share_rep), # Max value of trade share across commodities
@@ -179,21 +197,25 @@ impt = impt %>%
 
 # Each row is a commodity imported by rep and on which Rus is export reliant
 
+min_import_reliance_value <- 5000000000
+min_import_reliance_headings <- 5
+
 impt = impt %>%
-  mutate(export_reliance_import_reliant = case_when(import_reliance_rep_value > 15000000000 & 
-                                                      import_reliance_headings > 10 ~ 1,
+  mutate(export_reliance_import_reliant = case_when(import_reliance_rep_value > min_import_reliance_value &
+                                                      import_reliance_headings > min_import_reliance_headings ~ 1,
                                                     TRUE ~ 0))
 
 # Calculate the number of countries in each continent where import_reliance_exporter == 1
 counts <- impt %>%
   filter(export_reliance_import_reliant == 1) %>%
-  group_by(continent_name_english) %>%
+  group_by(continent_name) %>%
   summarise(count = n_distinct(country))
 
 # Create a new column in the original dataset with the continent name and the count
 impt <- impt %>%
-  left_join(counts, by = "continent_name_english") %>%
-  mutate(continent_with_count = paste0(continent_name_english, " (", count, ")"))
+  left_join(counts, by = "continent_name") %>%
+  mutate(count = replace_na(count, 0),
+         continent_with_count = paste0(continent_name, " (", count, ")"))
 
 
 ggplot(impt , aes(x = import_reliance_headings, y = import_reliance_rep_value, color = continent_with_count)) +
@@ -206,9 +228,20 @@ ggplot(impt , aes(x = import_reliance_headings, y = import_reliance_rep_value, c
                            aes(label = country), size = 2, color = "black") +  # Add text labels for the top 5 points
   scale_y_continuous(labels = function(x) {paste0(x / 1000000000, "B")}) + # normalize by billions
   labs(title = "Import Reliance on Russian Export Reliance Commodities",
-       subtitle = str_wrap("Labels are countries with import reliance on at least 10 commodities on which Russia is export reliant and at least 15B in value."),
+       subtitle = str_wrap(
+         paste0(
+           "Labels are countries with import reliance on at least ",
+           min_import_reliance_headings,
+           " commodities on which Russia is export reliant and at least ",
+           scales::comma(min_import_reliance_value),
+           " in value."
+         )
+       ),
        x = "Count of Russia's export-reliance commodities that country is import reliant on",
-       y = "Imports for Russia's export-reliance commodities\n that country is import reliant on (2015-2019)",  # Add legend title for color
+       y = paste0(
+         "Imports for Russia's export-reliance commodities\n that country is import reliant on (",
+         min(year_range), "-", max(year_range), ")"
+       ),  # Add legend title for color
        color = NULL) +
   theme_bw() +
   theme(legend.position =  c(0.65, 0.6),
@@ -223,7 +256,7 @@ ggsave(here::here("writing/export_reliance_heading_importers.png"), width = 7, h
 ## Clean-up impt columns
 impt <- impt %>%
   # Select columns you want to keep and rename with prefix
-  select(country, continent_name_english, 
+  select(country, continent_name, 
          import_reliance_headings,
          trade_value_usd_tbal_rep,
          trade_share_rep,
@@ -239,7 +272,7 @@ impt <- impt %>%
 ## Clean-up expt columns
 expt = expt %>%
   # Select columns you want to keep and rename with prefix
-  select(country, continent_name_english, 
+  select(country, continent_name, 
          trade_value_usd_exp_rep,
          export_reliance_headings,
          trade_value_usd_exp_rep_ratio,
@@ -251,7 +284,7 @@ expt = expt %>%
 
   
 ## Merge dataframes
-data = left_join(impt, expt, by = c("country", "continent_name_english"))
+data = left_join(impt, expt, by = c("country", "continent_name"))
 
 table(data$expt_import_reliance_exporter, data$impt_export_reliance_import_reliant)
 cor(data$expt_import_reliance_exporter, data$impt_export_reliance_import_reliant)
