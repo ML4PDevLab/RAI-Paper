@@ -105,7 +105,7 @@ expt = expt %>%
     trade_value_usd_exp_rep_ratio_heading = heading_name[which.max(trade_value_usd_exp_rep_ratio)]
   )
 
-min_export_reliance_headings <- 50
+min_export_reliance_headings <- 20
 min_export_ratio <- 1
 
 expt = expt %>%

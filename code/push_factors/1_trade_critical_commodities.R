@@ -7,8 +7,9 @@ library(tidyverse)
 # Read-in trade data via API ----------------------------------------------
 
 # Create a tidy dataset of trade statistics
+year_range <- 2015:2023
 tdat <- ots_create_tidy_data(
-  years = 2015:2019,          # Specify the range of years to include in the dataset
+  years = year_range,          # Specify the range of years to include in the dataset
   reporters = c("Russia"),    # Specify the reporting country
   partners = c("all"),        # Include all partner countries
   commodities = c("all"),     # Include all commodities

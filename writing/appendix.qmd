@@ -1647,23 +1647,23 @@ rm(rc1, rc2, rc3, rc4, ann_text, dfpr, dfp_c_share, dfp)
 
 ## Operationalizing Economic Dependence
 
-We operationalize economic dependence by identifying commodities on which Russia is heavily reliant, either for imports or exports, and then identifying countries that trade in those commodities. We use comprehensive data on global imports and exports from UN COMTRAD at the HS4 level, covering roughly 1,000 commodity codes. We consider average trade flows from 2015--2019; prior to the invasion of Ukraine but before the osnet of COVID. We use constant 2015 US Dollars to measure trade value.
+We operationalize economic dependence by identifying commodities on which Russia is heavily reliant, either for imports or exports, and then identifying countries that trade in those commodities. We use comprehensive data on global imports and exports from UN COMTRAD at the HS4 level, covering roughly 1,000 commodity codes. We consider average trade flows from 2015--2023 (the latest COMTRADE coverage used in this update). We use constant 2015 US Dollars to measure trade value.
 
 First, we define criteria to categorize countries as import-reliant or export-reliant on specific commodities. Second, we identify countries that are major exporters of commodities on which Russia is import-reliant, referred to as *Import-Reliance Exporters (IREs)*. Third, we identify countries that are import-reliant on commodities for which Russia is export-reliant, which we term *Export-Reliance Importers (ERIs)*. 
 
 ### Import Reliance
 
-To identify commodities on which Russia is import-reliant, we focus on commodities that constitute a significant share of Russia's overall trade and which Russia cannot produce domestically. Commodities must meet two criteria. First, we focus on commodities that constitute at least 0.1% of the value of all Russian trade (exports + imports) from 2015-2019. A threshold above 0.1% ensures that the commodity is relatively important to Russia’s economy. Second, we require that more than 80% of Russia's total trade in a given commodity comes from imports. Empirically, a low ratio of exports to imports indicates a limited ability to produce the commodity domestically [@saltarelli2020export]. 
+To identify commodities on which Russia is import-reliant, we focus on commodities that constitute a meaningful share of Russia's overall trade and which Russia cannot produce domestically. Commodities must meet two criteria. First, we focus on commodities that constitute at least 0.01% of the value of all Russian trade (exports + imports) from 2015-2023. Second, we require that more than 65% of Russia's total trade in a given commodity comes from imports. Empirically, a low ratio of exports to imports indicates a limited ability to produce the commodity domestically [@saltarelli2020export]. 
 
 ![Commodities on which Russia is import-reliant](import_reliance_heading.png){#fig-import_reliance_heading fig-align="center"}
 
-We consider Russia to be import-reliant on commodities that meet both criteria. @fig-import_reliance_heading plots these commodities. Labeled points correspond with the top product under each commodity-heading. Key commodities include motor vehicles, machinery, medicaments, and telephone sets.
+We consider Russia to be import-reliant on commodities that meet both criteria. @fig-import_reliance_heading plots these commodities. Labeled points correspond with the top product under each commodity-heading.
 
 {{< pagebreak >}}
 
 ### Import Reliance Exporters
 
-Next, we identify countries that export commodities on which Russia is import-reliant, referred to as *Import Reliance Exporters (IREs)*. A country qualifies as an *IRE* if, for at least one commodity on which Russia is import-reliant, the value of the country's total exports exceeds 100% of the value of Russia’s total imports of that commodity. This ensures that the country has a substantial supply of at least one commodity on which Russia is heavily dependent. @fig-import_reliance_heading_exporters plots countries that qualify is *IREs*. Our sample of *IREs* includes 2 countries in Africa, 5 countries in the Americas, 8 countries in Asia, and 2 countries in Eastern Europe. 
+Next, we identify countries that export commodities on which Russia is import-reliant, referred to as *Import Reliance Exporters (IREs)*. A country qualifies as an *IRE* if, for at least one commodity on which Russia is import-reliant, the value of the country's total exports exceeds 100% of the value of Russia’s total imports of that commodity, and the country exports at least 20 distinct import-reliance commodities. This ensures that the country has a substantial supply across multiple commodities on which Russia is heavily dependent. @fig-import_reliance_heading_exporters plots countries that qualify as *IREs*. Our current sample includes 9 countries in Africa, 4 in the Americas, 7 in Asia, and 5 in Europe.
 
 ![Courtries exporting commodities on which Russia is import-reliant](import_reliance_heading_exporters.png){#fig-import_reliance_heading_exporters fig-align="center"}
 
@@ -1671,7 +1671,7 @@ Next, we identify countries that export commodities on which Russia is import-re
 
 ### Export Reliance
 
-Next, we identify commodities on which Russia is export-reliant. Export-reliance refers to commodities that Russia likely depends on for domestic economic stability and foreign exchange earnings. Commodities must meet two criteria for Russia to be considered export-reliant on them. First, the total value of Russia’s trade in that commodity (exports + imports) must exceed 0.1% of the value of all Russian trade. Second, the commodity must be among the 100 highest-value exports in constant 2015 USD from 2015-2019. @fig-export_reliance_heading plots these commodities. Labeled points correspond with the top product under each commodity-heading. Key commodities include petroleum oils and gases, metals, and motor vehicles (including parts and equipment).
+Next, we identify commodities on which Russia is export-reliant. Export-reliance refers to commodities that Russia likely depends on for domestic economic stability and foreign exchange earnings. Commodities must meet two criteria for Russia to be considered export-reliant on them. First, the total value of Russia’s trade in that commodity (exports + imports) must exceed 0.1% of the value of all Russian trade. Second, the commodity must be among the 100 highest-value exports in constant 2015 USD from 2015-2023. @fig-export_reliance_heading plots these commodities. Labeled points correspond with the top product under each commodity-heading.
 
 ![Commodities on which Russia is export-reliant](export_reliance_heading.png){#fig-export_reliance_heading fig-align="center"}
 
@@ -1679,7 +1679,7 @@ Next, we identify commodities on which Russia is export-reliant. Export-reliance
 
 ### Export Reliance Importers
 
-Finally, we identify countries that are import-reliant on commodities on which Russia is export reliant, which we term *Export Reliance Importers (ERIs)*. A country qualifies as an *ERI* if it is import-reliant on at least 10 distinct commodities for which Russia is export-reliant and its imports of commodities for which Russia is export-reliant are worth at least 15 billion constant 2015 US Dollars. This insures that countries are reliant on broad range of key Russian exports that constitute a significant share of the country’s overall trade portfolio. @fig-export_reliance_heading_importers plots countries that qualify is *ERIs*. Our sample of *ERIs* includes 2 countries in Africa, 4 countries in the Americas, 7 countries in Asia, and 1 country in Eastern Europe. 
+Finally, we identify countries that are import-reliant on commodities on which Russia is export reliant, which we term *Export Reliance Importers (ERIs)*. A country qualifies as an *ERI* if it is import-reliant on at least 5 distinct commodities for which Russia is export-reliant and its imports of commodities for which Russia is export-reliant are worth at least 5 billion constant 2015 US Dollars. This ensures that countries are reliant on a broad range of key Russian exports that constitute a significant share of the country’s overall trade portfolio. @fig-export_reliance_heading_importers plots countries that qualify as *ERIs*. Our current sample includes 6 countries in Africa, 2 in the Americas, 6 in Asia, and 2 in Europe.
 
 ![Countries import-reliant on commodities on which Russia is export-reliant](export_reliance_heading_importers.png){#fig-export_reliance_heading_importers fig-align="center"}
 
