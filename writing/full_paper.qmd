@@ -1,7 +1,7 @@
 ---
 title: "Foreign Influence by Authoritarian Governments: Introducing New Data and Evidence "
 # subtitle: Explore the data using our [Shiny apps](https://web.sas.upenn.edu/mlp-devlab/rai/) 
-abstract: Policymakers are increasingly concerned about the revival of superpower conflict. Increased competition among great powers has been especially evident in the exercise of foreign influence, where Russia and China have increased their efforts to influence less powerful nations. To date, the absence of quantitative data has limited systematic investigation of this resurgence of authoritarian influence activity. We introduce a new, country-month dataset tracking reports of influence by Russia and China in over 60 aid-receiving low- and middle-income countries from 2012 through August 2025. We construct the data by applying large language models (LLMs) to an original corpus of more than 100 million news articles sourced from high-quality, domestic news sources and use it to describe trends in influence activity over time and across countries. Finally, we exploit the unique features of the data to test hypotheses about Russian influence activity in the months before the invasion of Ukraine. We document a dramatic increase in the use of diplomacy, economic power, and hard power before the invasion. In doing so, we show that this data is useful for both theory testing and foreign policy decision-making.
+abstract: Policymakers are increasingly concerned about the revival of superpower conflict. Increased competition among great powers has been especially evident in the exercise of foreign influence, where Russia and China have increased their efforts to influence less powerful nations. To date, the absence of quantitative data has limited systematic investigation of this resurgence of authoritarian influence activity. We introduce a new, country-month dataset tracking reports of influence by Russia and China in over 60 aid-receiving low- and middle-income countries from 2012 through August 2025. We construct the data by applying large language models (LLMs) to an original corpus of more than 100 million news articles sourced from high-quality, domestic news sources and use it to describe trends in influence activity over time and across countries. Finally, we exploit the unique features of the data to test hypotheses about Russian influence activity in the months before the invasion of Ukraine. We document a dramatic pre-invasion surge in diplomacy and hard power reporting, with weaker evidence for economic power. In doing so, we show that this data is useful for both theory testing and foreign policy decision-making.
 
 thanks: This study was funded by the United States Agency for International Development (USAID) Bureau for Democracy, Human Rights, and Governance. We would like to thank many partners in the NGO and policy world who have helped in the development of this work, including Laura McKechnie, Dan Spealman, Asta Zinbo, Daniel Sabet, Erin McCarthy, and David Jacobstein. We also thank several researchers who were instrumental in the origins of this project, including Scott de Marchi, Spencer Dorsey, and Clara Suong, and a number of others who made critical contributions along the way, including Rethis Togbedji Gansey, Jitender Swami, Mahda Soltani, Andreas Beger, Tim McDade, Akanksha Bhattacharyya, and Joan Timoneda.
 
@@ -908,7 +908,7 @@ Interestingly, the percentage increase in articles reporting on Russian influenc
 
 ## Testing Expectations of Russian Influence Activity
 
-By fall 2022, U.S. intelligence suggests that Russian President Vladimir Putin had made the decision to invade Ukraine [@sanger2024new pp. 237-240]. In response, the U.S. began attempting to convince skeptical European allies that this flagrant violation of international law was imminent and that a decisive international response would be necessary. We argue that Russia also likely used this window of opportunity to engage in strategic behavior designed to mitigate international backlash. Knowing that many aid-receiving countries would be pressured by the U.S. and its allies to isolate Russia, we expect that Russia increased foreign influence operations to strengthen their diplomatic, military, and economic ties with these countries in the months before the invasion.\footnote{We refer to these as theoretical "expectations" rather than hypotheses because they were not pre-specified before looking at the data. Specifically, we observed a large aggregate increase in influence activity during this period and only then generated theoretical expectations about why this increase would be driven by some themes and not others.}
+By fall 2021, U.S. intelligence suggests that Russian President Vladimir Putin had made the decision to invade Ukraine [@sanger2024new pp. 237-240]. In response, the U.S. began attempting to convince skeptical European allies that this flagrant violation of international law was imminent and that a decisive international response would be necessary. We argue that Russia also likely used this window of opportunity to engage in strategic behavior designed to mitigate international backlash. Knowing that many aid-receiving countries would be pressured by the U.S. and its allies to isolate Russia, we expect that Russia increased foreign influence operations to strengthen their diplomatic, military, and economic ties with these countries in the months before the invasion.\footnote{We refer to these as theoretical "expectations" rather than hypotheses because they were not pre-specified before looking at the data. Specifically, we observed a large aggregate increase in influence activity during this period and only then generated theoretical expectations about why this increase would be driven by some themes and not others.}
 
 Why would Russia focus on diplomatic, military, and economic ties? Powerful countries have a variety of influence tools to draw on in times of crisis or intensified geopolitical competition. Some of these tools target public attitudes or domestic politics in target countries, which may improve cooperation over the medium-term, but are unlikely to yield immediate concrete benefits. We argue that this applies to influence tools under the Soft Power and Domestic Interference themes. Soft Power tools are designed to engender more positive views of the influencing country among foreign citizens or mobilize publics around specific issues. While such tools may be useful in reducing long-term political barriers to cooperation or influencing short-term domestic policy decisions, they are less likely to secure immediate material cooperation at critical moments. Domestic Interference tools can influence domestic policies in foreign countries or alter the capacity of their incumbents. These tools may help achieve long-term changes in policy or even regime, but they are less useful when more immediate forms of support are necessary.\footnote{Because Backlash is not an intentional type of influence, we do not consider it here. To the extent powerful countries can control the level of backlash activity through stronger governance of their influence operations, we would expect efforts to limit these activities to increase.}
 
@@ -921,20 +921,12 @@ Importantly, these tools will be most useful when deployed *before* an influenci
 To test this expectation, we use change-point detection to identify countries for which Russia increased influence operations in the six months preceding the invasion. We choose to focus on six months because reporting suggests the decision to invade was likely already made by this point [@sanger2024new]. Change-point methods divide a time series into two segments where each segment has its own statistical characteristics [@fryzlewicz2014wild]. In this case, we focus on changes in the mean level of Russian influence activity for each target country across each of our six themes. This approach isolates the time period with the single largest level-shift in influence activity and then returns the month in which the increase began. Change-points identify the time period with the largest increase in influence activity for each country, which we call influence operations.
 <!-- We investigate the nature and timing of Russian influence operations in the six months before their invasion of Ukraine.  -->
 
-@fig-changepoint_themes presents evidence broadly consistent with our expectations. For Diplomacy, Hard Power, and Economic Power, there is a clear clustering of change-points in the six months before the invasion. To test this systematically, we count the number of countries with change-points for each six-month period and regress those counts on an indicator for the pre-invasion period. Across our six themes, this indicator is statistically significant for Diplomacy ($p<0.001$), Hard Power ($p<0.001$), and Economic Power ($p=0.018$), but not for Soft Power or Domestic Interference—consistent with our expectation that the pre-invasion surge was concentrated in more overt tools. For change-point analysis of all *RAI* influence themes and to see each country with a change-point in the six months before the invasion, see the Supplementary Materials *Change-point Months for all Themes*.
-
-For Diplomacy, eight countries have change-points in the six months before the invasion, while only four have change-points at any point over the previous five years (an average of 0.4 change-points per six month period). For Hard Power, 11 countries have change-points in the immediate pre-invasion period, compared to just eight over the previous five years (0.8 per six month period). For Economic Power, we see five countries with change-points in the pre-invasion period, compared to ten over the previous five years (1 per six month period).
-
-```{r, fig.width=8,fig.height=4}
+```{r}
 #| echo: false
 #| warning: false
-#| fig-pos: "!t"
-#| label: fig-changepoint_themes
-#| fig-cap: "Number of countries with change-point per month. The red shaded region identifies the six months before the invasion of Ukraine. The red-dashed line is the month of Russia's invasion."
+#| label: changepoint-stats
 
-
-rai_df <- read_rai()
-rai_df <- rai_df %>%
+rai_df <- read_rai() %>%
   select(country, influencer, date, rai_idx_bal:rai_idx_sp)
 
 # List of unique country names in your dataframe
@@ -944,40 +936,125 @@ result_df <- data.frame()
 
 # Loop through each country
 for (country_name in unique_countries) {
-  for (j in names(rai_df)[4:9]  ){
+  for (j in names(rai_df)[4:9]) {
     # Filter the dataframe for the current country
     dat = rai_df |> filter(country == country_name & influencer == "Russia")
-    
+
     # Calculate cpt.mean() for the current country
-    cpt_result <- cpt.mean( dat[[j]] , method = "BinSeg", Q = 1)
+    cpt_result <- cpt.mean(dat[[j]], method = "BinSeg", Q = 1)
     cpt_result = cpt_result@cpts[1]
-    
+
     country_result <- data.frame(country = country_name, col = j, t(cpt_result))
     result_df <- rbind(result_df, country_result)
-
   }
-
 }
 
 result_dfi = result_df
-for (i in names(result_dfi)[3]  ) {
+for (i in names(result_dfi)[3]) {
   result_dfi[ , i] = NA
   result_dfi[ , i] = as.Date(result_dfi[ , i])
-  
-  for (j in 1:nrow(result_dfi) ) {
-    result_dfi[j , i] = unique(rai_df$date)[result_df[j , i]+1]
-    
+
+  for (j in 1:nrow(result_dfi)) {
+    result_dfi[j , i] = unique(rai_df$date)[result_df[j , i] + 1]
   }
-  
 }
 
 dat2 = result_dfi |>
   rename(date = t.cpt_result.,
          theme = col) |>
   group_by(theme, date) |>
-  summarise(count = n() )
+  summarise(count = n(), .groups = "drop")
 
-write.csv(dat2, here::here("writing", "output", "change-points_plot.csv"))
+write.csv(dat2, here::here("writing", "output", "change-points_plot.csv"), row.names = FALSE)
+
+pre_start <- as.Date("2021-08-01")
+pre_end <- as.Date("2022-01-01")
+prev5_start <- as.Date("2016-08-01")
+prev5_end <- as.Date("2021-07-01")
+
+cp_counts <- dat2 |>
+  filter(date >= pre_start & date <= pre_end) |>
+  group_by(theme) |>
+  summarise(pre = sum(count), .groups = "drop") |>
+  left_join(
+    dat2 |>
+      filter(date >= prev5_start & date <= prev5_end) |>
+      group_by(theme) |>
+      summarise(prev5 = sum(count), .groups = "drop"),
+    by = "theme"
+  ) |>
+  mutate(prev5_avg = prev5 / 10)
+
+get_cp <- function(theme, col) {
+  cp_counts[cp_counts$theme == theme, col][[1]]
+}
+
+cp_dip_pre <- get_cp("rai_idx_dip", "pre")
+cp_dip_prev5 <- get_cp("rai_idx_dip", "prev5")
+cp_dip_prev5_avg <- round(get_cp("rai_idx_dip", "prev5_avg"), 1)
+
+cp_hp_pre <- get_cp("rai_idx_hp", "pre")
+cp_hp_prev5 <- get_cp("rai_idx_hp", "prev5")
+cp_hp_prev5_avg <- round(get_cp("rai_idx_hp", "prev5_avg"), 1)
+
+cp_ep_pre <- get_cp("rai_idx_ep", "pre")
+cp_ep_prev5 <- get_cp("rai_idx_ep", "prev5")
+cp_ep_prev5_avg <- round(get_cp("rai_idx_ep", "prev5_avg"), 1)
+
+periods <- data.frame(
+  start_date = seq.Date(from = as.Date("2012-02-01"), to = as.Date("2021-08-01"), by = "6 months"),
+  end_date = seq.Date(from = as.Date("2012-07-31"), to = as.Date("2022-01-31"), by = "6 months")
+)
+
+all_combinations <- expand.grid(theme = unique(dat2$theme), period = seq_len(nrow(periods))) |>
+  left_join(periods |> mutate(period = seq_len(nrow(periods))) |> select(period, start_date, end_date), by = "period")
+
+period_data <- dat2 |>
+  filter(date < as.Date("2022-02-01")) |>
+  mutate(period = findInterval(date, periods$start_date, rightmost.closed = TRUE)) |>
+  filter(period > 0)
+
+summarized_data <- period_data |>
+  group_by(theme, period) |>
+  summarise(total_count = sum(count, na.rm = TRUE), .groups = "drop")
+
+complete_data <- all_combinations |>
+  left_join(summarized_data, by = c("theme", "period")) |>
+  mutate(total_count = ifelse(is.na(total_count), 0, total_count))
+
+pre_period_index <- which(periods$start_date == as.Date("2021-08-01"))
+complete_data <- complete_data |>
+  mutate(pre_invasion = ifelse(period == pre_period_index, 1, 0))
+
+get_p <- function(th) {
+  m <- lm(total_count ~ pre_invasion, data = complete_data |> filter(theme == th))
+  summary(m)$coefficients["pre_invasion", "Pr(>|t|)"]
+}
+
+p_fmt <- function(p) {
+  if (is.na(p)) return("p = NA")
+  if (p < 0.001) return("p < 0.001")
+  sprintf("p = %.3f", p)
+}
+
+p_dip <- p_fmt(get_p("rai_idx_dip"))
+p_hp <- p_fmt(get_p("rai_idx_hp"))
+p_ep <- p_fmt(get_p("rai_idx_ep"))
+p_sp <- p_fmt(get_p("rai_idx_sp"))
+p_di <- p_fmt(get_p("rai_idx_di"))
+```
+
+@fig-changepoint_themes presents evidence broadly consistent with our expectations. For Diplomacy, Hard Power, and Economic Power, there is a clear clustering of change-points in the six months before the invasion. To test this systematically, we count the number of countries with change-points for each six-month period and regress those counts on an indicator for the pre-invasion period. Across our six themes, this indicator is statistically significant for Diplomacy (`r p_dip`) and Hard Power (`r p_hp`), but not for Economic Power (`r p_ep`), Soft Power (`r p_sp`), or Domestic Interference (`r p_di`)—consistent with our expectation that the pre-invasion surge was concentrated in more overt tools. For change-point analysis of all *RAI* influence themes and to see each country with a change-point in the six months before the invasion, see the Supplementary Materials *Change-point Months for all Themes*.
+
+For Diplomacy, `r cp_dip_pre` countries have change-points in the six months before the invasion, compared to `r cp_dip_prev5` over the previous five years (August 2016–July 2021; an average of `r cp_dip_prev5_avg` change-points per six-month period). For Hard Power, `r cp_hp_pre` countries have change-points in the immediate pre-invasion period, compared to `r cp_hp_prev5` over the previous five years (an average of `r cp_hp_prev5_avg` per six-month period). For Economic Power, we see `r cp_ep_pre` countries with change-points in the pre-invasion period, compared to `r cp_ep_prev5` over the previous five years (an average of `r cp_ep_prev5_avg` per six-month period).
+
+```{r, fig.width=8,fig.height=4}
+#| echo: false
+#| warning: false
+#| fig-pos: "!t"
+#| label: fig-changepoint_themes
+#| fig-cap: "Number of countries with change-point per month. The red shaded region identifies the six months before the invasion of Ukraine. The red-dashed line is the month of Russia's invasion."
+
 
 break.vec <- c(as.Date("2012-01-01"),
                seq(from = as.Date("2012-02-01"), to = as.Date(max(rai$date)),
@@ -1008,10 +1085,6 @@ ggplot(dat2 |> filter(theme %in% c("Diplomacy", "Hard Power", "Economic Power"))
         axis.text.y = element_text(size = 6))
 
 ggsave(here::here("writing/output/changepoint_themes.png"), height = 5, width = 7.5, dpi = 700)
-
-
-rm( country_result, df, rai, rai_df, result_df)
-
 
 
 sumc = dat2 %>%
@@ -1051,19 +1124,56 @@ sumc = dat2 %>%
 ```
 
 
-To investigate the nature of these influence activities and confirm that these change-point months identify substantive, real-world developments, we conduct AI-assisted qualitative analysis. For each country-month that was classified as a change-point, we pull all articles from the *HQMARC* database reporting on the relevant influence theme. This sample includes roughly 400 news articles. We then prompt OpenAI's `gpt-4-0125-preview` to return a description of the most important developments being reported for each country-month. These summaries are used solely for audit and validation; they do not feed back into the *RAI* measures. Finally, we review each summary to identify whether the change-point was driven by misclassification or a genuine influence episode involving Russia in the target country. 
+```{r}
+#| echo: false
+#| warning: false
+#| label: changepoint-audit
+
+audit_raw <- readr::read_csv(
+  here::here("code", "validation", "changepoint_gpt", "event_summaries_gpt_summary.csv")
+)
+
+audit_pre <- audit_raw |>
+  mutate(Date = as.Date(Date, "%m/%d/%Y"),
+         Accuracy = ifelse(Signal == "Nothing", "False Positive", "True Positive")) |>
+  filter(Date < as.Date("2022-02-01") & Date > as.Date("2021-07-01")) |>
+  filter(Event %in% c("Diplomacy", "Hard Power", "Economic Power"))
+
+audit_articles <- sum(audit_pre$Num_Articles, na.rm = TRUE)
+
+audit_summary <- audit_pre |>
+  group_by(Event) |>
+  summarise(total = n(),
+            false_pos = sum(Accuracy == "False Positive"),
+            true_pos = sum(Accuracy == "True Positive"),
+            .groups = "drop")
+
+get_audit <- function(event, col) {
+  audit_summary[audit_summary$Event == event, col][[1]]
+}
+
+audit_dip_total <- get_audit("Diplomacy", "total")
+audit_dip_false <- get_audit("Diplomacy", "false_pos")
+audit_hp_total <- get_audit("Hard Power", "total")
+audit_hp_false <- get_audit("Hard Power", "false_pos")
+audit_ep_total <- get_audit("Economic Power", "total")
+audit_ep_false <- get_audit("Economic Power", "false_pos")
+```
+
+
+To investigate the nature of these influence activities and confirm that these change-point months identify substantive, real-world developments, we conduct AI-assisted qualitative analysis. For each country-month in the GPT audit sample (change-point months from August 2021–January 2022), we pull all articles from the *HQMARC* database reporting on the relevant influence theme. This sample includes `r format(audit_articles, big.mark = ",")` news articles. We then prompt OpenAI's `gpt-4-0125-preview` to return a description of the most important developments being reported for each country-month. These summaries are used solely for audit and validation; they do not feed back into the *RAI* measures. Finally, we review each summary to identify whether the change-point was driven by misclassification or a genuine influence episode involving Russia in the target country. Because the change-point detection is rerun on updated data for the main analysis, we treat this audit sample as a fixed validation set rather than an exhaustive list of all current change-point months.
 
 Importantly, the first month of level-shifts detected by the change-point analysis are usually not the month with the highest level of activity. Instead, these months are typically a period of slightly elevated activity preceding a noticeable and sustained increase (see Supplementary Materials *Change-point Months in Time-Series*). For this reason, these initial months are more likely to be composed of a small number of misclassified articles relative to subsequent months during the peak of activity. As a result, we believe this exercise provides an extremely hard test of the extent of measurement error in the dataset and, more generally, the dataset's ability to detect influence reporting from media and identify influence operations.
 
-Looking at Diplomacy change-point months, we see that misclassification accounts for 1 of 8 change-point months before the invasion. In change-point months between August 2021 and January 2022, misclassification is driven by domestic news outlets reporting on geopolitics for Peru. Alternatively, genuine Russian influence activity in this period included talks on bilateral cooperation with Belarus, Benin, and Mali, a Russian diplomatic visit to the border between Kosovo and Serbia, and a celebration of diplomatic ties in Bangladesh. Diplomatic engagements with Ukraine accounts for the final change-point. Although we see one change-point month driven by misclassification, the number driven by real-world developments in the pre-invasion periods is still well above the historical average.
+Within the audited Diplomacy change-point months, misclassification accounts for `r audit_dip_false` of `r audit_dip_total` change-point months before the invasion. In change-point months between August 2021 and January 2022, misclassification is driven by domestic news outlets reporting on geopolitics for Peru. Alternatively, genuine Russian influence activity in this period included talks on bilateral cooperation with Belarus, Benin, and Mali, a Russian diplomatic visit to the border between Kosovo and Serbia, and a celebration of diplomatic ties in Bangladesh. Diplomatic engagements with Ukraine accounts for the final change-point. Although we see some change-point months driven by misclassification, the number driven by real-world developments in the pre-invasion period is still well above the historical average.
 <!-- Georgia denies entry to Russian opposition figure -->
 <!-- Diplomats evacuate -->
 
-Looking at Hard Power change-point months, we see that misclassification accounts for 5 of 11 change-point months before the invasion. In change-point months between August 2021 and January 2022, misclassification is driven by domestic news outlets reporting on security concerns/responses related to Russia's activities in a neighboring country (Senegal and Timor Leste) and Russia's broader geopolitical influence (Cameroon, Peru, and Bangladesh). Alternatively, genuine Russian influence activity in this period included agreements on military cooperation (Mali, Belarus), concerns about military activity in a neighboring country (Colombia), a joint military exercise (Angola), and the transfer of military technology and equipment (Burkina Faso, India). Again, although we see a number of change-point months driven by misclassification, the number driven by real-world developments in the pre-invasion period is still well above the historical average.
+Within the audited Hard Power change-point months, misclassification accounts for `r audit_hp_false` of `r audit_hp_total` change-point months before the invasion. In change-point months between August 2021 and January 2022, misclassification is driven by domestic news outlets reporting on security concerns/responses related to Russia's activities in a neighboring country (Senegal and Timor Leste) and Russia's broader geopolitical influence (Cameroon, Peru, and Bangladesh). Alternatively, genuine Russian influence activity in this period included agreements on military cooperation (Mali, Belarus), concerns about military activity in a neighboring country (Colombia), a joint military exercise (Angola), and the transfer of military technology and equipment (Burkina Faso, India). Again, although we see a number of change-point months driven by misclassification, the number driven by real-world developments in the pre-invasion period is still well above the historical average.
 
-For Economic Power, misclassification accounts for one of five change-point months before the invasion, driven by domestic news outlets in Cameroon reporting on how Russian influence elsewhere in the world will impact the Cameroonian economy. The threat of retaliatory sanctions against Ukraine accounts for another change-point. Genuine influence activity includes a $620 million investment to prevent environmental damage from aluminum production in Jamaica, initial talks on major investments in Kenya's infrastructure to promote agricultural exports to Russia, and promises from a Russian parastatal to help Rwanda develop nuclear energy. Although evidence for increased use of Economic Power is less strong than the other themes, three genuine change-point episodes (excluding one misclassification and 1 episode targeting Ukraine) in the six months before the invasion is still much higher than the average rate of one change-point per six months over the five preceding years. 
+For Economic Power, misclassification accounts for `r audit_ep_false` of `r audit_ep_total` change-point months before the invasion, driven by domestic news outlets in Cameroon reporting on how Russian influence elsewhere in the world will impact the Cameroonian economy. The threat of retaliatory sanctions against Ukraine accounts for another change-point. Genuine influence activity includes a $620 million investment to prevent environmental damage from aluminum production in Jamaica, initial talks on major investments in Kenya's infrastructure to promote agricultural exports to Russia, and promises from a Russian parastatal to help Rwanda develop nuclear energy. Although evidence for increased use of Economic Power is less strong than the other themes, three genuine change-point episodes (excluding one misclassification and 1 episode targeting Ukraine) in the six months before the invasion is still higher than the average rate of `r cp_ep_prev5_avg` change-points per six months over the five preceding years. 
 
-In summary, we find strong evidence that Russia increased foreign influence activities in the months before their invasion of Ukraine. Specifically, we see a surge in diplomacy efforts and the use of military and economic power targeting aid-receiving countries. The reported influence activities underlying these trends appear consistent with attempts by Russia to shore-up bilateral relationships and encourage governing elites in target countries to maintain and deepen cooperation with Russia over the medium-term.  
+In summary, we find strong evidence that Russia increased foreign influence activities in the months before their invasion of Ukraine, especially in Diplomacy and Hard Power. Economic Power shows a smaller and statistically weaker pre-invasion surge. The reported influence activities underlying these trends appear consistent with attempts by Russia to shore-up bilateral relationships and encourage governing elites in target countries to maintain and deepen cooperation with Russia over the medium-term.  
 
 Where would powerful countries target influence operations to most effectively mitigate blowback? We theorize three characteristics that might determine which countries were targeted for pre-emptive Russian influence operations. First, an influencing country might target countries that are ideologically similar. The leadership in ideologically similar countries may have higher baseline trust, easing communication and reducing the risks of sharing of sensitive information. If the countries' leadership are pursuing similar ideological goals, the target country may demand a lower cost for their cooperation in an effort to further common ideological objectives. 
 
@@ -1071,7 +1181,25 @@ Alternatively, influencing countries may perceive a lower risk of blowback from 
 
 Finally, an influencing country might target countries that are strategically important due to economic reliance. For example, countries that export commodities on which the influencing country's economy is heavily reliant and unable to produce domestically may be more likely targets for pre-emptive influence operations. Likewise, an influencer may target influence to deter isolation by countries that they want to export to. For this reason, we may see an influencer targeting countries that are large importers of commodities that the influencer relies on exporting to maintain economic stability or foreign exchange.
 
-We operationalize ideological similarity using UN Ideal Point Distances [@voetendata]. For each target country, we calculate their average ideal point distance from 2017-2021 with Russia, China, and the Western Powers (U.S., U.K., and France). We treat the Western Powers as a single block because their ideal point distances with other countries are extremely highly correlated. Alternatively, ideal point distances from China and the West are strongly negatively correlated ($-0.71$), distances from Russia and the West are weakly correlated ($-0.01$), and distances from Russia and China are strongly positively correlated ($-0.72$). Countries with lower values on their ideal point distance to Russia are considered ideologically friendly to Russia, those with lower values on their distance to China are considered friends of friends, while those with lower distances to the West are considered ideologically closer to Western powers.
+```{r}
+#| echo: false
+#| warning: false
+
+unip_corr <- readr::read_csv(here::here("data", "un_ideal_points_avg.csv")) %>%
+  dplyr::group_by(ccode1, country) %>%
+  dplyr::summarise(IdealPointDistance = mean(IdealPointDistance, na.rm = TRUE), .groups = "drop") %>%
+  dplyr::rename(major_power = country) %>%
+  tidyr::pivot_wider(names_from = major_power,
+                     values_from = IdealPointDistance,
+                     names_prefix = "idp_") %>%
+  dplyr::rename(idp_UUF = idp_AVG_UKO_FRA_USA)
+
+cor_west_china <- round(cor(unip_corr$idp_UUF, unip_corr$idp_CHN, use = "complete.obs"), 2)
+cor_west_russia <- round(cor(unip_corr$idp_UUF, unip_corr$idp_RUS, use = "complete.obs"), 2)
+cor_russia_china <- round(cor(unip_corr$idp_RUS, unip_corr$idp_CHN, use = "complete.obs"), 2)
+```
+
+We operationalize ideological similarity using UN Ideal Point Distances [@voetendata]. For each target country, we calculate their average ideal point distance from 2017-2021 with Russia, China, and the Western Powers (U.S., U.K., and France). We treat the Western Powers as a single block because their ideal point distances with other countries are extremely highly correlated. Alternatively, ideal point distances from China and the West are strongly negatively correlated (`r cor_west_china`), distances from Russia and the West are weakly correlated (`r cor_west_russia`), and distances from Russia and China are strongly positively correlated (`r cor_russia_china`). Countries with lower values on their ideal point distance to Russia are considered ideologically friendly to Russia, those with lower values on their distance to China are considered friends of friends, while those with lower distances to the West are considered ideologically closer to Western powers.
 
 We operationalize economic dependence by identifying commodities on which Russia is heavily reliant, either for imports or exports, and then identifying countries that trade in those commodities. We use comprehensive data on global imports and exports from UN COMTRADE from 2015--2023 (the latest COMTRADE coverage used in this update).
 
@@ -1102,7 +1230,7 @@ Our findings have several implications. These patterns may suggest strategic beh
 
 This manuscript introduces the *Resurgent Authoritarian Influence (RAI)* dataset, a multi-dimensional, high-frequency measure of *reported* foreign influence by Russia and China in aid-receiving countries. *RAI* complements existing resources by extending coverage beyond aid and investment to include diplomacy, hard power, domestic interference, and soft power—dimensions that are often theorized but rarely measured together. This broader scope is a core contribution, even as it comes with a clear tradeoff in geographic coverage relative to single-domain datasets such as AidData.
 
-We demonstrate the utility of *RAI* for both descriptive and inferential research. Descriptively, we show how the mix of tools varies across time and space: Russia’s reporting profile shifts toward Diplomacy and Hard Power after 2022, while China’s reporting remains anchored in Economic Power with a gradual rise in Diplomacy. Importantly, we present both relative shares and absolute levels to avoid misleading inferences from compositional measures alone. Inferentially, we develop and test expectations about Russia’s pre-invasion behavior, showing that change-points cluster in Diplomacy, Economic Power, and Hard Power—while Soft Power and Domestic Interference do not show the same pre-invasion surge, consistent with our theoretical expectations.
+We demonstrate the utility of *RAI* for both descriptive and inferential research. Descriptively, we show how the mix of tools varies across time and space: Russia’s reporting profile shifts toward Diplomacy and Hard Power after 2022, while China’s reporting remains anchored in Economic Power with a gradual rise in Diplomacy. Importantly, we present both relative shares and absolute levels to avoid misleading inferences from compositional measures alone. Inferentially, we develop and test expectations about Russia’s pre-invasion behavior, showing that change-points cluster in Diplomacy and Hard Power; Economic Power shows weaker evidence, and Soft Power and Domestic Interference do not show the same pre-invasion surge, consistent with our theoretical expectations.
 
 These patterns provide new insight into how major powers shift influence strategies before high-risk foreign policy moves. We find suggestive evidence that Russia’s pre-invasion diplomatic outreach was more likely in countries aligned with Western powers, while evidence linking Hard Power or Economic Power targeting to economic dependence is limited in this specification. These findings illustrate how a multi-dimensional measure can reveal not just *how much* influence is reported, but *which tools* appear to be emphasized and *where*.
 
