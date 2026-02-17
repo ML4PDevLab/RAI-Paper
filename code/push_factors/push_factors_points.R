@@ -284,12 +284,12 @@ targets = tdat %>%
 # Identify target countries in trade dataset  -----------------------------
 
 ## Function to return countries
-target_countries <- function(data, economic_var = "Economic Power", tp_only = T) {
+target_countries <- function(data, economic_var = "Economic Power", tp_only = TRUE) {
   if (tp_only) {
-    # Return countries where 'Economic Power' is not NA and 'Diplomacy' is "True Positive"
-    return(data[!is.na(data[[economic_var]]) & data$Diplomacy == "True Positive", ]$Country)
+    # Return countries where the event for this theme is a True Positive
+    return(data[!is.na(data[[economic_var]]) & data[[economic_var]] == "True Positive", ]$Country)
   } else {
-    # Return countries where 'Economic Power' is not NA
+    # Return countries where the event is observed (True or False Positive)
     return(data[!is.na(data[[economic_var]]), ]$Country)
   }
 }
@@ -459,5 +459,15 @@ tp_tex <- modelsummary(
   gof_omit = 'IC|RMSE|Log|F|R2$|Std.',
   output = "latex_tabular"
 )
+if (is.character(tp_tex)) {
+  top_idx <- which(tp_tex == "\\toprule")
+  if (length(top_idx) == 1) {
+    spanner_lines <- c(
+      "  & \\\\multicolumn{2}{c}{Diplomacy} & \\\\multicolumn{2}{c}{Hard Power} & \\\\multicolumn{2}{c}{Economic Power}\\\\",
+      "  \\\\cmidrule(lr){2-3} \\\\cmidrule(lr){4-5} \\\\cmidrule(lr){6-7}"
+    )
+    tp_tex <- append(tp_tex, spanner_lines, after = top_idx)
+  }
+}
 writeLines(tp_tex, here::here("writing", "figures", "tp_full.tex"))
 
