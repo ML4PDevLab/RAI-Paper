@@ -90,6 +90,7 @@ header-includes:
   - \floatplacement{table}{!ht}
   - \usepackage{csquotes}
   - \usepackage{siunitx}
+  - \usepackage{makecell}
   - \newcolumntype{d}{S[
       input-open-uncertainty=,
       input-close-uncertainty=,
@@ -238,43 +239,34 @@ for (i in unique(rai$country)) {
 
 
 ```{=latex}
-\begin{table}
-\small
+\begin{table}[!htbp]
+\footnotesize
+\begingroup
+\renewcommand{\arraystretch}{1.3}
+\setlength{\extrarowheight}{3pt}
+\setlength{\aboverulesep}{1.0ex}
+\setlength{\belowrulesep}{1.0ex}
 \caption{\label{rai_theme} RAI Categories Grouped by Theme}
 \centering
-\begin{tabular}[t]{l>{\raggedright\arraybackslash}p{18em}l}
+\begin{tabular}[t]{>{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{7.2cm} >{\raggedright\arraybackslash}p{6.2cm}}
 \toprule
 Theme & Definition & Categories\\
 \midrule
- &  & Media Campaign/Intervention\\
-\multirow[t]{-2}{*}{\raggedright\arraybackslash Soft Power} & \multirow[t]{-2}{18em}{\raggedright\arraybackslash Non-coercive efforts to shape attitudes or preferences among publics and elites through information or cultural engagement.} & Social/Academic/Cultural Activity\\
-\cmidrule{1-3}
- &  & Arms Transfer/Security Aid/Assistance\\
- &  & Joint Security Force Exercise\\
- &  & Security Engagement\\
-\multirow[t]{-4}{*}{\raggedright\arraybackslash Hard Power} & \multirow[t]{-4}{18em}{\raggedright\arraybackslash Military or security cooperation and activity that strengthens coercive capacity or military ties.} & Military Activity\\
-\cmidrule{1-3}
- &  & Foreign Aid/Assistance\\
- &  & Foreign Investment\\
- &  & Technology Transfer/Investment\\
- &  & Trade Agreement/Exchange\\
-\multirow[t]{-5}{*}{\raggedright\arraybackslash Economic Power} & \multirow[t]{-5}{18em}{\raggedright\arraybackslash Use of aid, investment, technology transfer, or trade measures to shape economic ties or incentives.} & Trade/Financial Sanction\\
-\cmidrule{1-3}
- &  & Diplomatic Mediation\\
- &  & Diplomatic Ties\\
- &  & Diplomatic Action\\
- &  & Diplomatic Statement\\
-\multirow[t]{-5}{*}{\raggedright\arraybackslash Diplomacy} & \multirow[t]{-5}{18em}{\raggedright\arraybackslash Actions that expand, reduce, or signal official diplomatic relations, statements, meetings, mediation, or punitive diplomatic actions.} & Diplomatic Meeting\\
-\cmidrule{1-3}
- &  & Intelligence/Counterintelligence\\
- &  & Political Process/Policy Intervention\\
-\multirow[t]{-3}{*}{\raggedright\arraybackslash Domestic Interference} & \multirow[t]{-3}{18em}{\raggedright\arraybackslash Non-military interference targeting domestic politics or information systems, including espionage, cyber operations, or policy manipulation.} & Cyber Attack\\
-\cmidrule{1-3}
- &  & Bribery/Economic Corruption\\
-\multirow[t]{-2}{*}{\raggedright\arraybackslash Backlash} & \multirow[t]{-2}{18em}{\raggedright\arraybackslash Unintended or illicit consequences associated with influence attempts.} & Transnational Organized Crime\\
+Soft Power & Non-coercive efforts to shape attitudes or preferences among publics and elites through information or cultural engagement. & \makecell[l]{Media Campaign/Intervention\\ Social/Academic/Cultural Activity}\\
+\addlinespace[0.4ex]
+Hard Power & Military or security cooperation and activity that strengthens coercive capacity or military ties. & \makecell[l]{Arms Transfer/Security Aid/Assistance\\ Joint Security Force Exercise\\ Security Engagement\\ Military Activity}\\
+\addlinespace[0.4ex]
+Economic Power & Use of aid, investment, technology transfer, or trade measures to shape economic ties or incentives. & \makecell[l]{Foreign Aid/Assistance\\ Foreign Investment\\ Technology Transfer/Investment\\ Trade Agreement/Exchange\\ Trade/Financial Sanction}\\
+\addlinespace[0.4ex]
+Diplomacy & Actions that expand, reduce, or signal official diplomatic relations, statements, meetings, mediation, or punitive diplomatic actions. & \makecell[l]{Diplomatic Mediation\\ Diplomatic Ties\\ Diplomatic Action\\ Diplomatic Statement\\ Diplomatic Meeting}\\
+\addlinespace[0.4ex]
+Domestic Interference & Non-military interference targeting domestic politics or information systems, including espionage, cyber operations, or policy manipulation. & \makecell[l]{Intelligence/Counterintelligence\\ Political Process/Policy Intervention\\ Cyber Attack}\\
+\addlinespace[0.4ex]
+Backlash & Unintended or illicit consequences associated with influence attempts. & \makecell[l]{Bribery/Economic Corruption\\ Transnational Organized Crime}\\
 
 \bottomrule
 \end{tabular}
+\endgroup
 \end{table}
 ```
 
