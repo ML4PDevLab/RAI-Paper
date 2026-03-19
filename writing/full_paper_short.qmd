@@ -9,8 +9,8 @@ date: today
 date-format: long
 
 authors:
-#   - name: "Main text word count without references: XXXX"
-#   - name: "References word count: XXX"
+#   - name: "Main text word count without references: 5,800"
+#   - name: "References word count: 735"
 
   - name: Jeremy Springman
     affiliations:
@@ -107,6 +107,13 @@ header-includes:
 
 # devtools::load_all(here::here("rai.atari"))
 #library(rai.atari)
+for (lib_path in c(".Rlib", file.path("..", ".Rlib"))) {
+  resolved_path <- normalizePath(lib_path, winslash = "/", mustWork = FALSE)
+  if (dir.exists(resolved_path) && !(resolved_path %in% .libPaths())) {
+    .libPaths(c(.libPaths(), resolved_path))
+  }
+}
+
 library(dplyr)
 library(tidyr)
 library(gt)
@@ -281,7 +288,7 @@ Finally, we aggregate these data to the country-month level, normalizing the cou
 
 ![RAI data production pipeline.](mermaid.png){#fig-mermaid fig-align="center" width="650"}
 
-@fig-mermaid provides a graphic representation of the *RAI* data production pipeline. For each country, this process is repeated every 90 days. Quality assurance measures are in place at multiple steps in this process. Before processing, we confirm that translation worked as expected and check every source to ensure that the volume of articles and their distribution across days conform to past updates. After processing, we calculate correlations between old and new data and check a standard set of comparison visualizations.
+The supplementary pipeline schematic provides a graphic representation of the *RAI* data production pipeline. For each country, this process is repeated every 90 days. Quality assurance measures are in place at multiple steps in this process. Before processing, we confirm that translation worked as expected and check every source to ensure that the volume of articles and their distribution across days conform to past updates. After processing, we calculate correlations between old and new data and check a standard set of comparison visualizations.
 
 ## Describing Authoritarian Influence Using RAI Data
 
@@ -708,9 +715,78 @@ In summary, the descriptive patterns suggest a rising emphasis on Diplomacy in r
 
 <!-- campaign in the wake of the Ukraine invasion [@mcglynn2023russia].  -->
 
-@fig-plot_level-increase plots absolute levels of *RAI* reporting (articles per 10k published) for Russia and China over time. Reporting on Russian influence spikes around the annexation of Crimea (March 2014) and surges again around the invasion of Ukraine (February 2022), remaining elevated through mid-2023. Chinese reporting is comparatively stable through much of the series but rises in 2024–2025. There is a spike in Chinese activity in February 2020 coinciding with the acceleration of COVID cases; if anything, China appears to have withdrawn internationally during the pandemic rather than intensifying its influence efforts. Because aggregation is performed after normalization, the post-2022 increase in Russian reporting reflects broad-based activity across many countries and months, not a spike in a few cases.
+```{r}
+#| echo: false
+#| warning: false
+#| include: false
 
-@fig-plot_period_levels shows the country-level percentage change in average monthly *RAI* articles between 2012–2021 and 2022–2025. Russian influence increased broadly, with especially large gains in the Sahel and in Nicaragua.\footnote{`Russian state TV calls on army to take up offer to set up forces in Nicaragua.,' \href{https://web.archive.org/web/20220624110926/https://www.newshub.co.nz/home/world/2022/06/russian-state-tv-calls-on-army-to-take-up-offer-to-set-up-forces-in-nicaragua.html}{Newshub}, June 22, 2022.} Notably, the increase was weakly negatively correlated with prior Russian activity (`r rc_list[1]`), suggesting Russia expanded most in places where it had been least active. The pattern for China is more heterogeneous, with increases in countries where China deepened engagement (Ukraine, Nicaragua, Honduras, Cambodia) alongside declines elsewhere. Changes in Russian and Chinese influence across countries were only weakly correlated (`r rc_list[3]`), suggesting the two powers were targeting different countries. These figures are included in the Supplementary Materials.
+# Inline-text correlations for the period-change paragraph.
+df <- read_rai() |>
+  filter(country != "Timor Leste") |>
+  select(country, date, rai_idx_total, influencer) |>
+  filter(influencer != "Combined")
+
+all_dates <- seq(min(df$date, na.rm = TRUE), rai_end_date, by = "1 month")
+
+df <- df |>
+  tidyr::complete(
+    country,
+    influencer,
+    date = all_dates,
+    fill = list(rai_idx_total = 0)
+  ) |>
+  mutate(period = case_when(
+    date < "2022-01-01" ~ "2012-2021",
+    TRUE ~ "2022-2025"
+  )) |>
+  select(country, date, rai_idx_total, period, influencer) |>
+  group_by(country, period, influencer) |>
+  summarize(mean_total_rai = mean(rai_idx_total, na.rm = TRUE), .groups = "drop") |>
+  arrange(country, influencer, period)
+
+dfp <- df |>
+  group_by(country, influencer) |>
+  mutate(
+    baseline = lag(mean_total_rai),
+    percentage_change = case_when(
+      is.na(baseline) ~ NA_real_,
+      baseline == 0 & mean_total_rai == 0 ~ 0,
+      baseline == 0 & mean_total_rai > 0 ~ 100 * mean_total_rai,
+      TRUE ~ (mean_total_rai / baseline - 1) * 100
+    )
+  )
+
+rc1 <- cor(
+  dfp[dfp$period == "2022-2025" & dfp$influencer == "Russia", ]$percentage_change,
+  dfp[dfp$period == "2012-2021" & dfp$influencer == "Russia", ]$mean_total_rai,
+  use = "complete.obs"
+)
+
+dfp_c_share <- dfp |>
+  arrange(country, period) |>
+  group_by(country, period) |>
+  mutate(c_share = mean_total_rai[1] / (mean_total_rai[1] + mean_total_rai[2]))
+
+rc2 <- cor(
+  dfp_c_share[dfp_c_share$period == "2022-2025" & dfp_c_share$influencer == "Russia", ]$percentage_change,
+  dfp_c_share[dfp_c_share$period == "2012-2021" & dfp_c_share$influencer == "China", ]$c_share,
+  use = "complete.obs"
+)
+
+rc3 <- cor(
+  dfp[dfp$influencer == "Russia", ]$percentage_change,
+  dfp[dfp$influencer == "China", ]$percentage_change,
+  use = "complete.obs"
+)
+
+rc_list <- round(c(rc1, rc2, rc3), 2)
+
+rm(df, dfp, dfp_c_share, rc1, rc2, rc3, all_dates)
+```
+
+The supplementary absolute-level plot (articles per 10k published) shows Russian and Chinese *RAI* reporting over time. Reporting on Russian influence spikes around the annexation of Crimea (March 2014) and surges again around the invasion of Ukraine (February 2022), remaining elevated through mid-2023. Chinese reporting is comparatively stable through much of the series but rises in 2024–2025. There is a spike in Chinese activity in February 2020 coinciding with the acceleration of COVID cases; if anything, China appears to have withdrawn internationally during the pandemic rather than intensifying its influence efforts. Because aggregation is performed after normalization, the post-2022 increase in Russian reporting reflects broad-based activity across many countries and months, not a spike in a few cases.
+
+The supplementary country-level period-change plot shows the percentage change in average monthly *RAI* articles between 2012–2021 and 2022–2025. Russian influence increased broadly, with especially large gains in the Sahel and in Nicaragua.\footnote{`Russian state TV calls on army to take up offer to set up forces in Nicaragua.,' \href{https://web.archive.org/web/20220624110926/https://www.newshub.co.nz/home/world/2022/06/russian-state-tv-calls-on-army-to-take-up-offer-to-set-up-forces-in-nicaragua.html}{Newshub}, June 22, 2022.} Notably, the increase was weakly negatively correlated with prior Russian activity (`r rc_list[1]`), suggesting Russia expanded most in places where it had been least active. The pattern for China is more heterogeneous, with increases in countries where China deepened engagement (Ukraine, Nicaragua, Honduras, Cambodia) alongside declines elsewhere. Changes in Russian and Chinese influence across countries were only weakly correlated (`r rc_list[3]`), suggesting the two powers were targeting different countries. These figures are included in the Supplementary Materials.
 
 ## Testing Expectations of Russian Influence Activity
 
