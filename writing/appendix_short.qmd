@@ -569,17 +569,22 @@ The following table provides information on each country-event type-monthly surg
 library(knitr)
 library(kableExtra)
 
-#social_academic_cultural_activity: Cambodia, Dominican Republic
-#tech_transfer_investment: Peru, Zambia
-#joint_security_force_exercise: Azerbaijan, Burkina Faso
-#diplomatic action: Costa Rica, Turkey
-
 surgestable <- data.frame(
   Country = c(
     "Guatemala", "Guatemala", "Guatemala", "Pakistan",
     "DR Congo","DR Congo","DR Congo","Moldova","Moldova","Moldova",
     "Dominican Republic","Dominican Republic","Dominican Republic","Philippines",
-    "Uganda","Uganda","Uganda","Kosovo","Kosovo","Kosovo"
+    "Uganda","Uganda","Uganda","Kosovo","Kosovo","Kosovo",
+    "Malaysia","Malaysia","Malaysia","Ukraine","Ukraine","Ukraine",
+    "Ghana","Ghana","Ghana","Albania","Albania","Albania",
+    "Tunisia","Tunisia","Tunisia","Paraguay","Paraguay","Paraguay",
+    "Kenya","Kenya","Kenya","Colombia","Colombia","Colombia",
+    "Cambodia","Cambodia","Cambodia",
+    "Dominican Republic","Dominican Republic","Dominican Republic",
+    "Peru","Peru","Peru","Zambia","Zambia","Zambia",
+    "Azerbaijan","Azerbaijan","Azerbaijan", 
+    "Burkina Faso","Burkina Faso","Burkina Faso",
+    "Costa Rica","Costa Rica","Costa Rica","Turkey","Turkey","Turkey"
   ),
   Event_Type = c(
     "military_activity", "military_activity","military_activity","military_activity",
@@ -589,13 +594,40 @@ surgestable <- data.frame(
     "foreign_aid_assistance",
     "intelligence_counterintelligence","intelligence_counterintelligence",
     "intelligence_counterintelligence","intelligence_counterintelligence",
-    "intelligence_counterintelligence","intelligence_counterintelligence"
+    "intelligence_counterintelligence","intelligence_counterintelligence",
+    "cyber_attack","cyber_attack","cyber_attack","cyber_attack","cyber_attack",
+    "cyber_attack",
+    "foreign_investment","foreign_investment","foreign_investment",
+    "foreign_investment","foreign_investment","foreign_investment",
+    "trade_financial_sanction","trade_financial_sanction","trade_financial_sanction",
+    "trade_financial_sanction","trade_financial_sanction","trade_financial_sanction",
+    "political_process_policy_intervention","political_process_policy_intervention",
+    "political_process_policy_intervention","political_process_policy_intervention",
+    "political_process_policy_intervention","political_process_policy_intervention",
+    "social_academic_cultural_activity","social_academic_cultural_activity",
+    "social_academic_cultural_activity","social_academic_cultural_activity",
+    "social_academic_cultural_activity","social_academic_cultural_activity",
+    "tech_transfer_investment","tech_transfer_investment","tech_transfer_investment",
+    "tech_transfer_investment","tech_transfer_investment","tech_transfer_investment",
+    "joint_security_force_exercise","joint_security_force_exercise",
+    "joint_security_force_exercise","joint_security_force_exercise",
+    "joint_security_force_exercise","joint_security_force_exercise",
+    "diplomatic_action","diplomatic_action","diplomatic_action",
+    "diplomatic_action","diplomatic_action","diplomatic_action"
   ),
   Date_of_Surge = c(
     "2015-10", "2022-02", "2022-03", "2018-11",
     "2023-05","2023-06","2022-03","2025-03","2012-01","2023-04",
     "2018-11","2020-04","2018-05","2013-11",
-    "2014-03","2019-08","2021-07","2022-08","2013-04","2019-11"
+    "2014-03","2019-08","2021-07","2022-08","2013-04","2019-11",
+    "2018-08","2015-04","2014-08","2025-10","2022-01","2018-02",
+    "2018-09","2017-07","2012-09","2012-05","2014-09","2014-06",
+    "2012-09","2013-03","2024-07","2012-06","2018-04","2022-02",
+    "2023-02","2022-12","2019-12","2022-03","2018-01","2018-02",
+    "2025-04","2024-05","2023-12","2018-05","2019-04","2019-01",
+    "2025-08","2021-02","2021-03","2016-05","2024-10","2019-04",
+    "2021-01","2017-02","2014-04","2023-09","2022-04","2022-02",
+    "2023-01","2013-09","2024-09","2025-06","2025-08","2025-05"
   )
 )
 
