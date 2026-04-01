@@ -457,7 +457,7 @@ for (country in countries_asia) {
 ```
 
 
-## Using Keyword to Detect Influence 
+## Using Keywords to Detect Influence 
 
 We begin by identifying articles that report on one of our 21 foreign influence categories. Next, we apply keyword filters to detect whether the main influence category being reported on involves Russian and Chinese agencies, companies, or officials. Specifically, articles get classified as Russian or Chinese influence respectively if they meet one of these two criteria.
 
@@ -560,6 +560,10 @@ Indicate if the source is partially or completely owned by the country's governm
 ## Source Weighting
 
 The weighting process adjusts article counts from state-owned and independent sources when aggregating civic space data at the country-month level. In countries where more than 50% of articles come from state-owned sources, the code increases the influence of independent sources by applying a weight based on the ratio of state-owned to independent articles. This ensures that independent media retains influence when state-owned coverage dominates. The weighting is recalculated each month, meaning that the balance of influence can shift over time depending on the mix of articles from state-owned and independent sources in any given month. We impose equal weighting on independent and non-independent sources by multiplying the count of articles for each *RAI* category by a weight calculated by subtracting the number of articles from non-independent sources from the result of dividing the number of non-independent articles by 0.5 and dividing this value by the number of articles from independent sources for each month. Weighting is currently applied to India, Malaysia, Sri Lanka, Angola, DR Congo, Belarus, Philippines, Paraguay, Zambia, and Zimbabwe. 
+
+## Surge Validation
+
+The following table provides information on each country-event type-monthly surge investigated as part of our validation exercise. 
 
 ## Dominant Themes at Higher Frequency
 
@@ -2344,6 +2348,12 @@ Interestingly, the percentage increase in articles reporting on Russian influenc
 
 {{< pagebreak >}}
 
+
+## Detection of RAI Surges
+
+Our approach begins with winsorization of the monthly normalized event counts. This  curbs the influence of extreme outliers by replacing values beyond a specified percentile threshold with the nearest boundary value. Next, we apply a 25-month rolling window to smooth the normalized event counts and perform a grid search to tune various parameters. These include the multipliers for weighted means and weighted standard deviations, as well as the binning weights and decay functions that govern how observations in the window are weighted. To capture shocks accurately, we employ two distinct weighting schemes for the historical (left-hand side, LHS) and future (right-hand side, RHS) segments of the rolling window. For the LHS window, we use a non-linear decay weighting that places progressively less emphasis on more distant historical months, enabling the detection of rapid changes in recent data. For the RHS window, we apply binning weights that decay linearly over time, preventing overestimation of peaks when the underlying data structure shifts. Combining winsorization with context-sensitive decay and binning weights enables monthly detection of significant increases in each civic space event type.
+
+Next, we trained a neural network model to detect spikes in a human-labeled dataset covering the full time-series for 30 country-event pairs. We conducted human-labeling by asking humans to identify months with visually distinct, sharp increases in our event measures. Human labelers were instructed to identify no more than 15% of overall months as shocks, ensuring that peaks are not overly frequent in highly variable data while still capturing meaningful shifts in lower-variance event types. When either the statistical or neural network model detect a shock, we label that month as a shock in the data. Finally, given the small number of RAI articles in any given month for some countries with low-volume, we recode any surge that occurs as a result of 2 or few monthly articles as zero.
 
 ## References {.unnumbered}
 
