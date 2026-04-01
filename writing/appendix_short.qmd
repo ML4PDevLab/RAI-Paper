@@ -584,7 +584,15 @@ surgestable <- data.frame(
     "Peru","Peru","Peru","Zambia","Zambia","Zambia",
     "Azerbaijan","Azerbaijan","Azerbaijan", 
     "Burkina Faso","Burkina Faso","Burkina Faso",
-    "Costa Rica","Costa Rica","Costa Rica","Turkey","Turkey","Turkey"
+    "Costa Rica","Costa Rica","Costa Rica","Turkey","Turkey","Turkey",
+    "Tanzania","Kosovo","Kosovo","Kosovo",
+    "Kenya","Kenya","Ethiopia","Ethiopia","Ethiopia",
+    "Georgia","Georgia","Georgia","India","India","India",
+    "Armenia","Armenia","Armenia","Belarus","Belarus","Belarus",
+    "Cameroon","Cameroon","Cameroon","Ecuador","Ecuador","Ecuador",
+    "El Salvador","El Salvador","El Salvador","Hungary","Hungary","Hungary",
+    "Indonesia","Indonesia","Indonesia","Jamaica","Jamaica","Jamaica",
+    "Algeria","Algeria","Algeria","Bangladesh","Bangladesh","Bangladesh"
   ),
   Event_Type = c(
     "military_activity", "military_activity","military_activity","military_activity",
@@ -613,7 +621,26 @@ surgestable <- data.frame(
     "joint_security_force_exercise","joint_security_force_exercise",
     "joint_security_force_exercise","joint_security_force_exercise",
     "diplomatic_action","diplomatic_action","diplomatic_action",
-    "diplomatic_action","diplomatic_action","diplomatic_action"
+    "diplomatic_action","diplomatic_action","diplomatic_action",
+    "cyber_attack","cyber_attack","cyber_attack","cyber_attack",
+    "bribery_economic_corruption","bribery_economic_corruption",
+    "bribery_economic_corruption","bribery_economic_corruption",
+    "bribery_economic_corruption",
+    "foreign_investment","foreign_investment","foreign_investment",
+    "foreign_investment","foreign_investment","foreign_investment",
+    "arms_transfer_security_aid_assistance","arms_transfer_security_aid_assistance",
+    "arms_transfer_security_aid_assistance","arms_transfer_security_aid_assistance",
+    "arms_transfer_security_aid_assistance","arms_transfer_security_aid_assistance",
+    "media_campaign_intervention","media_campaign_intervention",
+    "media_campaign_intervention","media_campaign_intervention",
+    "media_campaign_intervention","media_campaign_intervention",
+    "security_engagement","security_engagement","security_engagement",
+    "security_engagement","security_engagement","security_engagement", 
+    "transnational_organization_crime","transnational_organization_crime",
+    "transnational_organization_crime","transnational_organization_crime",
+    "transnational_organization_crime","transnational_organization_crime",
+    "diplomatic_ties","diplomatic_ties","diplomatic_ties",
+    "diplomatic_ties","diplomatic_ties","diplomatic_ties"
   ),
   Date_of_Surge = c(
     "2015-10", "2022-02", "2022-03", "2018-11",
@@ -627,7 +654,15 @@ surgestable <- data.frame(
     "2025-04","2024-05","2023-12","2018-05","2019-04","2019-01",
     "2025-08","2021-02","2021-03","2016-05","2024-10","2019-04",
     "2021-01","2017-02","2014-04","2023-09","2022-04","2022-02",
-    "2023-01","2013-09","2024-09","2025-06","2025-08","2025-05"
+    "2023-01","2013-09","2024-09","2025-06","2025-08","2025-05",
+    "2017-07","2016-08","2020-05","2024-05",
+    "2018-11","2016-04","2014-11","2017-09","2023-01",
+    "2012-03","2012-05","2024-11","2015-05","2016-10","2014-09",
+    "2016-04","2015-07","2019-02","2023-06","2023-05","2022-06",
+    "2019-10","2015-12","2025-03","2019-06","2022-11","2019-04",
+    "2018-08","2022-03","2018-09","2015-03","2024-02","2023-07",
+    "2019-03","2017-07","2017-04","2019-09","2020-06","2017-10",
+    "2023-06","2023-07","2024-07","2024-07","2024-01","2014-10"
   )
 )
 
