@@ -565,6 +565,45 @@ The weighting process adjusts article counts from state-owned and independent so
 
 The following table provides information on each country-event type-monthly surge investigated as part of our validation exercise. 
 
+```{r}
+library(knitr)
+library(kableExtra)
+
+#social_academic_cultural_activity: Cambodia, Dominican Republic
+#tech_transfer_investment: Peru, Zambia
+#joint_security_force_exercise: Azerbaijan, Burkina Faso
+#diplomatic action: Costa Rica, Turkey
+
+surgestable <- data.frame(
+  Country = c(
+    "Guatemala", "Guatemala", "Guatemala", "Pakistan",
+    "DR Congo","DR Congo","DR Congo","Moldova","Moldova","Moldova",
+    "Dominican Republic","Dominican Republic","Dominican Republic","Philippines",
+    "Uganda","Uganda","Uganda","Kosovo","Kosovo","Kosovo"
+  ),
+  Event_Type = c(
+    "military_activity", "military_activity","military_activity","military_activity",
+    "diplomatic_mediation","diplomatic_mediation","diplomatic_mediation",
+    "diplomatic_mediation","diplomatic_mediation", "diplomatic_mediation",
+    "foreign_aid_assistance","foreign_aid_assistance","foreign_aid_assistance",
+    "foreign_aid_assistance",
+    "intelligence_counterintelligence","intelligence_counterintelligence",
+    "intelligence_counterintelligence","intelligence_counterintelligence",
+    "intelligence_counterintelligence","intelligence_counterintelligence"
+  ),
+  Date_of_Surge = c(
+    "2015-10", "2022-02", "2022-03", "2018-11",
+    "2023-05","2023-06","2022-03","2025-03","2012-01","2023-04",
+    "2018-11","2020-04","2018-05","2013-11",
+    "2014-03","2019-08","2021-07","2022-08","2013-04","2019-11"
+  )
+)
+
+kable(surgestable, booktabs = TRUE) %>%
+  kable_styling(latex_options = c("hold_position"))
+```
+
+
 ## Dominant Themes at Higher Frequency
 
 As an alternative visualization, we break our data into three historical periods: 2012-2016, 2017-2021, and 2022-2025 (through August 2025). This provides two five-year windows at the beginning of our series followed by a smaller snapshot of the very recent past. 2012-2016 includes Russia's annexation of Crimea, 2017-2021 includes the onset of the COVID-19 pandemic, and 2022-2025 includes Russia's invasion of Ukraine and its aftermath. @fig-plot_dominant-theme provides a visualization of themes at the monthly-level.
@@ -945,7 +984,7 @@ rm(a, b, c, d, e, f, fig, x_lim, y_lim, right_label, left_label, legend, legend_
 ```{r, fig.width=8,fig.height=10}
 #| echo: false
 #| warning: false
-#| label: fig-plot_period_levels
+#| label: fig-plot_period_levels2
 #| fig-cap: "Percent change in average monthly RAI articles per 10k published articles. Countries ordered by size of percent change in Russian influence between last two periods."
 
 
@@ -2189,7 +2228,7 @@ Notably, there is a spike in Chinese activity in February 2020, as COVID cases a
 ```{r, fig.width=8,fig.height=4}
 #| echo: false
 #| warning: false
-#| label: fig-plot_level-increase
+#| label: fig-plot_level-increase_norm
 #| fig-cap: "Levels of reported RAI activity over time, measured as articles per 10k published. The vertical dashed lines mark the month of Russia's annexation of Crimea in March 2014 and the invasion of Ukraine in February 2022. Not all countries have been updated to include data for the last 3 months of the time-series, so we remove the final three months to eliminate composition changes."
 
 
