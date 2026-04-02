@@ -89,6 +89,7 @@ header-includes:
       parse-numbers = false,
       table-align-text-pre=false,
       table-align-text-post=false
+    ]}
 editor: 
   markdown: 
     wrap: 72
@@ -121,7 +122,21 @@ sample_countries <- readr::read_csv(here::here("data", "sample_countries.csv"))
 use_sample_countries <- FALSE
 rai_end_date <- as.Date("2025-08-01")
 read_rai <- function() {
-  df <- readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
+  candidates <- c(
+    Sys.getenv("RAI_LATEST_CSV", unset = ""),
+    here::here("writing", "output", "rai_latest.csv"),
+    here::here("data", "rai_latest.csv")
+  )
+  candidates <- candidates[nzchar(candidates)]
+  available <- candidates[file.exists(candidates)]
+  if (length(available) == 0) {
+    stop(
+      "Missing rai_latest.csv. Checked: ",
+      paste(candidates, collapse = ", "),
+      ". Set RAI_LATEST_CSV or add data/rai_latest.csv."
+    )
+  }
+  df <- readr::read_csv(available[[1]])
   if (use_sample_countries) {
     df <- df |> dplyr::filter(country %in% sample_countries$country)
   }
@@ -636,6 +651,7 @@ ggplot(dat, aes(x = date, y =  rai_idx_dip)) +
   geom_vline(aes(xintercept = as.Date("2023-03-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Honduras", ]) +
   geom_vline(aes(xintercept = as.Date("2017-06-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Panama", ]) +
   geom_vline(aes(xintercept = as.Date("2019-09-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Solomon Islands", ])
+```
 
 These cases illustrate recent, high-profile efforts by Russia and China to exert influence over low- and
 middle-income countries and show how RAI captures these episodes in reporting. Our second validation effort

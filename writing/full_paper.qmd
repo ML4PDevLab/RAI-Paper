@@ -106,6 +106,13 @@ header-includes:
 
 # devtools::load_all(here::here("rai.atari"))
 #library(rai.atari)
+for (lib_path in c(".Rlib", file.path("..", ".Rlib"))) {
+  resolved_path <- normalizePath(lib_path, winslash = "/", mustWork = FALSE)
+  if (dir.exists(resolved_path) && !(resolved_path %in% .libPaths())) {
+    .libPaths(c(.libPaths(), resolved_path))
+  }
+}
+
 library(dplyr)
 library(tidyr)
 library(gt)
@@ -120,7 +127,21 @@ sample_countries <- readr::read_csv(here::here("data", "sample_countries.csv"))
 use_sample_countries <- FALSE
 rai_end_date <- as.Date("2025-08-01")
 read_rai <- function() {
-  df <- readr::read_csv(here::here("writing", "output", "rai_latest.csv"))
+  candidates <- c(
+    Sys.getenv("RAI_LATEST_CSV", unset = ""),
+    here::here("writing", "output", "rai_latest.csv"),
+    here::here("data", "rai_latest.csv")
+  )
+  candidates <- candidates[nzchar(candidates)]
+  available <- candidates[file.exists(candidates)]
+  if (length(available) == 0) {
+    stop(
+      "Missing rai_latest.csv. Checked: ",
+      paste(candidates, collapse = ", "),
+      ". Set RAI_LATEST_CSV or add data/rai_latest.csv."
+    )
+  }
+  df <- readr::read_csv(available[[1]])
   if (use_sample_countries) {
     df <- df |> dplyr::filter(country %in% sample_countries$country)
   }
