@@ -42,9 +42,9 @@ authors:
     equal-contributor: false
   - name: Diego Romero
     affiliations:
-      - ref: usu
+      - ref: uta
     corresponding: false
-    email: diego.mejiaromero@usu.edu
+    email: diego.romero@austin.utexas.edu
     equal-contributor: false
   - name: Erik Wibbels
     affiliations:
@@ -60,8 +60,8 @@ affiliations:
     name: Department of Political Science, University of Pennsylvania
   - id: ucu
     name: Universidad Católica del Uruguay
-  - id: usu
-    name: Utah State University
+  - id: uta
+    name: University of Texas at Austin
   - id: su
     name: Sabancı University
   - id: meta
