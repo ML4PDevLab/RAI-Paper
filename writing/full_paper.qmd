@@ -273,17 +273,17 @@ for (i in unique(rai$country)) {
 \toprule
 Theme & Definition & Categories\\
 \midrule
-Soft Power & Non-coercive efforts to shape attitudes or preferences among publics and elites through information or cultural engagement. & \makecell[l]{Media Campaign/Intervention\\ Social/Academic/Cultural Activity}\\
+Soft Power & Non-coercive efforts to shape attitudes or preferences among publics and elites through information or cultural engagement. & Media Campaign/Intervention\newline Social/Academic/Cultural Activity\\
 \midrule
-Hard Power & Military or security cooperation and activity that strengthens coercive capacity or military ties. & \makecell[l]{Arms Transfer/Security Aid/Assistance\\ Joint Security Force Exercise\\ Security Engagement\\ Military Activity}\\
+Hard Power & Military or security cooperation and activity that strengthens coercive capacity or military ties. & Arms Transfer/Security Aid/Assistance\newline Joint Security Force Exercise\newline Security Engagement\newline Military Activity\\
 \midrule
-Economic Power & Use of aid, investment, technology transfer, or trade measures to shape economic ties or incentives. & \makecell[l]{Foreign Aid/Assistance\\ Foreign Investment\\ Technology Transfer/Investment\\ Trade Agreement/Exchange\\ Trade/Financial Sanction}\\
+Economic Power & Use of aid, investment, technology transfer, or trade measures to shape economic ties or incentives. & Foreign Aid/Assistance\newline Foreign Investment\newline Technology Transfer/Investment\newline Trade Agreement/Exchange\newline Trade/Financial Sanction\\
 \midrule
-Diplomacy & Actions that expand, reduce, or signal official diplomatic relations, statements, meetings, mediation, or punitive diplomatic actions. & \makecell[l]{Diplomatic Mediation\\ Diplomatic Ties\\ Diplomatic Action\\ Diplomatic Statement\\ Diplomatic Meeting}\\
+Diplomacy & Actions that expand, reduce, or signal official diplomatic relations, statements, meetings, mediation, or punitive diplomatic actions. & Diplomatic Mediation\newline Diplomatic Ties\newline Diplomatic Action\newline Diplomatic Statement\newline Diplomatic Meeting\\
 \midrule
-Domestic Interference & Non-military interference targeting domestic politics or information systems, including espionage, cyber operations, or policy manipulation. & \makecell[l]{Intelligence/Counterintelligence\\ Political Process/Policy Intervention\\ Cyber Attack}\\
+Domestic Interference & Non-military interference targeting domestic politics or information systems, including espionage, cyber operations, or policy manipulation. & Intelligence/Counterintelligence\newline Political Process/Policy Intervention\newline Cyber Attack\\
 \midrule
-Backlash & Unintended or illicit consequences associated with influence attempts. & \makecell[l]{Bribery/Economic Corruption\\ Transnational Organized Crime}\\
+Backlash & Unintended or illicit consequences associated with influence attempts. & Bribery/Economic Corruption\newline Transnational Organized Crime\\
 
 \bottomrule
 \end{tabular}
