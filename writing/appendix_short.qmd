@@ -591,7 +591,12 @@ The weighting process adjusts article counts from state-owned and independent so
 
 The following table provides information on each country-event type-monthly surge investigated as part of our validation exercise. 
 
-```{r}
+```{r tab-surge-validation-list}
+#| echo: false
+#| warning: false
+#| message: false
+
+library(dplyr)
 library(knitr)
 library(kableExtra)
 
@@ -692,8 +697,26 @@ surgestable <- data.frame(
   )
 )
 
-kable(surgestable, booktabs = TRUE) %>%
-  kable_styling(latex_options = c("hold_position"))
+surgestable <- surgestable |>
+  mutate(Event_Type = gsub("_", " ", Event_Type))
+
+kable(
+  surgestable,
+  format = "latex",
+  booktabs = TRUE,
+  longtable = TRUE,
+  align = c("l", "l", "c"),
+  col.names = c("Country", "Event type", "Date of surge"),
+  caption = "Country-Event Surges Evaluated"
+) |>
+  kable_styling(
+    latex_options = c("repeat_header"),
+    font_size = 8
+  ) |>
+  column_spec(1, width = "3cm") |>
+  column_spec(2, width = "8cm") |>
+  column_spec(3, width = "2.5cm")
+
 ```
 
 
