@@ -781,7 +781,15 @@ map_theme = theme(axis.title.x = element_blank(), axis.text.x = element_blank(),
 x_lim = c(-90,142)
 y_lim = c(-33, 52)
 
-pal <- leaflet::colorFactor("Accent", domain = df$theme)
+theme_palette <- c(
+  "Backlash" = "#6A3D9A",
+  "Domestic Interference" = "#E31A1C",
+  "Diplomacy" = "#1F78B4",
+  "Economic Power" = "#33A02C",
+  "Hard Power" = "#FF7F00",
+  "Soft Power" = "#F4C430"
+)
+pal <- function(x) theme_palette[x]
 # map = map %>% mutate(theme = replace_na(as.character(theme), "No")) %>% mutate(theme = forcats::fct_relevel(theme, c(rai_vars_select$name[2:7], "No")))
 
 a = ggplot(map %>% filter(period == "2012-2016"), 
@@ -1341,7 +1349,15 @@ map_theme = theme(axis.title.x = element_blank(), axis.text.x = element_blank(),
 x_lim = c(-90,142)
 y_lim = c(-33, 52)
 
-pal <- leaflet::colorFactor("Accent", domain = df$theme)
+theme_palette <- c(
+  "Backlash" = "#6A3D9A",
+  "Domestic Interference" = "#E31A1C",
+  "Diplomacy" = "#1F78B4",
+  "Economic Power" = "#33A02C",
+  "Hard Power" = "#FF7F00",
+  "Soft Power" = "#F4C430"
+)
+pal <- function(x) theme_palette[x]
 # map = map %>% mutate(theme = replace_na(as.character(theme), "No")) %>% mutate(theme = forcats::fct_relevel(theme, c(rai_vars_select$name[2:7], "No")))
 
 a = ggplot(map %>% filter(period == "2012-2016"), 
