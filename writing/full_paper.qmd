@@ -269,7 +269,7 @@ for (i in unique(rai$country)) {
 \setlength{\belowrulesep}{1.0ex}
 \caption{\label{rai_theme} RAI Categories Grouped by Theme}
 \centering
-\begin{tabular}[t]{>{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{7.2cm} >{\raggedright\arraybackslash}p{6.2cm}}
+\begin{tabular}[t]{>{\raggedright\arraybackslash}m{2.8cm} >{\raggedright\arraybackslash}m{7.2cm} >{\raggedright\arraybackslash}m{6.2cm}}
 \toprule
 Theme & Definition & Categories\\
 \midrule
