@@ -46,8 +46,13 @@ sample_countries <- readr::read_csv(here::here("data", "sample_countries.csv"))
 use_sample_countries <- FALSE
 rai_end_date <- as.Date("2025-08-01")
 read_rai <- function() {
+  # Check both project-root and writing-local paths so renders work from either cwd.
   candidates <- c(
     Sys.getenv("RAI_LATEST_CSV", unset = ""),
+    "writing/output/rai_latest.csv",
+    "output/rai_latest.csv",
+    "data/rai_latest.csv",
+    "../data/rai_latest.csv",
     here::here("writing", "output", "rai_latest.csv"),
     here::here("data", "rai_latest.csv")
   )
@@ -912,7 +917,15 @@ map_theme = theme(axis.title.x = element_blank(), axis.text.x = element_blank(),
 x_lim = c(-90,142)
 y_lim = c(-33, 52)
 
-pal <- leaflet::colorFactor("Accent", domain = df$theme)
+theme_palette <- c(
+  "Backlash" = "#6A3D9A",
+  "Domestic Interference" = "#E31A1C",
+  "Diplomacy" = "#1F78B4",
+  "Economic Power" = "#33A02C",
+  "Hard Power" = "#FF7F00",
+  "Soft Power" = "#F4C430"
+)
+pal <- function(x) theme_palette[x]
 # map = map %>% mutate(theme = replace_na(as.character(theme), "No")) %>% mutate(theme = forcats::fct_relevel(theme, c(rai_vars_select$name[2:7], "No")))
 
 a = ggplot(map %>% filter(period == "2012-2016"), 
@@ -1472,7 +1485,15 @@ map_theme = theme(axis.title.x = element_blank(), axis.text.x = element_blank(),
 x_lim = c(-90,142)
 y_lim = c(-33, 52)
 
-pal <- leaflet::colorFactor("Accent", domain = df$theme)
+theme_palette <- c(
+  "Backlash" = "#6A3D9A",
+  "Domestic Interference" = "#E31A1C",
+  "Diplomacy" = "#1F78B4",
+  "Economic Power" = "#33A02C",
+  "Hard Power" = "#FF7F00",
+  "Soft Power" = "#F4C430"
+)
+pal <- function(x) theme_palette[x]
 # map = map %>% mutate(theme = replace_na(as.character(theme), "No")) %>% mutate(theme = forcats::fct_relevel(theme, c(rai_vars_select$name[2:7], "No")))
 
 a = ggplot(map %>% filter(period == "2012-2016"), 

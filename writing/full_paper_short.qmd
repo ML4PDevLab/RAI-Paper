@@ -283,7 +283,7 @@ Concerns with RAI have driven major policy responses. For instance, in
 2019, USAID launched the
 \textit{Countering Malign Kremlin Influence Development Framework} and
 the
-\textit{Countering Chinese Influence Fund}.\footnote{`USAID Key Accomplishments,' \href{https://www.usaid.gov/reports-and-data/key-accomplishments}{USAID}}
+\textit{Countering Chinese Influence Fund}.\footnote{`USAID Key Accomplishments,' \href{https://web.archive.org/web/20221127183506/https://www.usaid.gov/reports-and-data/key-accomplishments}{USAID (archived)}}
 That same year, the Export-Import Bank of the U.S. announced the China
 and Transformational Export Program (CTEP) to help U.S. exporters facing
 competition from China. And in 2022, the U.S. responded to a
@@ -424,15 +424,15 @@ a high-frequency indicator of *salience* rather than a measure of distinct event
 Theme & Definition & Categories\\
 \midrule
 Soft Power & Non-coercive efforts to shape attitudes or preferences among publics and elites through information or cultural engagement. & \makecell[l]{Media Campaign/Intervention\\ Social/Academic/Cultural Activity}\\
-\addlinespace[0.4ex]
+\midrule
 Hard Power & Military or security cooperation and activity that strengthens coercive capacity or military ties. & \makecell[l]{Arms Transfer/Security Aid/Assistance\\ Joint Security Force Exercise\\ Security Engagement\\ Military Activity}\\
-\addlinespace[0.4ex]
+\midrule
 Economic Power & Use of aid, investment, technology transfer, or trade measures to shape economic ties or incentives. & \makecell[l]{Foreign Aid/Assistance\\ Foreign Investment\\ Technology Transfer/Investment\\ Trade Agreement/Exchange\\ Trade/Financial Sanction}\\
-\addlinespace[0.4ex]
+\midrule
 Diplomacy & Actions that expand, reduce, or signal official diplomatic relations, statements, meetings, mediation, or punitive diplomatic actions. & \makecell[l]{Diplomatic Mediation\\ Diplomatic Ties\\ Diplomatic Action\\ Diplomatic Statement\\ Diplomatic Meeting}\\
-\addlinespace[0.4ex]
+\midrule
 Domestic Interference & Non-military interference targeting domestic politics or information systems, including espionage, cyber operations, or policy manipulation. & \makecell[l]{Intelligence/Counterintelligence\\ Political Process/Policy Intervention\\ Cyber Attack}\\
-\addlinespace[0.4ex]
+\midrule
 Backlash & Unintended or illicit consequences associated with influence attempts. & \makecell[l]{Bribery/Economic Corruption\\ Transnational Organized Crime}\\
 
 \bottomrule
@@ -827,7 +827,15 @@ map_theme = theme(axis.title.x = element_blank(), axis.text.x = element_blank(),
 x_lim = c(-90,142)
 y_lim = c(-33, 52)
 
-pal <- leaflet::colorFactor("Accent", domain = df$theme)
+theme_palette <- c(
+  "Backlash" = "#6A3D9A",
+  "Domestic Interference" = "#E31A1C",
+  "Diplomacy" = "#1F78B4",
+  "Economic Power" = "#33A02C",
+  "Hard Power" = "#FF7F00",
+  "Soft Power" = "#F4C430"
+)
+pal <- function(x) theme_palette[x]
 # map = map %>% mutate(theme = replace_na(as.character(theme), "No")) %>% mutate(theme = forcats::fct_relevel(theme, c(rai_vars_select$name[2:7], "No")))
 
 b = ggplot(map %>% filter(period == "2012-2021"), 
@@ -1704,7 +1712,7 @@ surge—consistent with our theoretical expectations. We find suggestive
 evidence that Russia's pre-invasion diplomatic outreach was more likely
 in countries aligned with Western powers, while Hard Power and Economic
 Power targeting shows weaker links to economic dependence.These findings
-illustrate how a multi-dimensional measure can reveal not just how much influence is reported, butwhich tools appear to be emphasized and where.
+illustrate how a multi-dimensional measure can reveal not just how much influence is reported, but which tools appear to be emphasized and where.
 
 The data have important limitations. First, *RAI* is media-based and reflects
 salience in local reporting rather than verified action counts. Second, media
@@ -1712,7 +1720,7 @@ capacity and press freedom vary across countries; we normalize by total news
 volume and seek to balance sources, but cross-country comparisons warrant
 caution. Third, covert activities—especially in Domestic Interference—are
 systematically underreported and should be interpreted as lower bounds.
-Fourth, coverage is restricted to aid-receiving countries, which is a deliberate design choice the precludes global coverage. Lastly, automated classification introduces some error, particularly for complex or multi-topic articles.Our workflow is designed for rapid retraining andaudits when shifts in coverage suggest drift.
+Fourth, coverage is restricted to aid-receiving countries, which is a deliberate design choice that precludes global coverage. Lastly, automated classification introduces some error, particularly for complex or multi-topic articles. Our workflow is designed for rapid retraining and audits when shifts in coverage suggest drift.
 
 In sum, *RAI* advances our ability to track authoritarian influence at
 high frequency and across multiple tools. As great power competition
