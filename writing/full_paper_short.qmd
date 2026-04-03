@@ -483,7 +483,7 @@ and stability than large aggregators such as GDELT, Common Crawl, or the
 Internet Archive. *HQMARC's* human-supervised scraping produces a corpus
 with a more stable, well-understood composition than widely used
 alternatives
-[@moratz2024tracking].\footnote{For each source, we develop and deploy a custom scraper to accommodate the website architecture and a custom parser to extract the publication date, title, and story text from each article. Depending on website architecture, we obtain news articles by scraping sitemaps, newspaper archives, or by simulating infinite clicking/scrolling using Selenium. In order to avoid storing the same article multiple times, we de-duplicate based on URL and title similarity for articles published on the same day. We update these scrapers on a quarterly basis to maintain accuracy and comprehensiveness.}
+[@ml4p2024tracking].\footnote{For each source, we develop and deploy a custom scraper to accommodate the website architecture and a custom parser to extract the publication date, title, and story text from each article. Depending on website architecture, we obtain news articles by scraping sitemaps, newspaper archives, or by simulating infinite clicking/scrolling using Selenium. In order to avoid storing the same article multiple times, we de-duplicate based on URL and title similarity for articles published on the same day. We update these scrapers on a quarterly basis to maintain accuracy and comprehensiveness.}
 We primarily rely on open-access or permissioned content; paywalled
 sources are underrepresented, which may bias coverage in some contexts.
 <!--  -->
@@ -1711,7 +1711,7 @@ evidence; and Soft Power and Domestic Interference show no pre-invasion
 surge—consistent with our theoretical expectations. We find suggestive
 evidence that Russia's pre-invasion diplomatic outreach was more likely
 in countries aligned with Western powers, while Hard Power and Economic
-Power targeting shows weaker links to economic dependence.These findings
+Power targeting shows weaker links to economic dependence. These findings
 illustrate how a multi-dimensional measure can reveal not just how much influence is reported, but which tools appear to be emphasized and where.
 
 The data have important limitations. First, *RAI* is media-based and reflects
