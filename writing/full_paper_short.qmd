@@ -283,7 +283,7 @@ Concerns with RAI have driven major policy responses. For instance, in
 2019, USAID launched the
 \textit{Countering Malign Kremlin Influence Development Framework} and
 the
-\textit{Countering Chinese Influence Fund}.\footnote{`USAID Key Accomplishments,' \href{https://web.archive.org/web/20221127183506/https://www.usaid.gov/reports-and-data/key-accomplishments}{USAID (archived)}}
+\textit{Countering Chinese Influence Fund} [@usaid_accomplishments_2022].
 That same year, the Export-Import Bank of the U.S. announced the China
 and Transformational Export Program (CTEP) to help U.S. exporters facing
 competition from China. And in 2022, the U.S. responded to a
@@ -323,14 +323,14 @@ soft and diplomatic power [@nye2023rise; @kurlantzick2007charm], i.e.,
 non-coercive efforts to shape foreign preferences through public
 diplomacy, cultural engagement, and information campaigns. Russia and
 China deploy these tools by establishing cultural
-centers\footnote{`Cultural Cooperation.,' \href{http://web.archive.org/web/20210506124214/https://embrusscambodia.mid.ru/web/cambodia-en/cultural-cooperation}{ Embassy of the Russian Federation in the Kingdom of Cambodia}.}
+centers [@russia_embassy_cambodia_2021]
 and launching media
-campaigns.\footnote{Lorne Cook. `EU report takes aim at Russia over vaccine fake news.,' \href{http://web.archive.org/web/20210906061347/https://apnews.com/article/european-union-russia-europe-fake-news-coronavirus-d12316c1e6c21fe2f1a450e8f387dbac}{ AP}, April 28, 2021.}.
+campaigns [@cook_ap_2021].
 Russia and China also promote their interests using diplomatic
 maneuvers, including formal statements and official visits to express
-support,\footnote{Maja Zuvela, Aleksandar Vasovic. `Beset by protests, Serb leader stages lavish reception for Putin.,' \href{http://web.archive.org/web/20210329160921/https://www.reuters.com/article/us-serbia-russia/beset-by-protests-serb-leader-stages-lavish-reception-for-putin-idUSKCN1PB2EO}{ Reuters}, January 17, 2019.}
+support, [@zuvela_vasovic_reuters_2019]
 and participation in diplomatic
-mediation.\footnote{Helena Legarda. `China as a conflict mediator.,' \href{http://web.archive.org/web/20210826162927/https://merics.org/en/short-analysis/china-conflict-mediator}{ MERICS}, August 22, 2018.}
+mediation [@legarda_merics_2018].
 Data tracking the timing and location of soft power and diplomatic
 engagement can produce valuable new insights into how and when
 non-coercive strategies influence target-country politics, and whether
@@ -339,22 +339,22 @@ influence [@ku2022dark; @putnam1988diplomacy; @allan2018distribution].
 We also provide data on the use of domestic interference to create
 pressure on target governments [@lim2019money]. For Russia and China,
 this has included everything from surveillance and
-cyber-attacks\footnote{Steve Holland, Doina Chiacu. `U.S. and allies accuse China of global hacking spree.' \href{https://web.archive.org/web/20210919030118/https://www.reuters.com/technology/us-allies-accuse-china-global-cyber-hacking-campaign-2021-07-19/}{Reuters}, July 20, 2021.}
+cyber-attacks [@holland_chiacu_reuters_2021]
 to collecting intelligence on the political
-opposition,\footnote{`Uganda and Zambia rejects Huawei spying allegations.,' \href{https://web.archive.org/web/20210122183602/https://www.bbc.com/news/world-africa-49368276}{ BBC}, August 16, 2019.}
+opposition,[@bbc_huawei_uganda_zambia_2019]
 engaging in cyber attacks against independent news
-sources,\footnote{`Serbia's Independent N1 Portal Buffeted by Cyber-Attacks.,' \href{https://web.archive.org/web/20210722042755/https://balkaninsight.com/2020/01/31/serbias-independent-n1-portal-buffeted-by-cyber-attacks/}{ BalkanInsight}, January 31, 2020.}
+sources,[@balkan_n1_cyber_2020]
 and transferring surveillance
-technology.\footnote{Stephen Kafeero. `Uganda is using Huawei's facial recognition tech to crack down on dissent after anti-government protests.' \href{http://web.archive.org/web/20210806182022/https://qz.com/africa/1938976/uganda-uses-chinas-huawei-facial-recognition-to-snare-protesters/}{ Quartz Africa}, November 27, 2020.}
+technology [@kafeero_quartz_2020].
 Finally, we provide data on the extent to which efforts to exert
 influence have unintended consequences. For example, Chinese influence
 has been linked to increased corruption [@brazys2017bad;
 @isaksson2018chinese] and the spread of Chinese organized
-crime.\footnote{`Triad Societies and Chinese Organised Crime in South Africa.,' \href{https://www.ojp.gov/ncjrs/virtual-library/abstracts/triad-societies-and-chinese-organised-crime-south-africa}{ U.S. Department of Justice}, September 2003.}
+crime.[@doj_triad_2003]
 Consistent with those findings, perceptions of excessive Russian and
 Chinese influence have caused anti-incumbent political mobilization in
 many
-countries.\footnote{`Georgia protests: Thousands storm parliament over Russian MP's speech.,' \href{http://web.archive.org/web/20210906144827/https://www.bbc.com/news/world-europe-48710042}{ BBC}, June 21, 2019.; Abu-Bakarr Jalloh, Fang Wan. `Resistance growing to Chinese presence in Zambia.,' \href{http://web.archive.org/web/20210817143241/https://www.dw.com/en/resistance-growing-to-chinese-presence-in-zambia/a-47275927}{ DW}, April 9, 2019.}
+countries. [@bbc_georgia_protests_2019; @jalloh_wan_dw_2019]
 Data on these adverse types of influence will allow investigations into
 the ability of Russia and China to effectively manage their influence
 operations. Of course, many relevant activities—covert operations,
@@ -1176,7 +1176,7 @@ The supplementary country-level period-change plot shows the percentage
 change in average monthly *RAI* articles between 2012–2021 and
 2022–2025. Russian influence increased broadly, with especially large
 gains in the Sahel and in
-Nicaragua.\footnote{`Russian state TV calls on army to take up offer to set up forces in Nicaragua.,' \href{https://web.archive.org/web/20220624110926/https://www.newshub.co.nz/home/world/2022/06/russian-state-tv-calls-on-army-to-take-up-offer-to-set-up-forces-in-nicaragua.html}{Newshub}, June 22, 2022.}
+Nicaragua.[@newshub_russia_nicaragua_2022]
 Notably, the increase was weakly negatively correlated with prior
 Russian activity (`r rc_list[1]`), suggesting Russia expanded most in
 places where it had been least active. The pattern for China is more
