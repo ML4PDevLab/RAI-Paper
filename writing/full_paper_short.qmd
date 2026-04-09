@@ -212,7 +212,7 @@ transformer-based language model to a corpus of more than 100 million
 news articles published by over 350 high-quality media outlets, most of
 them domestic, in 40 languages. The result is a high-frequency measure
 of *reported* influence activity by tool and country. *RAI* is a
-media-based measure of reporting intensity, not a record of verified
+media-based dataset of reporting intensity, not a record of verified
 actions, but validation shows that it strongly correlates with real
 Russian and Chinese foreign activities.
 
@@ -396,7 +396,7 @@ for (i in unique(rai$country)) {
 
 ```
 
-*RAI* tracks *reporting* on 21 influence categories associated with
+*RAI* tracks *reporting* on 21 categories associated with
 Russian and Chinese foreign influence. Each category captures reporting
 on actions by a government or state-linked actor intended to shape
 another country’s domestic or foreign policy. We developed the category
@@ -406,8 +406,7 @@ partners and the United States Agency for International Development
 construct theme indices by summing category-level reporting intensities.
 Table \ref{rai_theme} lists the themes, definitions, and
 categories.\footnote{See Supplementary Materials *Category Definitions* for category-level definitions.} Because *RAI* is based on reporting, it understates activities that are never reported or only
-disclosed later—particularly covert interference. Thus, we interpret *RAI* as
-a high-frequency indicator of *salience* rather than a measure of distinct events. 
+disclosed later—particularly covert interference.  
 
 ```{=latex}
 \begin{table}[!htbp]
@@ -490,12 +489,11 @@ sources are underrepresented, which may bias coverage in some contexts.
 
 To accommodate a large volume of articles in diverse languages, we
 translate articles into English with open-source NMT tools and then
-extract locations and influence categories from the translated text.
+extract locations and influence categories from the translated text. \footnote{We use neural machine translations (NMT) through Hugging Face or OpenNMT to translate into English. We test the efficacy of all translation models by extracting sample text from articles published in each language and running the text through all available translation models on the Hugging Face open database. We then assess whether the translations are sufficient to identify the main influence category being reported on. If they are not, we compare the performances with those of our other APIs and choose the one that yields the optimal sentence-to-sentence translations with sufficient human readability.}
 Given the well-documented biases in English-language news sources
 [@baum2015] even on relatively uncontroversial topics like natural
 disasters [@brimicombe2022], we include non-English newspapers in our
-corpus.\footnote{We use neural machine translations (NMT) through Hugging Face or OpenNMT to translate into English. We test the efficacy of all translation models by extracting sample text from articles published in each language and running the text through all available translation models on the Hugging Face open database. We then assess whether the translations are sufficient to identify the main influence category being reported on. If they are not, we compare the performances with those of our other APIs and choose the one that yields the optimal sentence-to-sentence translations with sufficient human readability.}
-See Supplementary Materials *Languages in HQMARC* for a list of
+corpus. See Supplementary Materials *Languages in HQMARC* for a list of
 languages by country.
 
 To classify influence categories, we fine-tuned a ModernBERT-large
