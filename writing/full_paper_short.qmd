@@ -628,22 +628,6 @@ rather than a few high-activity months, and hedges against isolated
 misclassification errors. The approach does not affect the substantive
 findings.
 
-We begin by using the six themes in Table \ref{rai_theme} to describe
-the most frequently reported-on tools used by Russia and China.
-Specifically, we calculate the most frequently reported-on theme for
-each country-period. This approach counts all classified articles
-equally. @fig-map_dominant-theme shows the dominant *RAI* tool by country for two
-periods. The left panel captures reports of Chinese influence and the
-right panel captures reports of Russian influence. For China, Economic
-Power remains the most dominant theme across countries in both
-periods, while Diplomacy becomes dominant in a growing subset of cases
-in 2022–2025. When pooling across countries at the monthly level,
-Diplomacy’s share of reported Chinese influence rises from `r cd1`
-(2012–2016) to `r cd2` (2017–2021) to `r cd3` (2022–2025), suggesting a
-gradual rebalancing rather than a wholesale shift away from economic
-tools.
-
-
 ```{r}
 #| echo: false
 #| warning: false
@@ -691,6 +675,20 @@ rd3 = paste0(round(dip_av[dip_av$influencer == "Russia" & dip_av$period == "2022
 
 ```
 
+We begin by using the six themes in Table \ref{rai_theme} to describe
+the most frequently reported-on tools used by Russia and China.
+Specifically, we calculate the most frequently reported-on theme for
+each country-period. This approach counts all classified articles
+equally. @fig-map_dominant-theme shows the dominant *RAI* tool by country for two
+periods. The left panel captures reports of Chinese influence and the
+right panel captures reports of Russian influence. For China, Economic
+Power remains the most dominant theme across countries in both
+periods, while Diplomacy becomes dominant in a growing subset of cases
+in 2022–2025. When pooling across countries at the monthly level,
+Diplomacy’s share of reported Chinese influence rises from `r cd1`
+(2012–2016) to `r cd2` (2017–2021) to `r cd3` (2022–2025), suggesting a
+gradual rebalancing rather than a wholesale shift away from economic
+tools.
 
 For Russia, the distribution is more mixed. Diplomacy is frequently
 dominant, but Hard Power becomes more salient in several countries after
