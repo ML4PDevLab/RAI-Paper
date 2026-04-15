@@ -183,7 +183,7 @@ for (i in unique(rai$country)) {
 
 The last 15 years have seen Russia and China become both more autocratic
 and more assertive in their foreign policies [@diamond2020democratic].
-Both have increased efforts to influence political outcomes in less
+Both have increased efforts to influence less
 powerful nations and secure strategic partnerships. Scholars and
 policymakers have voiced growing concerns about a resurgence of
 authoritarian influence, driving high-level foreign policy decisions and
@@ -193,41 +193,36 @@ strategically important countries.
 These developments are unfolding amid broader concerns about a "new Cold
 War" between Western democracies and the "new axis" coalition
 [@sanger2024new; @nss2017; @evans2019]. Despite the importance of these
-issues, the lack of systematic quantitative data has limited rigorous
+issues, a lack of systematic quantitative data has limited rigorous
 investigation. Assembling such data is difficult: influencing and target
 countries rarely publish administrative records of influence activity,
-and less dramatic developments—precisely where influence is most likely
-to be subtle and cumulative—are rarely covered by international media.
+and less dramatic influence activities rarely receive international media attention.
 This creates a measurement gap in the contexts that matter most.
 
 In this paper, we introduce the *Resurgent Authoritarian Influence
 (RAI)* dataset. *RAI* tracks monthly reporting across 21 influence
 categories in `r num_countries` aid-receiving low- and middle-income
 countries from 2012 through August 2025. We focus on aid-receiving
-countries because these are settings where influence efforts are most
-visible and where our domestic-source infrastructure provides the
-richest coverage—an explicit scope condition rather than a claim about
-the universe of influence. To build the data, we apply a fine-tuned
-transformer-based language model to a corpus of more than 100 million
+countries because these are settings where influence efforts are often
+prominent. To build the data, we apply a fine-tuned
+transformer-based language model to a corpus of more than 120 million
 news articles published by over 350 high-quality media outlets, most of
 them domestic, in 40 languages. The result is a high-frequency measure
 of *reported* influence activity by tool and country. *RAI* is a
-media-based measure of reporting intensity, not a record of verified
-actions, but validation shows that it strongly correlates with real
-Russian and Chinese foreign activities.
+media-based measure of reporting intensity, not a record of unique events, but validation shows that it strongly correlates with real Russian and Chinese foreign activities.
 
-This paper proceeds in three parts. First, we introduce *RAI* and its
+We proceed in four parts. First, we briefly review extant work on Russian and Chinese foreign influence and outline the strengths and limitations of existing data on the topic. Second, we introduce *RAI* and its
 underlying *High-Quality Media from Aid Receiving Countries (HQMARC)*
-corpus, documenting our pipeline and scope conditions. Second, we
+corpus, document our pipeline, and report on several validation exercises. Third, we
 describe how Russia and China vary their influence tools across space
-and time. Third, to exemplify the use of the data we examine Russian
+and time. Fourth, we provide a use case that examines Russian
 influence activity in the months before the invasion of Ukraine. Using
 change-point analysis, AI-assisted qualitative case studies, and
-regression we document a dramatic, previously undetected, pre-invasion
+regression we document a substantial, previously undetected, pre-invasion
 surge in diplomacy and hard power reporting across many countries. We
 also demonstrate that pre-invasion surges in Russian activity were
-concentrated in the countries and influence tools predicted by
-international relations theory.
+concentrated in the countries and influence tools that are consistent with extant arguments
+in international relations theory.
 
 In doing so, we show that *RAI* is a valuable resource for researchers
 and policymakers alike. For researchers, our data provides a complement
@@ -240,8 +235,8 @@ a transparent, updateable gauge of how influence is reported in
 target-countries and provides hard data to inform policy responses to
 the foreign influence of Russia and China. Throughout, we emphasize that
 *RAI* measures *reporting* on influence activity—not verified
-actions—and is best interpreted as a high-frequency indicator of
-salience within local news ecosystems.
+actions—and is best interpreted as a high-frequency, multidimensional indicator of
+RAI salience.
 
 <!-- We speculate that this behavior was a strategy to bolster diplomatic and military ties with receptive countries and mitigate blowback that would follow from their military aggression. In doing so, we provide one of the first quantitative investigations of an empirical claim driving high-level decision-making in foreign policy and international advocacy. -->
 
@@ -249,7 +244,7 @@ salience within local news ecosystems.
 
 Over the past 20 years, Russia and China have increasingly asserted
 themselves on the global stage, challenging the liberal international
-order and and seeking to reshape global power dynamics in their favor.
+order and and seeking to reshape global dynamics in their favor.
 [@sanger2024new; @fukuyama2015end]. Russia's invasions of Georgia and
 Ukraine and its annexation of Crimea signal a willingness to redraw
 borders by force. China has pursued assertive policies in the South
@@ -270,11 +265,7 @@ This framework yields testable expectations. If tools are complements,
 coordinated increases should appear across diplomacy, economic, and
 security categories during periods of strategic pressure. If tools are
 substitutes, we should observe tradeoffs between coercive and
-non-coercive instruments. Thus, for example, we expect Russia to
-intensify *Diplomacy*, *Economic Power*, and *Hard Power* activity in
-the pre-invasion period, while *Soft Power* and *Domestic Interference*
-should not and can, therefore, serve as placebo categories. Reporting on
-Russia's footprint in Africa—where security assistance, political
+non-coercive instruments. Reporting on Russia's footprint in Africa—where security assistance, political
 engagement, and information operations often blend together—illustrates
 why a multi-dimensional measurement approach is necessary
 [@ferragamo2023russias; @Gain2023; @Hairsine2023; @Reuters2024].
@@ -296,7 +287,7 @@ Despite this policy attention, quantitative data on authoritarian
 influence remains sparse. The most comprehensive existing data comes
 from AidData, which covers China's foreign aid and state financing to
 low- and middle-income countries from 2000–2017 and annual diplomatic
-events in subsets of Asian countries [@goodman2024aiddata;
+events in some Asian countries [@goodman2024aiddata;
 @custer2021tracking]. This work has yielded valuable findings: Chinese
 aid and investment reduce conflict [@gehring2019china;
 @strange2017tracking], increase economic growth [@dreher2021aid;
@@ -307,7 +298,7 @@ aid and investment reduce conflict [@gehring2019china;
 [@dreher2024aid].\footnote{This last finding does not hold for respondents closest to the aid projects [@blair2022foreign].}
 But AidData covers only Chinese influence, is updated sporadically, and
 focuses on a limited range of tools. Research has consequently been
-confined largely to economic power, leaving diplomacy, hard power, soft
+confined largely to economic influence, leaving diplomacy, hard power, soft
 power, and domestic interference comparatively understudied
 [@nye2023rise; @kurlantzick2007charm; @kinne2018defense].
 
@@ -323,45 +314,33 @@ soft and diplomatic power [@nye2023rise; @kurlantzick2007charm], i.e.,
 non-coercive efforts to shape foreign preferences through public
 diplomacy, cultural engagement, and information campaigns. Russia and
 China deploy these tools by establishing cultural
-centers [@russia_embassy_cambodia_2021]
-and launching media
+centers [@russia_embassy_cambodia_2021] and launching media
 campaigns [@cook_ap_2021].
 Russia and China also promote their interests using diplomatic
-maneuvers, including formal statements and official visits to express
-support, [@zuvela_vasovic_reuters_2019]
-and participation in diplomatic
-mediation [@legarda_merics_2018].
+maneuvers, including formal statements, official visits,
+and participation in diplomatic mediation [@legarda_merics_2018; @zuvela_vasovic_reuters_2019].
 Data tracking the timing and location of soft power and diplomatic
-engagement can produce valuable new insights into how and when
+engagement can produce new insights into how and when
 non-coercive strategies influence target-country politics, and whether
 these tools are used as substitutes or complements to coercive forms of
 influence [@ku2022dark; @putnam1988diplomacy; @allan2018distribution].
-We also provide data on the use of domestic interference to create
-pressure on target governments [@lim2019money]. For Russia and China,
-this has included everything from surveillance and
-cyber-attacks [@holland_chiacu_reuters_2021]
-to collecting intelligence on the political
-opposition,[@bbc_huawei_uganda_zambia_2019]
+
+We also provide data on domestic interference efforts to create
+pressure on-or provide assistance to-target governments [@lim2019money]. For Russia and China,
+this has included everything from surveillance and cyber-attacks [@holland_chiacu_reuters_2021]
+to collecting intelligence on the political opposition,[@bbc_huawei_uganda_zambia_2019]
 engaging in cyber attacks against independent news
-sources,[@balkan_n1_cyber_2020]
-and transferring surveillance
-technology [@kafeero_quartz_2020].
+sources,[@balkan_n1_cyber_2020] and transferring surveillance technology [@kafeero_quartz_2020].
 Finally, we provide data on the extent to which efforts to exert
 influence have unintended consequences. For example, Chinese influence
 has been linked to increased corruption [@brazys2017bad;
 @isaksson2018chinese] and the spread of Chinese organized
-crime.[@doj_triad_2003]
-Consistent with those findings, perceptions of excessive Russian and
-Chinese influence have caused anti-incumbent political mobilization in
-many
-countries. [@bbc_georgia_protests_2019; @jalloh_wan_dw_2019]
-Data on these adverse types of influence will allow investigations into
+crime [@doj_triad_2003].Consistent with those findings, perceptions of Russian and
+Chinese influence have caused anti-incumbent mobilization in
+many countries [@bbc_georgia_protests_2019; @jalloh_wan_dw_2019].
+Data on these adverse types of influence allow research into
 the ability of Russia and China to effectively manage their influence
-operations. Of course, many relevant activities—covert operations,
-intelligence gathering, transnational criminality—are deliberately
-concealed and therefore systematically underreported; *RAI* captures
-only the subset that enters news, which we interpret as a lower bound on
-such activities.
+operations. 
 
 Below we describe the RAI dataset. By tracking a broad set of tools at
 high frequency, the data enables new work on when and how states seek
@@ -399,15 +378,11 @@ for (i in unique(rai$country)) {
 *RAI* tracks *reporting* on 21 influence categories associated with
 Russian and Chinese foreign influence. Each category captures reporting
 on actions by a government or state-linked actor intended to shape
-another country’s domestic or foreign policy. We developed the category
-list by reviewing prior research and consulting with civil-society
-partners and the United States Agency for International Development
-(USAID). We group the 21 categories into six broader themes and
+another country’s domestic or foreign policy. We developed the categories by reviewing prior research and consulting with civil-society and policy
+partners. We group the 21 categories into six broader themes and
 construct theme indices by summing category-level reporting intensities.
 Table \ref{rai_theme} lists the themes, definitions, and
-categories.\footnote{See Supplementary Materials *Category Definitions* for category-level definitions.} Because *RAI* is based on reporting, it understates activities that are never reported or only
-disclosed later—particularly covert interference. Thus, we interpret *RAI* as
-a high-frequency indicator of *salience* rather than a measure of distinct events. 
+categories.\footnote{See Supplementary Materials *Category Definitions* for category-level definitions.}  
 
 ```{=latex}
 \begin{table}[!htbp]
@@ -443,34 +418,29 @@ Backlash & Unintended or illicit consequences associated with influence attempts
 
 **Measurement and interpretation.** The classifier assigns category
 labels to article text, which we aggregate into monthly reporting
-indices. Primary analyses focus on the six theme indices, which are more
+indices. Primary analyses focus on six thematic indices, which are more
 stable than fine-grained categories. We report classifier performance
 and training details in the Supplementary Materials. *RAI* measures
 *reported* influence activity, not verified actions; covert behaviors
 such as intelligence and cyber operations are likely underreported and
 should be treated as lower bounds. We mitigate editorial bias by
 normalizing by total article volume, presenting both absolute levels and
-relative shares, and grounding inference in within-country changes over
+relative shares, and grounding analysis in within-country changes over
 time. The dataset covers `r num_countries` aid-receiving countries from
 2012 through August 2025—a deliberate scope condition that enables
 consistent, high-frequency measurement where domestic coverage is
-richest, but does not capture influence in advanced democracies.
+richest, but does not capture influence efforts in advanced democracies.
 
-Articles that do not clearly fit any category are coded as `-999` in the
-underlying data and are used only to compute the total article
-denominator; they are not included in the category indices.
-
-To collect reporting on our 21 influence categories, we built the
+To collect reporting on RAI, we built the
 *HQMARC* corpus, covering `r num_countries` countries from 2012 through
-August 2025. *HQMARC* includes more than 100 million articles from 16
+August 2025. *HQMARC* includes more than 120 million articles from 16
 international outlets, 12 regional outlets, and `r sum_lengths` domestic
 newspapers. Domestic sources account for 95% of articles, with a median
 of `r median(result_df$lsources_len)` domestic sources per country (see
-Supplementary Materials *Distribution of Domestic Sources*).
+Supplementary Materials *Distribution of Domestic Sources*). This extensive domestic coverage is key because large international outlets barely cover many countries and only the most egregious influence efforts when they do. 
 
 We identify domestic sources using university library guides, Reporters
-Sans Frontieres profiles, and NGO and USAID recommendations, and we
-review each outlet's ownership and editorial affiliation. We include
+Sans Frontieres profiles, and partner recommendations. We include
 both independent and state-affiliated sources, aiming for at least 50%
 independent coverage per country; where this is not achievable, we apply
 weighting to reduce the influence of heavily state-aligned ecosystems
@@ -478,34 +448,28 @@ weighting to reduce the influence of heavily state-aligned ecosystems
 
 Rather than using generic crawlers or pre-canned scraping tools, we
 build custom scrapers and parsers to capture each outlet's complete
-publication history. This "medium data" approach yields higher coverage
+publication history. This approach yields higher coverage
 and stability than large aggregators such as GDELT, Common Crawl, or the
 Internet Archive. *HQMARC's* human-supervised scraping produces a corpus
 with a more stable, well-understood composition than widely used
 alternatives
-[@ml4p2024tracking].\footnote{For each source, we develop and deploy a custom scraper to accommodate the website architecture and a custom parser to extract the publication date, title, and story text from each article. Depending on website architecture, we obtain news articles by scraping sitemaps, newspaper archives, or by simulating infinite clicking/scrolling using Selenium. In order to avoid storing the same article multiple times, we de-duplicate based on URL and title similarity for articles published on the same day. We update these scrapers on a quarterly basis to maintain accuracy and comprehensiveness.}
-We primarily rely on open-access or permissioned content; paywalled
-sources are underrepresented, which may bias coverage in some contexts.
+[@ml4p2024tracking].\footnote{Depending on website architecture, we obtain news articles by scraping sitemaps, newspaper archives, or by simulating infinite scrolling using Selenium. We de-duplicate articles based on URL and title similarity. We update these scrapers on a quarterly basis to maintain accuracy and comprehensiveness.} We overwhelmingly rely on open-access content.
 <!--  -->
 
 To accommodate a large volume of articles in diverse languages, we
-translate articles into English with open-source NMT tools and then
-extract locations and influence categories from the translated text.
-Given the well-documented biases in English-language news sources
+translate articles into English and then extract locations and influence categories from the translated text. Given the well-documented biases in English-language news sources
 [@baum2015] even on relatively uncontroversial topics like natural
 disasters [@brimicombe2022], we include non-English newspapers in our
-corpus.\footnote{We use neural machine translations (NMT) through Hugging Face or OpenNMT to translate into English. We test the efficacy of all translation models by extracting sample text from articles published in each language and running the text through all available translation models on the Hugging Face open database. We then assess whether the translations are sufficient to identify the main influence category being reported on. If they are not, we compare the performances with those of our other APIs and choose the one that yields the optimal sentence-to-sentence translations with sufficient human readability.}
-See Supplementary Materials *Languages in HQMARC* for a list of
+corpus.\footnote{We use neural machine translations (NMT) through Hugging Face or OpenNMT to translate into English. We test the efficacy of all translation models by extracting sample text and running the text through all available translation models on the Hugging Face open database. We then assess whether the translations are sufficient to identify the main influence category being reported on. If they are not, we compare the performances with those of our other APIs and choose the one that yields the optimal sentence-to-sentence translations with sufficient human readability.} See Supplementary Materials *Languages in HQMARC* for a list of
 languages by country.
 
 To classify influence categories, we fine-tuned a ModernBERT-large
-classifier on 10,329 labeled articles (22 classes including `-999`). We
-evaluate with 5-fold cross-validation and a held-out test set
+classifier on 10,329 labeled articles (22 classes including `-999` for articles that do not clearly fit any category). We evaluate with 5-fold cross-validation and a held-out test set
 ($n=1{,}550$). Cross-validation accuracy averages 0.926 with macro F1 of
 0.885; held-out test accuracy is 0.923 with macro F1 of 0.883.
 Performance is strongest for high-signal categories (e.g., cyber attack,
 joint military exercise) and lower for linguistically diffuse categories
-such as diplomatic statements. For this reason, the main text emphasizes
+such as diplomatic statements. For this reason, our analysis below emphasizes
 theme-level indices; category-level patterns are reported in the
 Supplementary Materials.
 <!-- For Helsinki-NLP model, it’s roughly 600 characters for maintext and title. However, it depends on the huggingface models and the original language. Also, if it’s deep_translator that we use for specific languages, it’s 600 for maintext only. -->
@@ -520,7 +484,7 @@ and validation tests. To ensure that reporting is assigned to the
 correct target country, we geoparse the first 600 characters of text and
 identify all locations mentioned. If no country is found, we assign the
 article to the country in which the publishing outlet is
-based.\footnote{For international and regional outlets, articles are only assigned to a country if they explicitly mention a location within that country in the first 600 characters. To locate locations and identify those happening within a target country, we use the CLIFF-CLAVIN geoparser with the GeoNames ontological gazetteer. GeoNames is one of the most comprehensive and well-maintained sources of geographic data available, containing over 12 million unique location names across 250 countries [@dignazio2014cliff]. CLIFF API has detailed information on the locations detected, and we retrieve and convert the country codes of each location to assign the article to a specific location(s). We implement several corrections to the underlying CLIFF system, including overriding an error that assigns mentions of \enquote{West Africa} to Angola and the assignment of \enquote{Gaza} to locations named \enquote{Ghaza} in Algeria and Pakistan.}
+based.\footnote{For international and regional outlets, articles are only assigned to a country if they explicitly mention a location within that country. We use the CLIFF-CLAVIN geoparser with the GeoNames ontological gazetteer. GeoNames is one of the most comprehensive and well-maintained sources of geographic data available, containing over 12 million unique location names across 250 countries [@dignazio2014cliff]. CLIFF API has detailed information on its locations, and we retrieve and convert the country codes of each location to assign the article to a specific location(s). We implement several corrections to the underlying CLIFF system.}
 <!-- we use 1200 for english language articles and all translated text for originally non-English articles. -->
 <!-- For technical details on CLIFF, see: \href{https://github.com/mediacloud/cliff-annotator}{CLIFF Annotator}. \href{https://www.geonames.org/}{GeoNames} is a free, online database containing the names and location of populated places and geographic features all over the world. -->
 
@@ -535,18 +499,14 @@ influence category is reported relative to overall news volume. We
 construct theme indices by summing category-specific reporting
 intensities within each theme (Table \ref{rai_theme}), and we also
 construct a total index that sums across all categories for Russia,
-China, and both influencing countries combined. Finally, we supplement those measures with an indicator variable identifying months when major RAI surges occurred. To do so, we developed an ensemble algorithm to detect large increases in the share of reporting dedicated to event categories. We refer to these increases as *surges*. We label a month as having a surge in RAI activity when either the statistical or neural network model detects one. Full details on model design, parameter tuning, and validation are provided in Supplemental Material. 
+China, and both influencing countries combined. Finally, we supplement those measures with an indicator variable identifying months when major RAI "surges" occurred. To do so, we developed an ensemble algorithm to detect large increases in the share of reporting dedicated to event categories. We refer to these increases as *surges*. Full details on model design, parameter tuning, and validation are provided in Supplemental Material. 
 
 
 ![RAI data production pipeline.](mermaid.png){#fig-mermaid
 fig-align="center" width="650"}
 
 The supplementary pipeline schematic provides a graphic representation
-of the *RAI* data production pipeline. For each country, this process is
-repeated every 90 days. Quality assurance measures are in place at
-multiple steps in this process. Before processing, we confirm that
-translation worked as expected and check every source to ensure that the
-volume of articles and their distribution across days conform to past
+of the *RAI* data production pipeline. We update each country about every 90 days. Quality assurance measures are in place at multiple steps in this process. Before processing, we check every source to ensure that the volume of articles and their distribution across days conform to past
 updates. After processing, we calculate correlations between old and new
 data and check a standard set of comparison visualizations.
 
@@ -570,9 +530,7 @@ Burkina Faso, Mali, and Niger. Red lines mark coup months. In all three
 cases, reporting is relatively muted prior to the coup periods and then
 rises sharply around the coups, with sustained higher volatility
 afterward—especially in Mali (2021) and Niger (2023). These patterns are
-consistent with well-known shifts in security partnerships, though we
-interpret them as changes in *reported* activity rather than direct
-counts of discrete actions. See Supplementary Materials *High-Profile
+consistent with well-known shifts in security partnerships. See Supplementary Materials *High-Profile
 Influence Operations* for a figure combining all influence reporting
 into one index.
 
@@ -654,39 +612,37 @@ ggplot(dat, aes(x = date, y =  rai_idx_dip)) +
 ```
 
 These cases illustrate recent, high-profile efforts by Russia and China to exert influence over low- and
-middle-income countries and show how RAI captures these episodes in reporting. Our second validation effort
-involves assessing the capacity of our data to detect lesser know surges in RAI activity. To do so, we audit 86 randomly selected RAI surges across 20 event types and 40 countries. For each surge we reviewed every article classified as the corresponding event type, assess whether it is classified and geoparsed properly, and assess whether the RAI surge withstands any misclassified articles.\footnote{For example, we detect a surge in Chinese foreign investment in Ghana in July of 2017. That surge was identified on the basis of 14 individual articles. In reading those articles, we find that all were properly geoparsed and that 10 were correctly classified as being about Chinese investments (in bauxite), while four were better classified as bearing on corruption related to Chinese investments in Ghana. The 10 successfully classified articles qualify as a surge according to our surge detection algorithm, so we assess this as a correctly identified surge.} Across the 86 surges encompassing 862 articles, our surge detection accurately identified 88 percent (76 of 86) of them. The 10 false positives were covered by two classes of limitations inherent in our work. First, in countries with low news volumes in the *HQMARC* corpus (for instance, Tanzania and Cameroon) our country-specific approach to surge detection is more likely to flag months with a small number of RAI articles; these low-volume surges are inherently more sensitive to even a small number of article misclassifications. Unfortunately, despite our best efforts to identify scrapable sources, we cannot increase the volume of media output in low volume countries. Second, in a few cases geoparsing mistakes result in falsely identifying surges. Geoparsing is inherently challenging since articles published in one country are often about events in another country. Individual articles in Armenia, for instance, might have bylines from the capital city of Yerevan but be about arms transfers to Azerbaijan rather than to Armenia.\footnote{This example accounts for one of our surge 'misses'.} Despite, these challenges, our validation efforts confirm that our RAI data correctly captures major, much discussed surges in Russian and Chinese foreign activity *and* most far less conspicuous surges. See Supplementary Materials *Surge Validation* for further details.    
+middle-income countries and show how RAI captures them. Our second validation effort
+involves assessing the capacity of our data to detect lesser know surges in RAI activity. To do so, we audit 86 randomly selected RAI surges across 20 event types and 40 countries. For each surge we reviewed every article classified as the corresponding event type, assess whether it is classified and geoparsed properly, and assess whether the RAI surge withstands any misclassified articles.\footnote{For example, we detect a surge in Chinese foreign investment in Ghana in July of 2017. That surge was identified on the basis of 14 individual articles. In reading those articles, we find that all were properly geoparsed and that 10 were correctly classified as being about Chinese investments (in bauxite), while four were better classified as bearing on corruption related to Chinese investments in Ghana. The 10 successfully classified articles qualify as a surge according to our surge detection algorithm, so we assess this as a correctly identified surge.} Across the 86 surges encompassing 862 articles, our surge detection accurately identified 88 percent (76 of 86) of them. The 10 false positives suggest two classes of limitations inherent in our work. First, in countries with low news volumes in the *HQMARC* corpus (for instance, Tanzania and Cameroon) our country-specific approach to surge detection is more likely to flag months with a small number of RAI articles; these low-volume surges are inherently more sensitive to even a small number of article misclassifications. Unfortunately, despite our best efforts to identify scrapable sources, we cannot increase the volume of media output in low volume countries. Second, in a few cases geoparsing mistakes result in falsely identifying surges. Geoparsing is inherently challenging since articles published in one country are often about events in another country. Individual articles in Armenia, for instance, might have bylines from the capital city of Yerevan but be about arms transfers to Azerbaijan rather than to Armenia.\footnote{This example accounts for one of our surge 'misses'.} Despite, these challenges, our validation efforts confirm that our RAI data correctly captures major, much discussed surges in Russian and Chinese foreign activity *and* most far less conspicuous surges. See Supplementary Materials *Surge Validation* for further details.    
 
 ## Describing Authoritarian Influence Using RAI Data
 
 In this section, we describe *RAI* activity between 2012 and August
-2025. Because *RAI* is a reporting-based measure, the figures should be
-interpreted as shifts in reporting salience rather than verified action
-counts; we therefore treat the analyses as descriptive and avoid causal
-claims.  In the remainder of this
-section, we zoom-out to analyze broader trends in foreign influence
-across aid-receiving countries. To simplify the analysis, we break our
-data into two historical periods: 2012-2021 and 2022-2025 (through
-August 2025). We choose these periods because we see the nature of
-influence activity begin to change in the months around Russia's invasion of Ukraine. For higher-frequency visualizations, see
-Supplementary Materials *Dominant Themes at Higher Frequency*.
+2025. Because *RAI* is a reporting-based measure, we treat the analyses as descriptive and avoid causal claims.  In the remainder of this section, we zoom-out to analyze broader trends in foreign influence across aid-receiving countries. To simplify the analysis, we break our
+data into two historical periods: 2012-2021 and 2022-2025. We choose these periods because we see the nature of influence activity begin to change in the months around Russia's invasion of Ukraine. For higher-frequency visualizations, see Supplementary Materials *Dominant Themes at Higher Frequency*.
 
 Throughout, aggregation from the monthly level to period averages is
 performed *after* normalization, treating each country-month equally.
 This ensures that shifts across periods reflect broad-based trends
 rather than a few high-activity months, and hedges against isolated
 misclassification errors. The approach does not affect the substantive
-findings; alternative figures using pre-normalization aggregation are in
-the Supplementary Materials.
+findings.
 
 We begin by using the six themes in Table \ref{rai_theme} to describe
 the most frequently reported-on tools used by Russia and China.
 Specifically, we calculate the most frequently reported-on theme for
 each country-period. This approach counts all classified articles
-equally, but we expect that influence activity will receive coverage
-roughly in accord with domestic significance, with more significant
-developments being covered by multiple articles published in multiple
-sources over multiple days or weeks.
+equally. @fig-map_dominant-theme shows the dominant *RAI* tool by country for two
+periods. The left panel captures reports of Chinese influence and the
+right panel captures reports of Russian influence. For China, Economic
+Power remains the most dominant theme across countries in both
+periods, while Diplomacy becomes dominant in a growing subset of cases
+in 2022–2025. When pooling across countries at the monthly level,
+Diplomacy’s share of reported Chinese influence rises from `r cd1`
+(2012–2016) to `r cd2` (2017–2021) to `r cd3` (2022–2025), suggesting a
+gradual rebalancing rather than a wholesale shift away from economic
+tools.
+
 
 ```{r}
 #| echo: false
@@ -735,16 +691,6 @@ rd3 = paste0(round(dip_av[dip_av$influencer == "Russia" & dip_av$period == "2022
 
 ```
 
-@fig-map_dominant-theme shows the dominant *RAI* tool by country for two
-periods. The left panel captures reports of Chinese influence and the
-right panel captures reports of Russian influence. For China, Economic
-Power remains the most common dominant theme across countries in both
-periods, while Diplomacy becomes dominant in a growing subset of cases
-in 2022–2025. When pooling across countries at the monthly level,
-Diplomacy’s share of reported Chinese influence rises from `r cd1`
-(2012–2016) to `r cd2` (2017–2021) to `r cd3` (2022–2025), suggesting a
-gradual rebalancing rather than a wholesale shift away from economic
-tools.
 
 For Russia, the distribution is more mixed. Diplomacy is frequently
 dominant, but Hard Power becomes more salient in several countries after
@@ -1056,20 +1002,10 @@ ggsave(here::here("writing/output/map_russia-influence-share.png"), fig, height 
 @fig-map_russia-influence-share plots Russia's share of total *RAI*
 reporting (Russia / \[Russia + China\]) for each country across periods.
 Because this is a *relative* measure, it is best interpreted as the
-balance of reporting between the two actors rather than absolute
-intensity. The map suggests that Russian reporting dominates in parts of
-Eastern and Central Europe and several Sahel countries, while Chinese
-reporting is more dominant in parts of Southeast Asia and across much of
-Sub-Saharan Africa. Latin America and North Africa appear more mixed. We
-therefore interpret this figure in tandem with the absolute-level plots
-below.
-
-Second, we see evidence of shifts in *relative* reporting shares over
-time. In 2022–2025, Russia’s share of reporting increases in parts of
-the Sahel and North Africa, while China retains dominance in much of
-Sub-Saharan Africa and Southeast Asia. Because these patterns are
-compositional, we interpret them as suggestive and rely on
-absolute-level plots below for inference about magnitude.
+balance of reporting between the two actors. The map suggests that Russian activity dominates in parts of Eastern and Central Europe and several Sahel countries, while Chinese
+activity is more dominant in parts of Southeast Asia and across much of
+Sub-Saharan Africa. Latin America and North Africa appear more mixed. Second, we see evidence of shifts in *relative* influence shares over time. In 2022–2025, Russia’s share of reporting increases in parts of the Sahel and North Africa, while China retains dominance in much of
+Sub-Saharan Africa and Southeast Asia.
 
 These descriptive patterns correspond with popular narratives that
 highlight growing Chinese influence in Africa and Latin America during
@@ -1078,15 +1014,13 @@ Africa and Southeast Asia [@ferragamo2023russias;
 @kurlantzick2023russias; @gvosdev2016putin]. This correspondence
 provides face validity for *RAI*, while also underscoring the importance
 of cautious interpretation: salience in international discourse can
-still shape local reporting, even when category classification focuses
-on concrete categories and coverage is dominated by domestic outlets.
+still shape local reporting, even when coverage is dominated by domestic outlets.
 
 In summary, the descriptive patterns suggest a rising emphasis on
 Diplomacy in reported influence activity for both Russia and China,
-alongside a post-2022 rise in Russian Hard Power reporting. Economic
+alongside a post-2022 rise in Russian Hard Power. Economic
 Power remains central for China, though its relative prominence
-fluctuates. These results should be interpreted as shifts in *reported*
-influence activity rather than direct counts of underlying developments.
+fluctuates.
 
 <!-- campaign in the wake of the Ukraine invasion [@mcglynn2023russia].  -->
 
@@ -1161,12 +1095,10 @@ rm(df, dfp, dfp_c_share, rc1, rc2, rc3, all_dates)
 
 The supplementary absolute-level plot (articles per 10k published) shows
 Russian and Chinese *RAI* reporting over time. Reporting on Russian
-influence spikes around the annexation of Crimea (March 2014) and surges
+influence spikes around the annexation of Crimea (March 2014) and
 again around the invasion of Ukraine (February 2022), remaining elevated
 through mid-2023. Chinese reporting is comparatively stable through much
-of the series but rises in 2024–2025. There is a spike in Chinese
-activity in February 2020 coinciding with the acceleration of COVID
-cases; if anything, China appears to have withdrawn internationally
+of the series but rises in 2024–2025. If anything, China appears to have withdrawn internationally
 during the pandemic rather than intensifying its influence efforts.
 Because aggregation is performed after normalization, the post-2022
 increase in Russian reporting reflects broad-based activity across many
@@ -1176,23 +1108,18 @@ The supplementary country-level period-change plot shows the percentage
 change in average monthly *RAI* articles between 2012–2021 and
 2022–2025. Russian influence increased broadly, with especially large
 gains in the Sahel and in
-Nicaragua.[@newshub_russia_nicaragua_2022]
-Notably, the increase was weakly negatively correlated with prior
-Russian activity (`r rc_list[1]`), suggesting Russia expanded most in
+Nicaragua [@newshub_russia_nicaragua_2022]. Notably, the increase was weakly negatively correlated with prior Russian activity (`r rc_list[1]`), suggesting Russia expanded most in
 places where it had been least active. The pattern for China is more
 heterogeneous, with increases in countries where China deepened
-engagement (Ukraine, Nicaragua, Honduras, Cambodia) alongside declines
+engagement (Ukraine, Honduras, Cambodia) alongside declines
 elsewhere. Changes in Russian and Chinese influence across countries
-were only weakly correlated (`r rc_list[3]`), suggesting the two powers
-were targeting different countries. These figures are included in the
-Supplementary Materials.
+were only weakly correlated (`r rc_list[3]`), suggesting the two powers target different countries. 
 
 ## Use Case: Testing Expectations of Russian Influence Activity
 
-Here we provide a use case of the RAI data by focusing on Russian foreign activity in the lead up to its invasion of Ukraine in February 2022. The use case exploits the distinctive, high-frequency nature and  multiple dimensions of RAI activity to provide distinctive insights into Russia's attempt to craft support for the invasion. While we do not provide a test of an original theoretical argument, we also provide evidence that it increased activity in ways and in countries that are analytically coherent.  
+Here we provide a use case of the RAI data by focusing on Russian foreign activity in the lead up to its invasion of Ukraine in February 2022. The use case exploits the distinctive, high-frequency nature and  multiple dimensions of RAI activity to provide distinctive insights into Russia's attempt to craft support for the invasion. While we do not provide a test of an original theoretical argument, we do show that it increased activity in ways and in countries that are analytically coherent.  
 
-By fall 2021, U.S. intelligence suggests Putin had decided to invade Ukraine [@sanger2024new pp. 237-240]. In response, the U.S. began attempting to convince
-skeptical European allies that this flagrant violation of international law was imminent and that a decisive international response would be necessary. We argue that Russia likely used this window of opportunity to engage in strategic behavior designed to mitigate international backlash. Knowing that many aid-receiving countries would be pressured by the U.S. and its allies to isolate Russia, we expect that Russia increased foreign influence operations to strengthen their diplomatic, military, and economic ties with these countries in the months before the invasion.\footnote{We refer to these as theoretical "expectations" rather than hypotheses because they were not pre-specified before looking at the data. We observed the aggregate increase first and then generated theoretical expectations about which themes should drive it.} 
+By fall 2021, U.S. intelligence suggests Putin had decided to invade Ukraine [@sanger2024new pp. 237-240]. In response, the U.S. attempted to convince European allies that this violation of international law was imminent. We argue that Russia likely used this window of opportunity to engage in strategic behavior designed to mitigate international backlash. Knowing that many aid-receiving countries would be pressured by the U.S. and its allies to isolate Russia, we expect that Russia increased foreign influence operations to strengthen their diplomatic, military, and economic ties with those countries in the months before the invasion. 
 
 Why would Russia focus on diplomatic, military, and economic ties before
 a high-stakes offensive? Soft Power and Domestic Interference tools are
@@ -1202,13 +1129,13 @@ Diplomacy, by contrast, can quickly strengthen bilateral relationships,
 reaffirm existing commitments, and pre-emptively signal consequences for
 defection—making it well-suited to securing cooperation before an action
 likely to generate international blowback. Economic Power tools such as aid, investments, and trade agreements deepen interdependence, raising the costs of cooperating with US-inspired sanctions regimes. Hard Power tools—arms transfers, joint exercises, security
-agreements—provide immediate incentives for target country elites and
+agreements—provide immediate incentives for target countries and
 allow Russia to gain combat experience and test technology before a
 larger conflict [@goodson2023; @kagan2020]. Importantly, these tools are most
 valuable when deployed *before* conflict begins; once military
 activities commence, resources shift to the conflict and the window for
 influence preparation
-closes.\footnote{Because Backlash is not an intentional type of influence, we do not consider it here.}
+closes.
 
 To test these expectations, we use change-point detection to identify countries where Russia increased influence operations in the six months before the invasion of Ukraine—the
 window when the decision was likely already made [@sanger2024new].
@@ -1344,7 +1271,7 @@ p_di <- p_fmt(get_p("rai_idx_di"))
 @fig-changepoint_themes presents evidence broadly consistent with our
 expectations. For Diplomacy, Hard Power, and Economic Power, there is a
 clear clustering of change-points in the six months before the invasion.
-To test this systematically, we count the number of countries with
+To test this, we count the number of countries with
 change-points for each six-month period and regress those counts on an
 indicator for the pre-invasion period. Across our six themes, this
 indicator is statistically significant for Diplomacy (`r p_dip`) and
@@ -1484,74 +1411,19 @@ months from August 2021–January 2022), we pull all relevant articles
 from *HQMARC* (`r format(audit_articles, big.mark = ",")` articles
 total) and prompt GPT-4 to summarize the key developments reported. We
 then assess whether each change-point reflects genuine Russian influence
-or misclassification. These summaries are used only for validation and
-do not feed back into *RAI* measures.
-
-Change-point months are typically a period of slightly elevated activity
+or misclassification. Change-point months are typically a period of slightly elevated activity
 *before* the main surge, not the peak itself. These initial months thus
 contain fewer articles and are more prone to misclassification, making
 the audit a demanding test of the data's ability to detect genuine
-influence episodes (see Supplementary Materials *Change-point Months in
-Time-Series*).
-
-Within the audited Diplomacy change-point months, misclassification
-accounts for `r audit_dip_false` of `r audit_dip_total` change-point
-months before the invasion. In change-point months between August 2021
-and January 2022, misclassification is driven by domestic news outlets
-reporting on geopolitics for Peru. Alternatively, genuine Russian
-influence activity in this period included talks on bilateral
-cooperation with Belarus, Benin, and Mali, a Russian diplomatic visit to
-the border between Kosovo and Serbia, and a celebration of diplomatic
-ties in Bangladesh. Diplomatic engagements with Ukraine accounts for the
-final change-point. Although we see some change-point months driven by
-misclassification, the number driven by real-world developments in the
-pre-invasion period is still well above the historical average.
-<!-- Georgia denies entry to Russian opposition figure -->
-<!-- Diplomats evacuate -->
-
-Within the audited Hard Power change-point months, misclassification
-accounts for `r audit_hp_false` of `r audit_hp_total` change-point
-months before the invasion. In change-point months between August 2021
-and January 2022, misclassification is driven by domestic news outlets
-reporting on security concerns/responses related to Russia's activities
-in a neighboring country (Senegal and Timor Leste) and Russia's broader
-geopolitical influence (Cameroon, Peru, and Bangladesh). Alternatively,
-genuine Russian influence activity in this period included agreements on
-military cooperation (Mali, Belarus), concerns about military activity
-in a neighboring country (Colombia), a joint military exercise (Angola),
-and the transfer of military technology and equipment (Burkina Faso,
-India). Again, although we see a few change-point months driven by
-misclassification, the number driven by real-world developments in the
-pre-invasion period is still well above the historical average.
-
-For Economic Power, misclassification accounts for `r audit_ep_false` of
-`r audit_ep_total` change-point months before the invasion, driven by
-domestic news outlets in Cameroon reporting on how Russian influence
-elsewhere in the world will impact the Cameroonian economy. The threat
-of retaliatory sanctions against Ukraine accounts for another
-change-point. Genuine influence activity includes a \$620 million
-investment to prevent environmental damage from aluminum production in
-Jamaica, initial talks on major investments in Kenya's infrastructure to
-promote agricultural exports to Russia, and promises from a Russian
-parastatal to help Rwanda develop nuclear energy. Although evidence for
-increased use of Economic Power is less strong than the other themes,
-three genuine change-point episodes (excluding one misclassification and
-1 episode targeting Ukraine) in the six months before the invasion is
-still higher than the average rate of `r cp_ep_prev5_avg` change-points
-per six months over the five preceding years.
-
-In summary, we find strong evidence that Russia increased foreign
-influence activities in the months before their invasion of Ukraine,
+influence episodes. A modest number of misclassifications aside, we find strong evidence that Russia increased foreign influence activities in the months before their invasion of Ukraine,
 especially in Diplomacy and Hard Power. Economic Power shows a smaller
 and statistically weaker pre-invasion surge. The reported influence
 activities underlying these trends appear consistent with attempts by
 Russia to shore-up bilateral relationships and encourage governing
 elites in target countries to maintain and deepen cooperation with
-Russia over the medium-term.
+Russia over the medium-term. See Supplementary Materials *Change-point Months in Time-Series* for full details.
 
-Having established descriptively that Russia expanded its foreign influence activities in many countries before the invasion of Ukraine, we turn to a more analytical question: Where would powerful countries target influence operations to most
-effectively mitigate blowback? We theorize three characteristics that
-might determine which countries were targeted for pre-emptive Russian
+Having established descriptively that Russia expanded its foreign influence activities in many countries before the invasion of Ukraine, we turn to a more analytical question: Where would Russia target influence operations to most effectively mitigate blowback? IR theory suggests three characteristics that might determine which countries were targeted for pre-emptive Russian
 influence operations. First, an influencing country might target
 countries that are ideologically similar. The leadership in
 ideologically similar countries may have higher baseline trust, easing
@@ -1619,10 +1491,7 @@ We operationalize economic dependence by identifying commodities on
 which Russia is heavily reliant, either for imports or exports, and then
 identifying countries that trade in those commodities. We use
 comprehensive data on global imports and exports from UN COMTRADE from
-2015--2023 (the latest COMTRADE coverage used in this update).
-
-First, we define criteria to categorize countries as import-reliant or
-export-reliant on specific commodities. Second, we identify countries
+2015--2023 (the latest COMTRADE coverage used in this update). First, we define criteria to categorize countries as import-reliant or export-reliant on specific commodities. Second, we identify countries
 that are major exporters of commodities on which Russia is
 import-reliant, referred to as *Import-Reliance Exporters (IREs)*.
 Third, we identify countries that are import-reliant on commodities for
@@ -1635,13 +1504,13 @@ Dependence* for a detailed discussion and figures describing how these
 categories are defined.
 
 Our dependent variable is an indicator capturing whether the country
-experienced the onset of a reporting-based influence spike in the six
+experienced the onset of an RAI influence spike in the six
 months before Russia's invasion. Using OLS, we regress these on each
 independent variable described above. For each of the three focal *RAI*
 themes (Diplomacy, Hard Power, and Economic Power), we run one model
 with all independent variables excluding UN Ideal Point Distance (UNIPD)
 to China and one model including only UNIPD to China. We run separate
-models to avoid collinearity between UNIPD partners. Table 9 presents
+models to avoid collinearity between UNIPD partners. Table 2 presents
 the
 results.\footnote{Our sample includes `r n_strategic` of the `r num_countries` countries in the *RAI* data. We lose `r num_countries - n_strategic` countries from the *RAI* sample due to missing COMTRADE data.}
 
