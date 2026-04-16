@@ -1,7 +1,8 @@
 ---
 title: "Foreign Influence by Authoritarian Governments: Introducing New Data and Evidence "
 # subtitle: Explore the data using our [Shiny apps](https://web.sas.upenn.edu/mlp-devlab/rai/) 
-abstract: Policymakers are increasingly concerned about the revival of superpower conflict. Increased competition among great powers has been especially evident in the exercise of foreign influence, where Russia and China have increased their efforts to influence less powerful nations. To date, the absence of quantitative data has limited systematic investigation of this resurgence of authoritarian influence activity. We introduce a new, country-month dataset tracking reports of influence by Russia and China in 66 aid-receiving low- and middle-income countries from 2012 through August 2025. We construct the data by applying large language models (LLMs) to an original corpus of more than 120 million news articles sourced from high-quality, domestic news sources and use it to describe trends in influence activity over time and across countries. Finally, as a test case, use the data to examine Russian influence activity in the months before the invasion of Ukraine. We document a dramatic, previously undetected, pre-invasion surge in diplomacy and hard power reporting across many countries. In doing so, we show that this data is useful for both theory testing and foreign policy decision-making.
+abstract: Policymakers are increasingly concerned about the revival of superpower conflict, which is particularly evident in Russia’s and China’s intensifying efforts to influence less powerful nations. To date, the absence of quantitative data has limited systematic investigation of this resurgence of authoritarian influence activity. We introduce a new country-month dataset tracking reports of Russian and Chinese influence across 66 aid-receiving low- and middle-income countries from 2012 through August 2025. We construct the data using large language models applied to an original corpus of over 120 million articles from high-quality domestic news sources. We use these data to describe temporal and cross-national trends in influence activity. As a test case, we examine Russian activity prior to the invasion of Ukraine, documenting a dramatic and previously undetected surge in diplomacy and hard power reporting across countries. These findings demonstrate the dataset’s value for both theory testing and foreign policy analysis.
+# ORIGINAL ABSTRACT: Policymakers are increasingly concerned about the revival of superpower conflict. Increased competition among great powers has been especially evident in the exercise of foreign influence, where Russia and China have increased their efforts to influence less powerful nations. To date, the absence of quantitative data has limited systematic investigation of this resurgence of authoritarian influence activity. We introduce a new, country-month dataset tracking reports of influence by Russia and China in 66 aid-receiving low- and middle-income countries from 2012 through August 2025. We construct the data by applying large language models (LLMs) to an original corpus of more than 120 million news articles sourced from high-quality, domestic news sources and use it to describe trends in influence activity over time and across countries. Finally, as a test case, use the data to examine Russian influence activity in the months before the invasion of Ukraine. We document a dramatic, previously undetected, pre-invasion surge in diplomacy and hard power reporting across many countries. In doing so, we show that this data is useful for both theory testing and foreign policy decision-making.
 # thanks: This study was funded by the United States Agency for International Development (USAID) Bureau for Democracy, Human Rights, and Governance. We would like to thank many partners in the NGO and policy world who have helped in the development of this work, including Laura McKechnie, Dan Spealman, Asta Zinbo, Daniel Sabet, Erin McCarthy, and David Jacobstein. We also thank several researchers who were instrumental in the origins of this project, including Scott de Marchi, Spencer Dorsey, and Clara Suong, and a number of others who made critical contributions along the way, including Rethis Togbedji Gansey, Jitender Swami, Mahda Soltani, Andreas Beger, Tim McDade, Akanksha Bhattacharyya, and Joan Timoneda.
 date: today 
 date-format: long
@@ -25,12 +26,6 @@ authors:
 #    corresponding: false
 #    email: serkant.adiguzel@sabanciuniv.edu
 #    equal-contributor: false
-#  - name: Mateo Villamizar Chaparro
-#   affiliations:
-#      - ref: ucu
-#    corresponding: false
-#    email: santiago.villamizar@ucu.edu.uy
-#    equal-contributor: false
 #  - name: Zung-Ru Lin
 #    affiliations:
 #      - ref: upenn1
@@ -49,6 +44,12 @@ authors:
 #      - ref: uta
 #    corresponding: false
 #    email: diego.romero@austin.utexas.edu
+#    equal-contributor: false
+#  - name: Mateo Villamizar Chaparro
+#   affiliations:
+#      - ref: ucu
+#    corresponding: false
+#    email: santiago.villamizar@ucu.edu.uy
 #    equal-contributor: false
 #  - name: Erik Wibbels
 #    affiliations:
