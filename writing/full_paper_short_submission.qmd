@@ -388,7 +388,7 @@ on actions by a government or state-linked actor intended to shape
 another country’s domestic or foreign policy. We developed the categories by reviewing prior research and consulting with civil-society and policy
 partners. We group the 21 categories into six broader themes and
 construct theme indices by summing category-level reporting intensities.
-Table \ref{rai_theme} lists the themes, definitions, and
+Table 1 lists the themes, definitions, and
 categories.\footnote{See Supplementary Materials *Category Definitions* for category-level definitions.}  
 
 ```{=latex}
@@ -504,7 +504,7 @@ resulting measures are *shares of reporting*, not verified counts of
 discrete actions or incidents, and they capture how frequently each
 influence category is reported relative to overall news volume. We
 construct theme indices by summing category-specific reporting
-intensities within each theme (Table \ref{rai_theme}), and we also
+intensities within each theme (Table 1), and we also
 construct a total index that sums across all categories for Russia,
 China, and both influencing countries combined. Finally, we supplement those measures with an indicator variable identifying months when major RAI "surges" occurred. To do so, we developed an ensemble algorithm to detect large increases in the share of reporting dedicated to event categories. We refer to these increases as *surges*. Full details on model design, parameter tuning, and validation are provided in Supplemental Material. 
 
@@ -682,7 +682,7 @@ rd3 = paste0(round(dip_av[dip_av$influencer == "Russia" & dip_av$period == "2022
 
 ```
 
-We begin by using the six themes in Table \ref{rai_theme} to describe
+We begin by using the six themes in Table 1 to describe
 the most frequently reported-on tools used by Russia and China.
 Specifically, we calculate the most frequently reported-on theme for
 each country-period. This approach counts all classified articles
