@@ -6,6 +6,10 @@ abstract: Policymakers are increasingly concerned about the revival of superpowe
 date: today 
 date-format: long
 authors:
+  - name: "Anonymized Author(s)"
+    affiliations:
+      - ref: anon
+    equal-contributor: false
 #   - name: "Main text word count without references: 5,800"
 #   - name: "References word count: 735"
 #  - name: Jeremy Springman
@@ -53,7 +57,9 @@ authors:
 #    corresponding: true
 #    email: ewibbels@sas.upenn.edu
 #    equal-contributor: false
-#affiliations:
+affiliations:
+  - id: anon
+    name: "Anonymised Institution(s)"
 #  - id: upenn1
 #    name: PDRI-DevLab, University of Pennsylvania
 #  - id: upenn2
