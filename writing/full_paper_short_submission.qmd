@@ -1,5 +1,5 @@
 ---
-title: "Foreign Influence by Authoritarian Governments: Introducing New Data and Evidence "
+title: "Foreign Influence by Authoritarian Governments: Introducing New Data and Evidence\\footnotemark"
 # subtitle: Explore the data using our [Shiny apps](https://web.sas.upenn.edu/mlp-devlab/rai/) 
 abstract: Policymakers are increasingly concerned about the revival of superpower conflict, which is particularly evident in Russia’s and China’s intensifying efforts to influence less powerful nations. To date, the absence of quantitative data has limited systematic investigation of this resurgence of authoritarian influence activity. We introduce a new country-month dataset tracking reports of Russian and Chinese influence across 66 low- and middle-income countries from 2012 through August 2025. We construct the data using large language models applied to an original corpus of over 120 million articles from high-quality domestic news sources. We use these data to describe temporal and cross-national trends in influence activity. As a test case, we examine Russian activity prior to the invasion of Ukraine, documenting a dramatic and previously undetected surge in diplomacy and hard power reporting across countries. These findings demonstrate the dataset’s value for both theory testing and foreign policy analysis.
 # ORIGINAL ABSTRACT: Policymakers are increasingly concerned about the revival of superpower conflict. Increased competition among great powers has been especially evident in the exercise of foreign influence, where Russia and China have increased their efforts to influence less powerful nations. To date, the absence of quantitative data has limited systematic investigation of this resurgence of authoritarian influence activity. We introduce a new, country-month dataset tracking reports of influence by Russia and China in 66 aid-receiving low- and middle-income countries from 2012 through August 2025. We construct the data by applying large language models (LLMs) to an original corpus of more than 120 million news articles sourced from high-quality, domestic news sources and use it to describe trends in influence activity over time and across countries. Finally, as a test case, use the data to examine Russian influence activity in the months before the invasion of Ukraine. We document a dramatic, previously undetected, pre-invasion surge in diplomacy and hard power reporting across many countries. In doing so, we show that this data is useful for both theory testing and foreign policy decision-making.
@@ -183,6 +183,8 @@ for (i in unique(rai$country)) {
 }
 
 ```
+
+\footnotetext{In accordance with journal guidelines, we disclose that we did not use AI tools for copyediting, proofreading, data collection, statistical analysis, code generation, research design, or literature search. We did not use AI tools to generate original substantive content, develop arguments, or produce analytical conclusions. Our paper introduces a new dataset built from newspaper articles classified using our own fine-tuned transformer-based language model.}
 
 {{< pagebreak >}}
 
