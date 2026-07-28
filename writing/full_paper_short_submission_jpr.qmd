@@ -1,0 +1,1420 @@
+---
+title: "Foreign Influence by Authoritarian Governments: Introducing New Data and Evidence"
+# subtitle: Explore the data using our [Shiny apps](https://web.sas.upenn.edu/mlp-devlab/rai/) 
+abstract: Policymakers are increasingly concerned about the revival of superpower conflict, which is particularly evident in Russia’s and China’s intensifying efforts to influence less powerful nations. To date, the absence of quantitative data has limited systematic investigation of this resurgence of authoritarian influence activity. We introduce a new country-month dataset tracking reports of Russian and Chinese influence across 66 low- and middle-income countries from 2012 through August 2025. We construct the data using large language models applied to an original corpus of over 120 million articles from high-quality domestic news sources. We use these data to describe temporal and cross-national trends in influence activity. As a test case, we examine Russian activity prior to the invasion of Ukraine, documenting a dramatic and previously undetected surge in diplomacy and hard power reporting across countries. These findings demonstrate the dataset’s value for both theory testing and foreign policy analysis.
+# ORIGINAL ABSTRACT: Policymakers are increasingly concerned about the revival of superpower conflict. Increased competition among great powers has been especially evident in the exercise of foreign influence, where Russia and China have increased their efforts to influence less powerful nations. To date, the absence of quantitative data has limited systematic investigation of this resurgence of authoritarian influence activity. We introduce a new, country-month dataset tracking reports of influence by Russia and China in 66 aid-receiving low- and middle-income countries from 2012 through August 2025. We construct the data by applying large language models (LLMs) to an original corpus of more than 120 million news articles sourced from high-quality, domestic news sources and use it to describe trends in influence activity over time and across countries. Finally, as a test case, use the data to examine Russian influence activity in the months before the invasion of Ukraine. We document a dramatic, previously undetected, pre-invasion surge in diplomacy and hard power reporting across many countries. In doing so, we show that this data is useful for both theory testing and foreign policy decision-making.
+# thanks: This study was funded by the United States Agency for International Development (USAID) Bureau for Democracy, Human Rights, and Governance. We would like to thank many partners in the NGO and policy world who have helped in the development of this work, including Laura McKechnie, Dan Spealman, Asta Zinbo, Daniel Sabet, Erin McCarthy, and David Jacobstein. We also thank several researchers who were instrumental in the origins of this project, including Scott de Marchi, Spencer Dorsey, and Clara Suong, and a number of others who made critical contributions along the way, including Rethis Togbedji Gansey, Jitender Swami, Mahda Soltani, Andreas Beger, Tim McDade, Akanksha Bhattacharyya, and Joan Timoneda.
+date: today 
+date-format: long
+authors:
+  - name: "Anonymized Author(s)"
+    affiliations:
+      - ref: anon
+    equal-contributor: false
+#   - name: "Main text word count without references: 5,800"
+#   - name: "References word count: 735"
+#  - name: Jeremy Springman
+#    affiliations:
+#      - ref: meta
+#    corresponding: false
+#    email: jeremyrgs6@gmail.com
+#    orcid: 0000-0002-2389-8605
+#    equal-contributor: false
+#  - name:  Fatih Serkant Adiguzel
+#    affiliations:
+#      - ref: su
+#    corresponding: false
+#    email: serkant.adiguzel@sabanciuniv.edu
+#    equal-contributor: false
+#  - name: Zung-Ru Lin
+#    affiliations:
+#      - ref: upenn1
+#    corresponding: false
+#    email: zungru@sas.upenn.edu
+#    equal-contributor: false
+#  - name: Donald Moratz
+#    affiliations:
+#      - ref: upenn1
+#      - ref: upenn2
+#    corresponding: false
+#    email: dmoratz@sas.upenn.edu
+#    equal-contributor: false
+#  - name: Diego Romero
+#    affiliations:
+#      - ref: uta
+#    corresponding: false
+#    email: diego.romero@austin.utexas.edu
+#    equal-contributor: false
+#  - name: Mateo Villamizar Chaparro
+#   affiliations:
+#      - ref: ucu
+#    corresponding: false
+#    email: santiago.villamizar@ucu.edu.uy
+#    equal-contributor: false
+#  - name: Erik Wibbels
+#    affiliations:
+#      - ref: upenn1
+#      - ref: upenn2
+#    corresponding: true
+#    email: ewibbels@sas.upenn.edu
+#    equal-contributor: false
+affiliations:
+  - id: anon
+    name: "Anonymised Institution(s)"
+#  - id: upenn1
+#    name: PDRI-DevLab, University of Pennsylvania
+#  - id: upenn2
+#    name: Department of Political Science, University of Pennsylvania
+#  - id: ucu
+#    name: Universidad Católica del Uruguay
+#  - id: uta
+#    name: University of Texas at Austin
+#  - id: su
+#    name: Sabancı University
+#  - id: meta
+#    name: Meta
+filters:
+  - authors-block
+bibliography: references.bib
+format: 
+  pdf:
+    geometry:
+      - margin=1in
+    colorlinks: true
+header-includes:
+  - \usepackage{multirow}
+  - \usepackage{hyperref}
+  - \usepackage[capitalise,noabbrev]{cleveref}
+  - \usepackage{float}
+  - \floatplacement{table}{!ht}
+  - \usepackage{csquotes}
+  - \usepackage{siunitx}
+  - \usepackage{makecell}
+  - \newcolumntype{d}{S[
+      input-open-uncertainty=,
+      input-close-uncertainty=,
+      parse-numbers = false,
+      table-align-text-pre=false,
+      table-align-text-post=false
+    ]}
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r}
+#| label: load-packages
+#| include: false
+
+# devtools::load_all(here::here("rai.atari"))
+#library(rai.atari)
+for (lib_path in c(".Rlib", file.path("..", ".Rlib"))) {
+  resolved_path <- normalizePath(lib_path, winslash = "/", mustWork = FALSE)
+  if (dir.exists(resolved_path) && !(resolved_path %in% .libPaths())) {
+    .libPaths(c(.libPaths(), resolved_path))
+  }
+}
+
+library(dplyr)
+library(tidyr)
+library(gt)
+library(kableExtra)
+library(ggplot2)
+library(changepoint)
+library(cowplot)
+source(here::here("code", "local_sources.R"))
+
+# rai <- rai.atari::rai 
+sample_countries <- readr::read_csv(here::here("data", "sample_countries.csv"))
+use_sample_countries <- FALSE
+rai_end_date <- as.Date("2025-08-01")
+read_rai <- function() {
+  candidates <- c(
+    Sys.getenv("RAI_LATEST_CSV", unset = ""),
+    here::here("writing", "output", "rai_latest.csv"),
+    here::here("data", "rai_latest.csv")
+  )
+  candidates <- candidates[nzchar(candidates)]
+  available <- candidates[file.exists(candidates)]
+  if (length(available) == 0) {
+    stop(
+      "Missing rai_latest.csv. Checked: ",
+      paste(candidates, collapse = ", "),
+      ". Set RAI_LATEST_CSV or add data/rai_latest.csv."
+    )
+  }
+  df <- readr::read_csv(available[[1]])
+  if (use_sample_countries) {
+    df <- df |> dplyr::filter(country %in% sample_countries$country)
+  }
+  df |> dplyr::filter(date <= rai_end_date)
+}
+rai = read_rai()
+strategic_countries <- readr::read_csv(here::here("data", "strategic_countries.csv"))
+n_strategic <- length(unique(strategic_countries$country))
+rai_vars = readr::read_csv(here::here("data", "rai_vars.csv")) %>%
+  dplyr::rename(variable = id)
+
+rai_vars_select = bind_rows(
+  data.frame(
+    variable = grep("rai_idx_.*", colnames(rai), value = T),
+    name = c("Total RAI", "Backlash", "Domestic Interference", "Diplomacy", "Economic Power", "Hard Power", "Soft Power")
+  ),
+  rai_vars
+)
+
+# Map country names to ggplot2's map_data('world') conventions
+normalize_map_country <- function(x) {
+  dplyr::recode(
+    x,
+    "DR Congo" = "Democratic Republic of the Congo",
+    "Macedonia" = "North Macedonia",
+    "Timor Leste" = "Timor-Leste",
+    .default = x
+  )
+}
+
+num_countries = length(unique(rai$country))
+
+sum_lengths <- 0
+for (i in unique(rai$country)) {
+  lsources_len = local_source_select(i)$lsources
+  sum_lengths <- sum_lengths + length(lsources_len)
+}
+
+```
+
+
+{{< pagebreak >}}
+
+## Introduction
+
+The last 15 years have seen Russia and China become both more autocratic
+and more assertive in their foreign policies [@diamond2020democratic].
+Both have increased efforts to influence less
+powerful nations and secure strategic partnerships. Scholars and
+policymakers have voiced growing concerns about a resurgence of
+authoritarian influence, driving high-level foreign policy decisions and
+major investments by Western governments in strengthening ties with
+strategically important countries.
+
+These developments are unfolding amid broader concerns about a "new Cold
+War" between Western democracies and the "new axis" coalition
+[@sanger2024new; @nss2017; @evans2019]. Despite the importance of these
+issues, a lack of systematic quantitative data has limited rigorous
+investigation. Assembling such data is difficult: influencing and target
+countries rarely publish administrative records of influence activity,
+and less dramatic influence activities rarely receive international media attention.
+This creates a measurement gap in the contexts that matter most.
+
+In this paper, we introduce the *Resurgent Authoritarian Influence (RAI)* dataset. 
+*RAI* tracks monthly reporting across 21 influence
+categories in `r num_countries` foreign aid-receiving low- and middle-income
+countries from 2012 through August 2025. We focus on foreign aid-receiving
+countries because these are settings where influence efforts are often
+prominent. To build the data, we apply a fine-tuned
+transformer-based language model to a corpus of more than 120 million
+news articles published by over 350 high-quality media outlets, most of
+them domestic, in 40 languages. The result is a high-frequency measure
+of *reported* influence activity by tool and country. *RAI* is a
+media-based measure of reporting intensity, not a record of unique events, but 
+validation shows that it strongly correlates with real Russian and Chinese foreign activities.
+
+In addition to introducing *RAI* and its underlying *High-Quality Media from Aid Receiving Countries (HQMARC)*
+corpus, we provide extensive validation of the data, describe cross-national patterns in 
+Russian and Chinese activity, and provide a use case examining Russian influence 
+in the months before the invasion of Ukraine. In doing so, we show that *RAI* is a valuable resource for researchers
+and policymakers alike. For researchers, our data provides a complement
+to existing data on Chinese financial and diplomatic activities
+[@goodman2024aiddata; @custer2021tracking], enables description of how
+shifts in influence strategies unfold over months and countries, and
+allows tests of how influence tools substitute for or complement one
+another across major geopolitical shocks. For policymakers, it provides
+a transparent, updateable gauge of how influence is reported in
+target-countries and provides hard data to inform policy responses to
+the foreign influence of Russia and China. Throughout, we emphasize that
+*RAI* measures *reporting* on influence activity—not verified
+actions—and is best interpreted as a high-frequency, multidimensional indicator of
+RAI salience.
+
+<!-- We speculate that this behavior was a strategy to bolster diplomatic and military ties with receptive countries and mitigate blowback that would follow from their military aggression. In doing so, we provide one of the first quantitative investigations of an empirical claim driving high-level decision-making in foreign policy and international advocacy. -->
+
+## Russian and Chinese Foreign Influence
+
+Over the past 20 years, Russia and China have increasingly asserted
+themselves on the global stage, challenging the liberal international
+order and and seeking to reshape global dynamics in their favor.
+[@sanger2024new; @fukuyama2015end]. Russia's invasions of Georgia and
+Ukraine and its annexation of Crimea signal a willingness to redraw
+borders by force. China has pursued assertive policies in the South
+China Sea and used the Belt and Road Initiative to extend economic and
+political influence across Asia, Africa, and Europe. Both have sought to
+undermine Western influence through cyber operations, strategic
+alliances, and information campaigns.
+
+Influence strategies are inherently multi-dimensional. States deploy
+coercive tools (e.g., military assistance, sanctions) or non-coercive
+tools (e.g., public diplomacy, cultural engagement), targeting elites or
+publics depending on objectives and constraints. Changes in influence
+behavior thus manifest not only in *how active* states are, but *which
+tools* they emphasize and *where*. A central goal of *RAI* is to make
+those shifts empirically visible. Because influence tools may function as complements or substitutes, tracking them together is essential; reporting on Russia's footprint in Africa---where security assistance, political engagement, and information operations often blend together---illustrates why a multi-dimensional approach is necessary [@ferragamo2023russias; @Gain2023; @Hairsine2023; @Reuters2024].
+
+Despite this policy attention, quantitative data on authoritarian
+influence remains sparse. The most comprehensive existing data comes
+from AidData, which covers China's foreign aid and state financing to
+low- and middle-income countries from 2000–2017 and annual diplomatic
+events in some Asian countries [@goodman2024aiddata;
+@custer2021tracking]. This work has generated valuable insights into the effects 
+of Chinese economic engagement on conflict, governance, growth, and public 
+opinion [@gehring2019china; @strange2017tracking; @dreher2021aid; @knutsen2020political; @kishi2017chinese; @isaksson2018chinese; @dreher2024aid; @blair2022foreign]. But AidData covers only Chinese influence, is updated sporadically, and
+focuses on a limited range of tools. Research has consequently been confined largely to economic influence; while recent work has begun tracking state-coordinated online political influence efforts [@martin2023introducing], diplomacy, hard power, soft power, and domestic interference across the full range of bilateral relationships remain comparatively understudied
+[@nye2023rise; @kurlantzick2007charm; @kinne2018defense].
+
+*RAI* addresses these gaps. It covers both Russia and China and spans 21
+influence activities. Our approach provides unique, high-frequency data
+on how Russia and China have wielded their economic and hard power
+(military capacity, security agreements, and defense cooperation) to
+influence both regional and the international economic order
+[@goldstein2020china; @maier1977politics] and pursued overlapping
+economic and military cooperation with less powerful nations
+[@gowa1993power]. Likewise, we provide systematic data on the use of
+soft and diplomatic power [@nye2023rise; @kurlantzick2007charm], i.e.,
+non-coercive efforts to shape foreign preferences through public
+diplomacy, cultural engagement, and information campaigns. Russia and
+China deploy these tools by establishing cultural
+centers [@russia_embassy_cambodia_2021] and launching media
+campaigns [@cook_ap_2021].
+Russia and China also promote their interests using diplomatic
+maneuvers, including formal statements, official visits,
+and participation in diplomatic mediation [@legarda_merics_2018; @zuvela_vasovic_reuters_2019].
+Data tracking the timing and location of soft power and diplomatic
+engagement can produce new insights into how and when
+non-coercive strategies influence target-country politics, and whether
+these tools are used as substitutes or complements to coercive forms of
+influence [@ku2022dark; @putnam1988diplomacy; @allan2018distribution].
+
+We also provide data on domestic interference efforts to create
+pressure on---or provide assistance to----target governments [@lim2019money]. For Russia and China, this includes everything from surveillance and cyber-attacks [@holland_chiacu_reuters_2021; @bbc_huawei_uganda_zambia_2019; @balkan_n1_cyber_2020; @kafeero_quartz_2020]. We also provide data on the illicit or unintended consequences of influence efforts, including increased corruption and transnational organized crime [@brazys2017bad;
+@isaksson2018chinese; @doj_triad_2003]. Data on these adverse types of influence allow research into
+the ability of Russia and China to effectively manage their influence
+operations. 
+
+
+## The Resurgent Authoritarian Influence Dataset
+
+```{r}
+#| echo: false
+#| warning: false
+
+library(ISOcodes)
+
+# Initialize an empty dataframe to store the results
+result_df <- data.frame(country = character(), lsources_len = integer(), stringsAsFactors = FALSE)
+
+sum_lengths <- 0
+for (i in unique(rai$country)) {
+  lsources_len = local_source_select(i)$lsources
+  len = length(lsources_len)
+  
+  # Append the country and the length to the dataframe
+  result_df <- rbind(result_df, data.frame(country = i, lsources_len = len))
+  
+  # Update sum_lengths
+  sum_lengths <- sum_lengths + len
+}
+
+```
+
+*RAI* tracks *reporting* on 21 influence categories associated with
+Russian and Chinese foreign influence. Each category captures reporting
+on actions by a government or state-linked actor intended to shape
+another country’s domestic or foreign policy. We developed the categories by reviewing prior research and consulting with civil-society and policy partners. We group the 21 categories into six broader themes and
+construct theme indices by summing category-level reporting intensities. Table 1 lists the themes, definitions, and categories.\footnote{See Supplementary Materials *Category Definitions* for category-level definitions.}  
+
+```{=latex}
+\begin{table}[!htbp]
+\footnotesize
+\begingroup
+\renewcommand{\arraystretch}{1.3}
+\setlength{\extrarowheight}{3pt}
+\setlength{\aboverulesep}{1.0ex}
+\setlength{\belowrulesep}{1.0ex}
+\caption{\label{rai_theme} RAI Categories Grouped by Theme}
+\centering
+\begin{tabular}[t]{>{\raggedright\arraybackslash}m{2.8cm} >{\raggedright\arraybackslash}m{7.2cm} >{\raggedright\arraybackslash}m{6.2cm}}
+\toprule
+Theme & Definition & Categories\\
+\midrule
+Soft Power & Non-coercive efforts to shape attitudes or preferences among publics and elites through information or cultural engagement. & Media Campaign/Intervention\newline Social/Academic/Cultural Activity\\
+\midrule
+Hard Power & Military or security cooperation and activity that strengthens coercive capacity or military ties. & Arms Transfer/Security Aid/Assistance\newline Joint Security Force Exercise\newline Security Engagement\newline Military Activity\\
+\midrule
+Economic Power & Use of aid, investment, technology transfer, or trade measures to shape economic ties or incentives. & Foreign Aid/Assistance\newline Foreign Investment\newline Technology Transfer/Investment\newline Trade Agreement/Exchange\newline Trade/Financial Sanction\\
+\midrule
+Diplomacy & Actions that expand, reduce, or signal official diplomatic relations, statements, meetings, mediation, or punitive diplomatic actions. & Diplomatic Mediation\newline Diplomatic Ties\newline Diplomatic Action\newline Diplomatic Statement\newline Diplomatic Meeting\\
+\midrule
+Domestic Interference & Non-military interference targeting domestic politics or information systems, including espionage, cyber operations, or policy manipulation. & Intelligence/Counterintelligence\newline Political Process/Policy Intervention\newline Cyber Attack\\
+\midrule
+Backlash & Unintended or illicit consequences associated with influence attempts. & Bribery/Economic Corruption\newline Transnational Organized Crime\\
+
+\bottomrule
+\end{tabular}
+\endgroup
+\end{table}
+```
+
+**Measurement and interpretation.** The classifier assigns category
+labels to article text, which we aggregate into monthly reporting
+indices. Primary analyses focus on six thematic indices, which are more
+stable than fine-grained categories. We report classifier performance
+and training details in the Supplementary Materials. *RAI* measures
+*reported* influence activity, not verified actions; covert behaviors
+such as intelligence and cyber operations are likely underreported and
+should be treated as lower bounds. We mitigate editorial bias by
+normalizing by total article volume, presenting both absolute levels and
+relative shares, and grounding analysis in within-country changes over
+time. 
+
+To measure reported influence activity, we built the *HQMARC* corpus, 
+covering `r num_countries` aid-receiving countries from 2012 through
+August 2025. *HQMARC* includes more than 120 million articles from 16
+international outlets, 12 regional outlets, and `r sum_lengths` domestic
+newspapers. Domestic sources account for 95% of articles, with a median
+of `r median(result_df$lsources_len)` domestic sources per country (see
+Supplementary Materials *Distribution of Domestic Sources*). This emphasis 
+on domestic media is essential because international outlets provide sparse 
+coverage of many countries and typically report only the most salient 
+influence efforts. The resulting scope enables consistent, high-frequency 
+measurement where domestic reporting is richest, though it does not capture 
+influence operations in advanced democracies.
+
+We identify domestic sources using university library guides, Reporters
+Sans Frontieres profiles, and partner recommendations. We include
+both independent and state-affiliated sources, aiming for at least 50%
+independent coverage per country; where this is not achievable, we apply
+weighting to reduce the influence of heavily state-aligned ecosystems
+(see Supplementary Materials *Source Weighting*).
+
+Rather than using generic crawlers or pre-canned scraping tools, we
+build custom scrapers and parsers to capture each outlet's complete
+publication history. This approach yields higher coverage
+and stability than large aggregators such as GDELT, Common Crawl, or the
+Internet Archive. *HQMARC's* human-supervised scraping produces a corpus
+with a more stable, well-understood composition than widely used
+alternatives
+[@ml4p2024tracking].\footnote{Depending on website architecture, we obtain news articles by scraping sitemaps, newspaper archives, or by simulating infinite scrolling using Selenium. We de-duplicate articles based on URL and title similarity. We update these scrapers on a quarterly basis to maintain accuracy and comprehensiveness.} We overwhelmingly rely on open-access content.
+<!--  -->
+
+To accommodate a large volume of articles in diverse languages, we
+translate articles into English before extracting locations and influence categories 
+from the translated text. Given the well-documented biases in English-language news sources
+[@baum2015] even on relatively uncontroversial topics like natural
+disasters [@brimicombe2022], we include non-English, local newspapers in our
+corpus.\footnote{We use neural machine translations (NMT) through Hugging Face or OpenNMT to translate into English. We test the efficacy of all translation models by extracting sample text and running the text through all available translation models on the Hugging Face open database. We then assess whether the translations are sufficient to identify the main influence category being reported on. If they are not, we compare the performances with those of our other APIs and choose the one that yields the optimal sentence-to-sentence translations with sufficient human readability.} See Supplementary Materials *Languages in HQMARC* for a list of
+languages by country.
+
+To classify influence categories, we fine-tuned a ModernBERT-large
+classifier on 10,329 labeled articles (22 classes including `-999` for articles that do not clearly fit any category). We evaluate with 5-fold cross-validation and a held-out test set
+($n=1{,}550$). Cross-validation accuracy averages 0.926 with macro F1 of
+0.885; held-out test accuracy is 0.923 with macro F1 of 0.883.
+Performance is strongest for high-signal categories (e.g., cyber attack,
+joint military exercise) and lower for linguistically diffuse categories
+such as diplomatic statements. For this reason, our analysis below emphasizes
+theme-level indices; category-level patterns are reported in the
+Supplementary Materials.
+<!-- For Helsinki-NLP model, it’s roughly 600 characters for maintext and title. However, it depends on the huggingface models and the original language. Also, if it’s deep_translator that we use for specific languages, it’s 600 for maintext only. -->
+<!-- we feed title translated and first two sentences of maintext translated. -->
+
+
+To identify foreign influence reporting involving Russia or China, we
+built a keyword library to detect mentions of Russian and Chinese
+agencies, companies, or officials. See Supplementary Material *Using Keywords to Detect Influence* for the keyword list, development process,
+and validation tests. To ensure that reporting is assigned to the
+correct target country, we geoparse the first 600 characters of text and
+identify all locations mentioned. If no country is found, we assign the
+article to the country in which the publishing outlet is
+based.\footnote{For international and regional outlets, articles are only assigned to a country if they explicitly mention a location within that country. We use the CLIFF-CLAVIN geoparser with the GeoNames ontological gazetteer. GeoNames is one of the most comprehensive and well-maintained sources of geographic data available, containing over 12 million unique location names across 250 countries [@dignazio2014cliff]. CLIFF API has detailed information on its locations, and we retrieve and convert the country codes of each location to assign the article to a specific location(s). We implement several corrections to the underlying CLIFF system.}
+<!-- we use 1200 for english language articles and all translated text for originally non-English articles. -->
+<!-- For technical details on CLIFF, see: \href{https://github.com/mediacloud/cliff-annotator}{CLIFF Annotator}. \href{https://www.geonames.org/}{GeoNames} is a free, online database containing the names and location of populated places and geographic features all over the world. -->
+
+We aggregate these data to the country-month level, normalizing
+the count of articles reporting on each influence category by the total
+number of articles published in that country-month. Because only a small
+portion of news coverage focuses on foreign influence, we report *RAI*
+activity as articles per 10,000 published in each country-month. The
+resulting measures are *shares of reporting*, not verified counts of
+discrete actions or incidents, and they capture how frequently each
+influence category is reported relative to overall news volume. We
+construct theme indices by summing category-specific reporting
+intensities within each theme (Table 1), and we also
+construct a total index that sums across all categories for Russia,
+China, and both influencing countries combined. Finally, we supplement those measures with an indicator variable identifying months when major RAI "surges" occurred. To do so, we developed an ensemble algorithm to detect large increases in the share of reporting dedicated to event categories. We refer to these increases as *surges*. Full details on model design, parameter tuning, and validation are provided in Supplemental Material. 
+
+
+![RAI data production pipeline.](mermaid.png){#fig-mermaid
+fig-align="center" width="650"}
+
+The supplementary pipeline schematic provides a graphic representation
+of the *RAI* data production pipeline. We update each country about every 90 days. Quality assurance measures are in place at multiple steps in this process. Before processing, we check every source to ensure that the volume of articles and their distribution across days conform to past
+updates. After processing, we calculate correlations between old and new
+data and check a standard set of comparison visualizations.
+
+Above we report that out-of-sample model accuracy is 0.923 at the level of individual articles. To further validate the RAI data we conduct two exercises. First, we audit significant change-point months when well-documented episodes (e.g., coups, diplomatic recognition switches) should be reflected in increases in RAI activity. Second, we audit 86 randomly selected RAI surges encompassing 872 individual articles to assess whether they accurately reflect real-world events.\footnote{Given differences in temporal scale and substantive focus, we find limited utility in cross-validation with external datasets (e.g., AidData).}  
+
+Turning to our first exercise, an abundance of high-profile cases illustrate major influence
+operations by both countries. For Russia, perhaps the most dramatic
+example has been the country's recent influence in the Sahel. In our
+sample period, three Sahel countries experienced coups d’etat that
+resulted in a reorientation of foreign policy away from the former
+colonial power, France, and towards Russia. This pivot was
+multi-faceted, including economic cooperation, pro-junta propaganda
+campaigns, and diplomatic engagement [@nadzharov2023franco; @Gain2023].
+However, the most significant developments included the provision of
+military support, including the presence of Russian special forces in
+Niger and Burkina Faso and Wagner forces in Mali [@Hairsine2023;
+@Reuters2024].
+
+@fig-sahel-influence plots reporting on Russian Hard Power activity in
+Burkina Faso, Mali, and Niger. Red lines mark coup months. In all three
+cases, reporting is relatively muted prior to the coup periods and then
+rises sharply around the coups, with sustained higher volatility
+afterward—especially in Mali (2021) and Niger (2023). These patterns are
+consistent with well-known shifts in security partnerships. See Supplementary Materials 
+*High-Profile Influence Operations* for a figure combining all influence reporting
+into one index.
+
+```{r, fig.width=8,fig.height=4}
+#| echo: false
+#| warning: false
+#| label: fig-sahel-influence
+#| fig-cap: "Normalized measure of reporting on Russian Hard Power activities in Sahel countries. Red lines indicate the month of military coups that marked a reorientation away from France and toward Russia."
+
+dat = rai %>%
+  filter(influencer == "Russia" & country %in%  c("Mali", "Burkina Faso", "Niger")) 
+
+ggplot(dat, aes(x = date, y =  rai_idx_hp)) +
+  geom_line(linewidth = .5, color = "black", linetype=1) +
+  facet_wrap(~country, scales = "free_y", ncol = 1) +
+  theme_bw() +
+  scale_x_date(breaks = seq(as.Date("2012-01-01"), as.Date(max(rai$date)), by = "6 months"), labels = scales::date_format("%Y-%b"),
+              expand = c(.01,.01) ) +
+  theme(plot.title = element_text(hjust = 0, size = 18),  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 10),
+        strip.text = element_text(size = 10)) +
+  labs(y = "Russian Hard Power Activity (articles per 10k published)") +
+  geom_vline(aes(xintercept = as.Date("2022-01-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Burkina Faso", ]) +
+  geom_vline(aes(xintercept = as.Date("2022-09-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Burkina Faso", ]) +
+  geom_vline(aes(xintercept = as.Date("2020-08-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Mali", ]) +
+  geom_vline(aes(xintercept = as.Date("2021-05-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Mali", ]) +
+  geom_vline(aes(xintercept = as.Date("2023-07-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Niger", ])
+
+ggsave(here::here("writing/output/plot_russian_coups.png"), height = 4, width = 7, dpi = 700)
+
+```
+
+For China, a similarly dramatic example has been the effort to secure
+formal diplomatic relations from countries that maintain recognition of
+Taiwan. Since 2016, multiple countries have switched diplomatic
+recognition to the People's Republic of China (PRC), following intensive
+diplomatic efforts that often included promises of sustained engagement
+and economic cooperation [@Bock_Parilla_2024].
+
+Our sample includes seven countries that switched recognition during the
+period (Burkina Faso, Dominican Republic, El Salvador, Honduras,
+Nicaragua, Panama, and Solomon Islands). @fig-prc-influence shows that Chinese Diplomacy reporting spikes in each recognition month and that subsequent trajectories vary---some sustained, others episodic. Consistent with the multi-dimensional nature of influence, related shifts also appear in Economic Power and Soft Power indicators (see
+Supplementary Materials *High-Profile Influence Operations* for a
+combined index).
+
+
+```{r, fig.width=8,fig.height=6}
+#| echo: false
+#| warning: false
+#| label: fig-prc-influence
+#| fig-cap: "Normalized measure of reporting on Chinese Diplomacy activities in countries that switched recognition from Taiwan to the PRC. Red lines indicate the month of PRC recognition."
+
+dat = rai %>%
+  filter(influencer == "China" & country %in%  c("Burkina Faso", "Dominican Republic", "El Salvador", "Honduras", "Nicaragua", "Panama", "Solomon Islands")) 
+
+ggplot(dat, aes(x = date, y =  rai_idx_dip)) +
+  geom_line(linewidth = .5, color = "black", linetype=1) +
+  facet_wrap(~country, scales = "free_y", ncol = 1) +
+  theme_bw() +
+  scale_x_date(breaks = seq(as.Date("2012-01-01"), as.Date(max(rai$date)), by = "6 months"), labels = scales::date_format("%Y-%b"),
+              expand = c(.01,.01) ) +
+  theme(plot.title = element_text(hjust = 0, size = 18),  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 10),
+        strip.text = element_text(size = 8)) +
+  labs(y = "Chinese Diplomacy Activity (articles per 10k published)") +
+  geom_vline(aes(xintercept = as.Date("2018-05-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Burkina Faso", ]) +
+  geom_vline(aes(xintercept = as.Date("2018-05-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Dominican Republic", ]) +
+  geom_vline(aes(xintercept = as.Date("2018-08-01")), linetype = "dashed", color = "red", data = dat[dat$country == "El Salvador", ]) +
+  geom_vline(aes(xintercept = as.Date("2021-12-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Nicaragua", ]) +
+  geom_vline(aes(xintercept = as.Date("2023-03-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Honduras", ]) +
+  geom_vline(aes(xintercept = as.Date("2017-06-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Panama", ]) +
+  geom_vline(aes(xintercept = as.Date("2019-09-01")), linetype = "dashed", color = "red", data = dat[dat$country == "Solomon Islands", ])
+```
+
+These cases illustrate recent, high-profile efforts by Russia and China to exert influence over low- and
+middle-income countries and show how RAI captures them. Our second validation effort
+involves assessing the capacity of our data to detect lesser know surges in RAI activity. To do so, we audit 86 randomly selected RAI surges encompassing 862 articles across 20 event types and 40 countries. Surge detection accurately identified 88 percent (76 of 86). The 10 false positives reflect two systematic limitations (e.g., low news volume in some countries and geoparsing errors) discussed fully in Supplementary Materials *Surge Validation*.
+
+## Describing Authoritarian Influence Using RAI Data
+
+In this section, we describe *RAI* activity between 2012 and August
+2025. Because *RAI* is a reporting-based measure, we treat the analyses as descriptive and avoid causal claims.  In the remainder of this section, we zoom-out to analyze broader trends in foreign influence across aid-receiving countries. To simplify the analysis, we break our
+data into two historical periods: 2012-2021 and 2022-2025. We choose these periods because we see the nature of influence activity begin to change in the months around Russia's invasion of Ukraine. For higher-frequency visualizations, see Supplementary Materials *Dominant Themes at Higher Frequency*.
+
+Throughout, aggregation from the monthly level to period averages is
+performed *after* normalization, treating each country-month equally.
+This ensures that shifts across periods reflect broad-based trends
+rather than a few high-activity months, and hedges against isolated
+misclassification errors. The approach does not affect the substantive
+findings.
+
+```{r}
+#| echo: false
+#| warning: false
+
+df = read_rai() |>
+  filter(! influencer %in% "Combined") |>
+  select(country, date, influencer, starts_with("rai_idx"), -rai_idx_total) |>
+  pivot_longer(starts_with("rai_idx"), names_to = "theme") |>
+  mutate(theme = gsub("rai\\_idx\\_", "", theme))
+
+df$theme = factor(df$theme)
+df$theme = factor(df$theme, levels = gsub("rai_idx_", "", rai_vars_select$variable[2:7]), labels = rai_vars_select$name[2:7])
+
+theme_idx = unique(df$theme)
+
+df = df |>
+  group_by(date, influencer, theme) |>
+  summarise(value = sum(value) ) |>
+  ungroup()
+
+df = df |>
+  group_by(influencer, date) |>
+  mutate(value = value / sum(value)) |>
+  # make it a factor for plotting labels
+  mutate(influencer = factor(influencer, levels = c("China", "Russia")))
+
+dip_av = df |>
+  filter(theme == "Diplomacy") |>
+  mutate(period = case_when(
+    date < "2017-01-01" ~ "2012-2016",
+    date >= "2017-01-01" & date < "2022-01-01" ~ "2017-2021",
+    TRUE ~ "2022-2025"
+    )
+  ) |>
+  group_by(period, theme, influencer) |>
+  summarise(value = mean(value)) 
+
+cd1 = paste0(round(dip_av[dip_av$influencer == "China" & dip_av$period == "2012-2016",]$value*100, digits=0), "%")
+cd2 = paste0(round(dip_av[dip_av$influencer == "China" & dip_av$period == "2017-2021",]$value*100, digits=0), "%")
+cd3 = paste0(round(dip_av[dip_av$influencer == "China" & dip_av$period == "2022-2025",]$value*100, digits=0), "%")
+
+rd1 = paste0(round(dip_av[dip_av$influencer == "Russia" & dip_av$period == "2012-2016",]$value*100, digits=0), "%")
+rd2 = paste0(round(dip_av[dip_av$influencer == "Russia" & dip_av$period == "2017-2021",]$value*100, digits=0), "%")
+rd3 = paste0(round(dip_av[dip_av$influencer == "Russia" & dip_av$period == "2022-2025",]$value*100, digits=0), "%")
+
+```
+
+We begin by using the six themes in Table 1 to describe
+the most frequently reported-on tools used by Russia and China.
+Specifically, we calculate the most frequently reported-on theme for
+each country-period. This approach counts all classified articles
+equally. @fig-map_dominant-theme shows the dominant *RAI* tool by country for two
+periods. The left panel captures reports of Chinese influence and the
+right panel captures reports of Russian influence. For China, Economic
+Power remains the most dominant theme across countries in both
+periods, while Diplomacy becomes dominant in a growing subset of cases
+in 2022–2025. When pooling across countries at the monthly level,
+Diplomacy’s share of reported Chinese influence rises from `r cd1`
+(2012–2016) to `r cd2` (2017–2021) to `r cd3` (2022–2025), suggesting a
+gradual rebalancing rather than a wholesale shift away from economic
+tools.
+
+For Russia, the distribution is more mixed. Diplomacy is frequently
+dominant, but Hard Power becomes more salient in several countries after
+2022. Pooling across countries, the Diplomacy share increases from
+`r rd1` (2012–2016) to `r rd2` (2017–2021) to `r rd3` (2022–2025), while
+Hard Power shows a marked rise around the invasion period. These
+descriptive patterns are consistent with a shift toward more coercive
+tools in the 2022–2025 period, though they remain measures of reporting
+rather than direct counts of actions.
+
+```{r, fig.width=7,fig.height=4.2}
+#| echo: false
+#| warning: false
+#| fig-pos: "!t"
+#| label: fig-map_dominant-theme
+#| fig-cap: "RAI tool with the greatest volume of reporting by country, measured as the normalized share of all articles classified into RAI categories that correspond with each tool. The left panel captures reports of Chinese influence and the right panel captures reports of Russian influence."
+
+# Pull map data and create versions for each historical period
+map = map_data('world')
+map = map %>% filter(region != "Antarctica")
+
+map2 = map %>%
+  mutate(period = "2012-2021")
+
+map3 = map %>%
+  mutate(period = "2022-2025")
+
+
+df = read_rai() |>
+  mutate(period = case_when(
+    date < "2022-01-01" ~ "2012-2021",
+    TRUE ~ "2022-2025"
+    )
+  ) |>
+  filter(influencer %in% "China") |>
+  select(country, date, period, starts_with("rai_idx"), -rai_idx_total) |>
+  pivot_longer(starts_with("rai_idx"), names_to = "theme") |>
+  mutate(theme = gsub("rai\\_idx\\_", "", theme))
+  
+df <- df |>
+  group_by(country, period, theme) |>
+  arrange(date) 
+
+df <- df |>
+  group_by(country, period, theme) |>
+    summarize(mean_value = mean(value),
+              .groups = "drop")
+
+df <- df |>
+  group_by(country, period) |>
+  mutate(share = mean_value / sum(mean_value))
+
+df$theme = factor(df$theme)
+df$theme = factor(df$theme, levels = gsub("rai_idx_", "", rai_vars_select$variable[2:7]), labels = rai_vars_select$name[2:7])
+
+df <- df |>
+  group_by(country, period) |>
+  slice_max(share)
+
+# Summary states for text
+ds = df |>
+  group_by(period, theme) |>
+  summarise(countries = n())
+
+
+## Maps
+map = bind_rows(map2, map3)
+
+df$country <- normalize_map_country(df$country)
+map = left_join(map, df %>% dplyr::rename(region = country) )
+
+# set map parameters
+map_theme = theme(axis.title.x = element_blank(), axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.title.y = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(),
+        legend.position = "none",
+        plot.margin=unit(c(4, 4, 0, 4),"pt"))
+
+x_lim = c(-90,142)
+y_lim = c(-33, 52)
+
+theme_palette <- c(
+  "Backlash" = "#6A3D9A",
+  "Domestic Interference" = "#E31A1C",
+  "Diplomacy" = "#1F78B4",
+  "Economic Power" = "#33A02C",
+  "Hard Power" = "#FF7F00",
+  "Soft Power" = "#F4C430"
+)
+pal <- function(x) theme_palette[x]
+# map = map %>% mutate(theme = replace_na(as.character(theme), "No")) %>% mutate(theme = forcats::fct_relevel(theme, c(rai_vars_select$name[2:7], "No")))
+
+b = ggplot(map %>% filter(period == "2012-2021"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+c = ggplot(map %>% filter(period == "2022-2025"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+
+df = read_rai() |>
+  mutate(period = case_when(
+    date < "2022-01-01" ~ "2012-2021",
+    TRUE ~ "2022-2025"
+    )
+  ) |>
+  filter(influencer %in% "Russia") |>
+  select(country, date, period, starts_with("rai_idx"), -rai_idx_total) |>
+  pivot_longer(starts_with("rai_idx"), names_to = "theme") |>
+  mutate(theme = gsub("rai\\_idx\\_", "", theme))
+  
+df <- df |>
+  group_by(country, period, theme) |>
+  arrange(date) 
+
+df <- df |>
+  group_by(country, period, theme) |>
+    summarize(mean_value = mean(value),
+              .groups = "drop")
+
+df <- df |>
+  group_by(country, period) |>
+  mutate(share = mean_value / sum(mean_value))
+
+df$theme = factor(df$theme)
+df$theme = factor(df$theme, levels = gsub("rai_idx_", "", rai_vars_select$variable[2:7]), labels = rai_vars_select$name[2:7])
+
+df <- df |>
+  group_by(country, period) |>
+  slice_max(share)
+
+# Summary states for text
+ds = df |>
+  group_by(period, theme) |>
+  summarise(countries = n())
+
+## Maps
+map = bind_rows( map2, map3)
+
+df$country <- normalize_map_country(df$country)
+map = left_join(map, df %>% dplyr::rename(region = country) )
+
+
+e = ggplot(map %>% filter(period == "2012-2021"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+f = ggplot(map %>% filter(period == "2022-2025"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+# Create dummy map with all themes
+tmap = map |>
+  filter(period == "2012-2021") |>
+  mutate(theme = case_when(region == "Belarus" ~ "Backlash",
+                           region == "Georgia" ~ "Domestic Interference",
+                           TRUE ~ theme))
+
+
+legend = ggplot(tmap %>% filter(period == "2012-2021"), 
+       aes(x = long, y = lat, group = group, fill = theme)) +
+  geom_polygon(colour = "black", size=0.15) +
+  scale_fill_manual(values = pal(levels(df$theme)), drop = FALSE, limits = c(levels(df$theme)), name = "Dominant Theme" ) +
+  facet_wrap(~period, ncol = 1) +
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() +
+  theme(legend.position = "top",
+        legend.text = element_text(size = 5), legend.title=element_blank())
+
+rm(tmap)
+
+legend <- cowplot::get_legend(legend)
+
+# Arrange the plots in a 2-row by 3-column grid
+plots_grid <- plot_grid( b, e, c, f, nrow = 2)
+
+# Create text labels as ggplot objects
+left_label <- ggdraw() + draw_label("China") + theme_void() + theme(plot.margin = margin(0, 0, 0, 0))
+right_label <- ggdraw() + draw_label("Russia") + theme_void() + theme(plot.margin = margin(0, 0, 0, 0))
+
+# Arrange the legend with text labels on both sides
+legend_row <- plot_grid(left_label, legend, right_label, ncol = 3, rel_widths = c(1, 2, 1))
+
+
+# Combine the legend (in its own row) with the plots grid
+# You may need to adjust `rel_heights` depending on the size of your legend and desired layout
+final_layout <- plot_grid(
+  legend_row, # Center the legend
+  plots_grid,
+  nrow = 2,
+  rel_heights = c(0.05, .15) # Adjust these as needed
+)
+
+final_layout
+
+ggsave(here::here("writing/output/map_dominant-theme.png"), final_layout, height = 5, width = 7, dpi = 700)
+
+rm(b, c, e, f, fig, x_lim, y_lim, right_label, left_label, legend, legend_row, plots_grid, map, map_theme, final_layout)
+
+```
+
+Next, we look at the share of all *RAI* reporting (both Russia and
+China) that is attributed to Russia. Again, this approach counts all
+classified articles equally; for example, an article reporting on a
+diplomatic statement by Russia would receive the same amount of weight
+as a report on a major transfer of technology by China. However, we
+expect that influence activity will receive coverage roughly
+proportional to its significance.
+
+```{r, fig.width=7, fig.height=7}
+#| echo: false
+#| warning: false
+#| label: fig-map_russia-influence-share
+#| fig-cap: "Relative share of RAI reporting attributed to Russia (Russia / [Russia + China]) by country and period."
+
+
+# Pull RAI data
+df = read_rai() %>%
+  mutate(period = case_when(
+    date < "2022-01-01" ~ "2012-2021",
+    TRUE ~ "2022-2025"
+    )
+  ) |>
+  filter(influencer %in% c("Russia", "China")) |>
+  select(country, date, rai_idx_total, influencer, period) |>
+  pivot_wider(names_from = "influencer", values_from = "rai_idx_total") 
+  
+df <- df |>
+  group_by(country, period) |>
+  arrange(date) 
+
+df <- df |>
+  group_by(country, period) |>
+  summarize(russia_share = mean(Russia) / (mean(Russia) + mean(China)),
+            .groups = "drop") 
+
+
+## Maps
+map = bind_rows(map2, map3)
+
+df$country <- normalize_map_country(df$country)
+map = left_join(map, df %>% dplyr::rename(region = country) )
+
+# set map parameters
+map_theme = theme(axis.title.x = element_blank(), axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank(), 
+        axis.title.y = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(),
+        legend.key = element_rect(),
+        legend.key.height = unit(.4, 'cm'),
+        legend.key.width = unit(.4, 'cm'),
+        legend.text = element_text(size = 5), legend.title=element_text(size = 6),
+        legend.position = c(.22, .78), legend.box.background = element_rect(colour = "black"),
+        plot.margin=unit(c(4, 4, 0, 4),"pt"))
+
+x_lim = c(-90,142)
+y_lim = c(-33, 52)
+
+b = ggplot(map %>% filter(period == "2012-2021"), 
+       aes(x = long, y = lat, group = group, fill = russia_share)) +
+  geom_polygon(colour = "black", size=0.15) +
+  facet_wrap(~period, ncol = 1) +
+  scale_fill_distiller(palette = 'RdYlBu', direction = 1, name = "Russian share",
+                       limits = c(min(df$russia_share), max(df$russia_share)), 
+                       labels = scales::label_percent()) + 
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+c = ggplot(map %>% filter(period == "2022-2025"), 
+       aes(x = long, y = lat, group = group, fill = russia_share)) +
+  geom_polygon(colour = "black", size=0.15) +
+  facet_wrap(~period, ncol = 1) +
+  scale_fill_distiller(palette = 'RdYlBu', direction = 1, name = "Russian share",
+                       limits = c(min(df$russia_share), max(df$russia_share)), 
+                       labels = scales::label_percent()) + 
+  coord_map(xlim = x_lim, ylim = y_lim) +
+  theme_bw() + 
+  map_theme
+
+fig = gridExtra::grid.arrange(b,c)
+
+ggsave(here::here("writing/output/map_russia-influence-share.png"), fig, height = 6, width = 8, dpi = 700)
+
+```
+
+@fig-map_russia-influence-share plots Russia's share of total *RAI*
+reporting (Russia / \[Russia + China\]) for each country across periods.
+Because this is a *relative* measure, it is best interpreted as the
+balance of reporting between the two actors. The map suggests that Russian activity dominates in parts of Eastern and Central Europe and several Sahel countries, while Chinese
+activity is more dominant in parts of Southeast Asia and across much of
+Sub-Saharan Africa. Latin America and North Africa appear more mixed. Second, we see evidence of shifts in *relative* influence shares over time. In 2022–2025, Russia’s share of reporting increases in parts of the Sahel and North Africa, while China retains dominance in much of
+Sub-Saharan Africa and Southeast Asia.
+
+These descriptive patterns correspond with popular narratives that
+highlight growing Chinese influence in Africa and Latin America during
+2012–2021 and more recent accounts of increased Russian influence in
+Africa and Southeast Asia [@ferragamo2023russias;
+@kurlantzick2023russias; @gvosdev2016putin]. This correspondence
+provides face validity for *RAI*, while also underscoring the importance
+of cautious interpretation: salience in international discourse can
+still shape local reporting, even when coverage is dominated by domestic outlets.
+
+In summary, the descriptive patterns suggest a rising emphasis on
+Diplomacy in reported influence activity for both Russia and China,
+alongside a post-2022 rise in Russian Hard Power. Economic
+Power remains central for China, though its relative prominence
+fluctuates.
+
+<!-- campaign in the wake of the Ukraine invasion [@mcglynn2023russia].  -->
+
+```{r}
+#| echo: false
+#| warning: false
+#| include: false
+
+# Inline-text correlations for the period-change paragraph.
+df <- read_rai() |>
+  filter(country != "Timor Leste") |>
+  select(country, date, rai_idx_total, influencer) |>
+  filter(influencer != "Combined")
+
+all_dates <- seq(min(df$date, na.rm = TRUE), rai_end_date, by = "1 month")
+
+df <- df |>
+  tidyr::complete(
+    country,
+    influencer,
+    date = all_dates,
+    fill = list(rai_idx_total = 0)
+  ) |>
+  mutate(period = case_when(
+    date < "2022-01-01" ~ "2012-2021",
+    TRUE ~ "2022-2025"
+  )) |>
+  select(country, date, rai_idx_total, period, influencer) |>
+  group_by(country, period, influencer) |>
+  summarize(mean_total_rai = mean(rai_idx_total, na.rm = TRUE), .groups = "drop") |>
+  arrange(country, influencer, period)
+
+dfp <- df |>
+  group_by(country, influencer) |>
+  mutate(
+    baseline = lag(mean_total_rai),
+    percentage_change = case_when(
+      is.na(baseline) ~ NA_real_,
+      baseline == 0 & mean_total_rai == 0 ~ 0,
+      baseline == 0 & mean_total_rai > 0 ~ 100 * mean_total_rai,
+      TRUE ~ (mean_total_rai / baseline - 1) * 100
+    )
+  )
+
+rc1 <- cor(
+  dfp[dfp$period == "2022-2025" & dfp$influencer == "Russia", ]$percentage_change,
+  dfp[dfp$period == "2012-2021" & dfp$influencer == "Russia", ]$mean_total_rai,
+  use = "complete.obs"
+)
+
+dfp_c_share <- dfp |>
+  arrange(country, period) |>
+  group_by(country, period) |>
+  mutate(c_share = mean_total_rai[1] / (mean_total_rai[1] + mean_total_rai[2]))
+
+rc2 <- cor(
+  dfp_c_share[dfp_c_share$period == "2022-2025" & dfp_c_share$influencer == "Russia", ]$percentage_change,
+  dfp_c_share[dfp_c_share$period == "2012-2021" & dfp_c_share$influencer == "China", ]$c_share,
+  use = "complete.obs"
+)
+
+rc3 <- cor(
+  dfp[dfp$influencer == "Russia", ]$percentage_change,
+  dfp[dfp$influencer == "China", ]$percentage_change,
+  use = "complete.obs"
+)
+
+rc_list <- round(c(rc1, rc2, rc3), 2)
+
+rm(df, dfp, dfp_c_share, rc1, rc2, rc3, all_dates)
+```
+
+The supplementary absolute-level plot (articles per 10k published) shows
+Russian and Chinese *RAI* reporting over time. Reporting on Russian
+influence spikes around the annexation of Crimea (March 2014) and
+again around the invasion of Ukraine (February 2022), remaining elevated
+through mid-2023. Chinese reporting is comparatively stable through much
+of the series but rises in 2024–2025. If anything, China appears to have withdrawn internationally
+during the pandemic rather than intensifying its influence efforts.
+Because aggregation is performed after normalization, the post-2022
+increase in Russian reporting reflects broad-based activity across many
+countries and months, not a spike in a few cases.
+
+The supplementary country-level period-change plot shows the percentage
+change in average monthly *RAI* articles between 2012–2021 and
+2022–2025. Russian influence increased broadly, with especially large
+gains in the Sahel and in
+Nicaragua [@newshub_russia_nicaragua_2022]. Notably, the increase was weakly negatively correlated with prior Russian activity (`r rc_list[1]`), suggesting Russia expanded most in
+places where it had been least active. The pattern for China is more
+heterogeneous, with increases in countries where China deepened
+engagement (Ukraine, Honduras, Cambodia) alongside declines
+elsewhere. Changes in Russian and Chinese influence across countries
+were only weakly correlated (`r rc_list[3]`), suggesting the two powers target different countries. 
+
+## Use Case: Testing Expectations of Russian Influence Activity
+
+Here we provide a use case of the RAI data by focusing on Russian foreign activity in the lead up to its invasion of Ukraine in February 2022. The use case exploits RAI's high-frequency, multi-dimensional structure to illustrate what the data reveals that most other existing sources cannot.  
+
+By fall 2021, U.S. intelligence suggests Putin had decided to invade Ukraine [@sanger2024new pp. 237-240]. Knowing that many aid-receiving countries would be pressured by the U.S. and its allies to isolate Russia, we expect that Russia increased foreign influence operations in the preceding months to strengthen diplomatic, military, and economic ties with those countries. The timing of tool choice matters. Soft Power and Domestic Interference operate over the medium term and yield limited immediate material cooperation. Diplomacy, by contrast, can quickly strengthen bilateral relationships, reaffirm existing commitments, and pre-emptively signal consequences for defection — making it well-suited to securing cooperation before an action likely to generate international blowback. High-level Russian diplomatic engagement has been shown to function specifically as a mechanism for deepening bilateral alignment with autocratic target governments [@balci2025giving], consistent with this expectation. Hard Power tools---arms transfers, joint exercises, security agreements---provide immediate material incentives and allow Russia to gain combat experience and test technology before a larger conflict [@goodson2023; @kagan2020]. Importantly, these tools are most valuable when deployed *before* conflict begins; once military activities commence, resources shift to the conflict and the window for influence preparation closes.
+
+To test these expectations, we use change-point detection to identify countries where Russia increased influence operations in the six months before the invasion of Ukraine---the
+window when the decision was likely already made [@sanger2024new].
+Change-point methods identify the time period with the single largest
+level-shift in the mean of a time series [@fryzlewicz2014wild]. We apply
+this to each country-theme combination for Russia, recovering the month
+when each major level-shift began.
+<!-- We investigate the nature and timing of Russian influence operations in the six months before their invasion of Ukraine.  -->
+
+```{r}
+#| echo: false
+#| warning: false
+#| label: changepoint-stats
+
+rai_df <- read_rai() %>%
+  select(country, influencer, date, rai_idx_bal:rai_idx_sp)
+
+# List of unique country names in your dataframe
+unique_countries <- unique(rai_df$country)
+
+result_df <- data.frame()
+
+# Loop through each country
+for (country_name in unique_countries) {
+  for (j in names(rai_df)[4:9]) {
+    # Filter the dataframe for the current country
+    dat = rai_df |> filter(country == country_name & influencer == "Russia")
+
+    # Calculate cpt.mean() for the current country
+    cpt_result <- cpt.mean(dat[[j]], method = "BinSeg", Q = 1)
+    cpt_result = cpt_result@cpts[1]
+
+    country_result <- data.frame(country = country_name, col = j, t(cpt_result))
+    result_df <- rbind(result_df, country_result)
+  }
+}
+
+result_dfi = result_df
+for (i in names(result_dfi)[3]) {
+  result_dfi[ , i] = NA
+  result_dfi[ , i] = as.Date(result_dfi[ , i])
+
+  for (j in 1:nrow(result_dfi)) {
+    result_dfi[j , i] = unique(rai_df$date)[result_df[j , i] + 1]
+  }
+}
+
+dat2 = result_dfi |>
+  rename(date = t.cpt_result.,
+         theme = col) |>
+  group_by(theme, date) |>
+  summarise(count = n(), .groups = "drop")
+
+write.csv(dat2, here::here("writing", "output", "change-points_plot.csv"), row.names = FALSE)
+
+pre_start <- as.Date("2021-08-01")
+pre_end <- as.Date("2022-01-01")
+prev5_start <- as.Date("2016-08-01")
+prev5_end <- as.Date("2021-07-01")
+
+cp_counts <- dat2 |>
+  filter(date >= pre_start & date <= pre_end) |>
+  group_by(theme) |>
+  summarise(pre = sum(count), .groups = "drop") |>
+  left_join(
+    dat2 |>
+      filter(date >= prev5_start & date <= prev5_end) |>
+      group_by(theme) |>
+      summarise(prev5 = sum(count), .groups = "drop"),
+    by = "theme"
+  ) |>
+  mutate(prev5_avg = prev5 / 10)
+
+get_cp <- function(theme, col) {
+  cp_counts[cp_counts$theme == theme, col][[1]]
+}
+
+cp_dip_pre <- get_cp("rai_idx_dip", "pre")
+cp_dip_prev5 <- get_cp("rai_idx_dip", "prev5")
+cp_dip_prev5_avg <- round(get_cp("rai_idx_dip", "prev5_avg"), 1)
+
+cp_hp_pre <- get_cp("rai_idx_hp", "pre")
+cp_hp_prev5 <- get_cp("rai_idx_hp", "prev5")
+cp_hp_prev5_avg <- round(get_cp("rai_idx_hp", "prev5_avg"), 1)
+
+cp_ep_pre <- get_cp("rai_idx_ep", "pre")
+cp_ep_prev5 <- get_cp("rai_idx_ep", "prev5")
+cp_ep_prev5_avg <- round(get_cp("rai_idx_ep", "prev5_avg"), 1)
+
+periods <- data.frame(
+  start_date = seq.Date(from = as.Date("2012-02-01"), to = as.Date("2021-08-01"), by = "6 months"),
+  end_date = seq.Date(from = as.Date("2012-07-31"), to = as.Date("2022-01-31"), by = "6 months")
+)
+
+all_combinations <- expand.grid(theme = unique(dat2$theme), period = seq_len(nrow(periods))) |>
+  left_join(periods |> mutate(period = seq_len(nrow(periods))) |> select(period, start_date, end_date), by = "period")
+
+period_data <- dat2 |>
+  filter(date < as.Date("2022-02-01")) |>
+  mutate(period = findInterval(date, periods$start_date, rightmost.closed = TRUE)) |>
+  filter(period > 0)
+
+summarized_data <- period_data |>
+  group_by(theme, period) |>
+  summarise(total_count = sum(count, na.rm = TRUE), .groups = "drop")
+
+complete_data <- all_combinations |>
+  left_join(summarized_data, by = c("theme", "period")) |>
+  mutate(total_count = ifelse(is.na(total_count), 0, total_count))
+
+pre_period_index <- which(periods$start_date == as.Date("2021-08-01"))
+complete_data <- complete_data |>
+  mutate(pre_invasion = ifelse(period == pre_period_index, 1, 0))
+
+get_p <- function(th) {
+  m <- lm(total_count ~ pre_invasion, data = complete_data |> filter(theme == th))
+  summary(m)$coefficients["pre_invasion", "Pr(>|t|)"]
+}
+
+p_fmt <- function(p) {
+  if (is.na(p)) return("p = NA")
+  if (p < 0.001) return("p < 0.001")
+  sprintf("p = %.3f", p)
+}
+
+p_dip <- p_fmt(get_p("rai_idx_dip"))
+p_hp <- p_fmt(get_p("rai_idx_hp"))
+p_ep <- p_fmt(get_p("rai_idx_ep"))
+p_sp <- p_fmt(get_p("rai_idx_sp"))
+p_di <- p_fmt(get_p("rai_idx_di"))
+```
+
+@fig-changepoint_themes presents evidence broadly consistent with our
+expectations. For Diplomacy, Hard Power, and Economic Power, there is a
+clear clustering of change-points in the six months before the invasion.
+To test this, we count the number of countries with
+change-points for each six-month period and regress those counts on an
+indicator for the pre-invasion period. Across our six themes, this
+indicator is statistically significant for Diplomacy (`r p_dip`) and
+Hard Power (`r p_hp`), but not for Economic Power (`r p_ep`), Soft Power
+(`r p_sp`), or Domestic Interference (`r p_di`)---consistent with our
+expectation that the pre-invasion surge was concentrated in more overt
+tools. For Diplomacy, `r cp_dip_pre` countries have change-points in the six
+months before the invasion, compared to `r cp_dip_prev5` over the
+previous five years (August 2016–July 2021; an average of
+`r cp_dip_prev5_avg` change-points per six-month period). For Hard
+Power, `r cp_hp_pre` countries have change-points in the immediate
+pre-invasion period, compared to `r cp_hp_prev5` over the previous five
+years (an average of `r cp_hp_prev5_avg` per six-month period). 
+
+
+```{r, fig.width=8,fig.height=4}
+#| echo: false
+#| warning: false
+#| fig-pos: "!t"
+#| label: fig-changepoint_themes
+#| fig-cap: "Number of countries with change-point per month. The red shaded region identifies the six months before the invasion of Ukraine. The red-dashed line is the month of Russia's invasion."
+
+
+break.vec <- c(as.Date("2012-01-01"),
+               seq(from = as.Date("2012-02-01"), to = as.Date(max(rai$date)),
+                   by = "month"),
+               as.Date(max(rai$date)))
+des_break = break.vec[c(TRUE, FALSE, FALSE, FALSE, FALSE)]
+
+dat2$theme = factor(dat2$theme)
+dat2$theme = factor(dat2$theme, levels = rai_vars_select$variable[2:7], labels = rai_vars_select$name[2:7])
+
+# Define periods to shade
+shaded_periods <- data.frame(
+  start = as.Date(c("2021-07-15")),
+  end = as.Date(c("2022-01-15"))
+)
+
+
+ggplot(dat2 |> filter(theme %in% c("Diplomacy", "Hard Power", "Economic Power")), 
+       aes(x=date, y = count) ) + geom_bar(stat="identity") +
+  scale_x_date(breaks = des_break, labels = scales::date_format("%Y-%b")) +
+  theme_bw() + 
+  facet_wrap(~theme, ncol = 1) +
+  geom_rect(data = shaded_periods, aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf), 
+            fill = "red", alpha = 0.2, inherit.aes = FALSE) +
+  geom_vline( xintercept = as.numeric(as.Date("2022-02-01")), linetype="dashed", color = "red" ) +
+  labs(x = "", y = "Frequency of changepoint dates") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.text.y = element_text(size = 6))
+
+ggsave(here::here("writing/output/changepoint_themes.png"), height = 5, width = 7.5, dpi = 700)
+
+
+sumc = dat2 %>%
+  mutate(date = format(date, "%Y")) %>%
+  group_by(theme, date) %>%
+  summarise(countries = sum(count))
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+
+## Write-out data for GPT analysis
+
+# dat = result_dfi %>%
+#   rename(cp = t.cpt_result.) %>%
+#   select(country, cp, col) %>% 
+#   filter(cp %in% c("2022-03-01", "2022-02-01", "2022-01-01", "2021-12-01", "2021-11-01", "2021-10-01", "2021-09-01", "2021-08-01") ) %>%
+#   mutate(theme = gsub("rai_idx_", "", col ) ,
+#          theme_name = factor(col, levels = rai_vars_select$variable[2:7], labels = rai_vars_select$name[2:7]) )
+
+# write.csv(dat, here::here("writing", "output", "gpt, "gpt_summary.csv"))
+
+# dat = result_dfi %>%
+#   rename(cp = t.cpt_result.) %>%
+#   select(country, cp, col) %>% 
+#   filter(cp >"2022-03-01" & cp < "2023-01-01") %>%
+#   mutate(theme = gsub("rai_idx_", "", col ) ,
+#          theme_name = factor(col, levels = rai_vars_select$variable[2:7], labels = rai_vars_select$name[2:7]) ) %>%
+#   filter(theme %in% c("dip", "sp") )
+
+
+# write.csv(dat, here::here("writing", "output", "gpt, "gpt_summary_post.csv"))
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| label: changepoint-audit
+
+audit_raw <- readr::read_csv(
+  here::here("code", "validation", "changepoint_gpt", "event_summaries_gpt_summary.csv")
+)
+
+audit_pre <- audit_raw |>
+  mutate(Date = as.Date(Date, "%m/%d/%Y"),
+         Accuracy = ifelse(Signal == "Nothing", "False Positive", "True Positive")) |>
+  filter(Date < as.Date("2022-02-01") & Date > as.Date("2021-07-01")) |>
+  filter(Event %in% c("Diplomacy", "Hard Power", "Economic Power"))
+
+audit_articles <- sum(audit_pre$Num_Articles, na.rm = TRUE)
+
+audit_summary <- audit_pre |>
+  group_by(Event) |>
+  summarise(total = n(),
+            false_pos = sum(Accuracy == "False Positive"),
+            true_pos = sum(Accuracy == "True Positive"),
+            .groups = "drop")
+
+get_audit <- function(event, col) {
+  audit_summary[audit_summary$Event == event, col][[1]]
+}
+
+audit_dip_total <- get_audit("Diplomacy", "total")
+audit_dip_false <- get_audit("Diplomacy", "false_pos")
+audit_hp_total <- get_audit("Hard Power", "total")
+audit_hp_false <- get_audit("Hard Power", "false_pos")
+audit_ep_total <- get_audit("Economic Power", "total")
+audit_ep_false <- get_audit("Economic Power", "false_pos")
+```
+
+To confirm that these change-points identify substantive real-world developments rather than misclassification, we conduct AI-assisted qualitative analysis. For each country-month in the pre-invasion window (August 2021–January 2022), we pull all relevant articles from *HQMARC* (`r format(audit_articles, big.mark = ",")` articles
+total) and prompt GPT-4 to summarize the key developments reported. We then assess whether each change-point reflects genuine Russian influence or misclassification.Change-point months are typically periods of slightly elevated activity *before* the main surge, making this a demanding test of the data's sensitivity to lesser-known episodes. A modest number of misclassifications aside, we find strong evidence that Russia increased diplomatic and military engagement across many countries in the months before the invasion. See Supplementary Materials *Change-point Months in Time-Series* for full details.
+
+Having established descriptively that Russia expanded its foreign influence activities before the invasion, we turn to a more analytical question: which countries did Russia target? IR theory suggests three candidate predictors: ideological proximity to Russia, alignment with mutual partners ("friends of friends" may be easier to persuade [@kinne2018defense]), and economic dependence on commodities Russia exports or imports. We operationalize ideological similarity using UN Ideal Point Distances (UNIPD) [@voetendata]. For each target country, we calculate their average ideal point distance from 2017-2021 with Russia, China, and the Western Powers
+(U.S., U.K., and France). Similarly, we operationalize economic dependence using COMTRADE data from 2015–2023 (full operationalization details and variable construction appear in Supplementary Materials *Operationalizing Economic Dependence*). Our dependent variable is an indicator for whether a country experienced an RAI influence spike in the six months before the invasion. Table 2 presents OLS results. For each of the three focal *RAI*
+themes, we run one model with all independent variables excluding UNIPD to China and one model including only UNIPD to China. We run separate models to avoid collinearity between UNIPD partners.\footnote{Our sample includes `r n_strategic` of the `r num_countries` countries in the *RAI* data. We lose `r num_countries - n_strategic` countries from the *RAI* sample due to missing COMTRADE data.}
+
+
+```{r}
+#| echo: false
+#| warning: false
+
+unip_corr <- readr::read_csv(here::here("data", "un_ideal_points_avg.csv")) %>%
+  dplyr::group_by(ccode1, country) %>%
+  dplyr::summarise(IdealPointDistance = mean(IdealPointDistance, na.rm = TRUE), .groups = "drop") %>%
+  dplyr::rename(major_power = country) %>%
+  tidyr::pivot_wider(names_from = major_power,
+                     values_from = IdealPointDistance,
+                     names_prefix = "idp_") %>%
+  dplyr::rename(idp_UUF = idp_AVG_UKO_FRA_USA)
+
+cor_west_china <- round(cor(unip_corr$idp_UUF, unip_corr$idp_CHN, use = "complete.obs"), 2)
+cor_west_russia <- round(cor(unip_corr$idp_UUF, unip_corr$idp_RUS, use = "complete.obs"), 2)
+cor_russia_china <- round(cor(unip_corr$idp_RUS, unip_corr$idp_CHN, use = "complete.obs"), 2)
+```
+
+The clearest ideological pattern appears in Diplomacy. A one-unit increase in ideological distance from the Western powers ($range = 0.5$–$3.8$) is associated with about a 0.23 decrease in the probability of a Diplomacy change-point, while a one-unit increase in distance from China ($range = 0.08$–$3.1$) is associated with about a 0.32 increase, suggesting Russia's pre-invasion diplomatic outreach focused on countries aligned with the West but relatively distant from China. For Hard Power and Economic Power, ideological distance shows no consistent association; the Importer and Exporter indicators are not statistically distinguishable from zero across models. Taken together, the results point to modest evidence of ideological targeting in Diplomacy, but limited evidence that trade dependence systematically shaped Hard Power or Economic Power targeting in this specification. Given the limited sample (52 countries due to missing COMTRADE data) and low R², these findings should be read as exploratory: an illustration of the kinds of questions RAI's multi-dimensional structure enables, not a definitive test.
+
+```{=latex}
+\begin{table}[!ht]
+\centering
+\small
+\caption{OLS regression predicting countries targeted for Russian influence in 6 months before invasion of Ukraine}
+\input{figures/tp_full.tex}
+\end{table}
+```
+
+Our findings have several implications. These patterns may generalize to other cases where a major power anticipates international isolation following offensive action, including, potentially, a Chinese military operation in Taiwan. RAI's high-frequency, updateable structure makes it possible to monitor for analogous pre-crisis surges in near real time. Future research should investigate whether pre-emptive influence operations paid off by dissuading targeted countries from complying with sanctions or supporting condemnations in international forums.
+
+## Discussion
+
+The *Resurgent Authoritarian Influence (RAI)* dataset provides a
+multi-dimensional, high-frequency measure of reported foreign influence
+by Russia and China in aid-receiving countries. 
+
+RAI complements existing resources---including data on Chinese financial flows [@goodman2024aiddata; @custer2021tracking] and conflict-specific external support [@meier2023external]---by extending coverage to include diplomacy, hard power, domestic interference, and soft power across all countries and time periods in the sample, not only during active conflicts
+
+
+*RAI* complements
+existing resources by extending coverage beyond aid and investment to
+include diplomacy, hard power, domestic interference, and soft
+power—dimensions often theorized but rarely measured together. This
+breadth is a core contribution, even as it comes with narrower
+geographic scope relative to datasets like AidData.
+
+Descriptively, the data show how Russia's reporting profile shifts
+toward Diplomacy and Hard Power after 2022, while China's remains
+anchored in Economic Power with a gradual rise in Diplomacy. We present
+both relative shares and absolute levels to avoid misleading
+compositional inferences. For the pre-invasion period, change-points
+cluster in Diplomacy and Hard Power; Economic Power shows weaker
+evidence; and Soft Power and Domestic Interference show no pre-invasion
+surge—consistent with our theoretical expectations. We find suggestive
+evidence that Russia's pre-invasion diplomatic outreach was more likely
+in countries aligned with Western powers, while Hard Power and Economic
+Power targeting shows weaker links to economic dependence. These findings
+illustrate how a multi-dimensional measure can reveal not just how much influence is reported, but which tools appear to be emphasized and where.
+
+The data have important limitations. First, *RAI* is media-based and reflects
+salience in local reporting rather than verified action counts. Second, media
+capacity and press freedom vary across countries; we normalize by total news
+volume and seek to balance sources, but cross-country comparisons warrant
+caution. Third, covert activities—especially in Domestic Interference—are
+systematically underreported and should be interpreted as lower bounds.
+Fourth, coverage is restricted to aid-receiving countries, which is a deliberate design choice that precludes global coverage. Lastly, automated classification introduces some error, particularly for complex or multi-topic articles. Our workflow is designed for rapid retraining and audits when shifts in coverage suggest drift.
+
+In sum, *RAI* advances our ability to track authoritarian influence at
+high frequency and across multiple tools. As great power competition
+intensifies, such data will be vital for scholars testing theories of
+tool substitution and strategic sequencing, and for policymakers seeking
+transparent, updateable assessments of how influence is reported in
+target-country media. Our infrastructure is designed for quarterly
+updates and expansion to additional actors and categories as the
+geopolitical landscape evolves.
+
+<!-- The *RAI* dataset presents a valuable and timely resource for both academic researchers and policymakers. For researchers, this dataset offers a unique opportunity to study the dynamics of global power politics, enabling a deeper understanding of how Russia and China employ different tools. By uncovering patterns, trends, and correlations in their influence efforts, scholars will be able to make inferences about the underlying motives, mechanisms, and consequences of influence operations. Furthermore, this dataset can aid policymakers in crafting diplomatic and strategic approaches that align with ever-changing geopolitical realities, enhancing the ability to anticipate or mitigate the influence exerted by these countries. Thus, this dataset stands as a powerful tool for both academic research and effective policy formulation in an increasingly complex international arena. -->
+
+{{< pagebreak >}}
+
+## References {.unnumbered}
+
+::: {#refs}
+:::
