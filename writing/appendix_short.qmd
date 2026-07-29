@@ -243,6 +243,13 @@ nl = length(langs)
 
 ```
 
+To accommodate a large volume of articles in diverse languages, we
+translate articles into English before extracting locations and influence categories 
+from the translated text. Given the well-documented biases in English-language news sources
+[@baum2015] even on relatively uncontroversial topics like natural
+disasters [@brimicombe2022], we include non-English, local newspapers in our
+corpus. We use neural machine translations (NMT) through Hugging Face or OpenNMT to translate into English. We test the efficacy of all translation models by extracting sample text and running the text through all available translation models on the Hugging Face open database. We then assess whether the translations are sufficient to identify the main influence category being reported on. If they are not, we compare the performances with those of our other APIs and choose the one that yields the optimal sentence-to-sentence translations with sufficient human readability. 
+
 The *HQMARC* corpus currently includes domestic media outlets publishing in `r nl` languages. This number will increase as we add new countries and media sources to the corpus. These languages include `r unlist(ISO_639_2[ISO_639_2$Alpha_2 %in% langs, ]$Name)`. Below, we provide the languages associated with media outlets in each country using the language ISO codes.
 
 ```{r}
