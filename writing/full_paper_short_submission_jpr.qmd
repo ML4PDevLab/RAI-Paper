@@ -269,7 +269,7 @@ diplomatic pressure, information campaigns, and cyber operations---while seeking
 to undermine Western influence and secure strategic partnerships with less powerful nations.
 
 Influence strategies are inherently multi-dimensional. States deploy
-coercive tools (e.g., military assistance, sanctions) or non-coercive
+coercive (e.g., military assistance, sanctions) or non-coercive
 tools (e.g., public diplomacy, cultural engagement), targeting elites or
 publics depending on objectives and constraints. Changes in influence
 behavior thus manifest not only in *how active* states are, but *which tools* 
@@ -317,7 +317,7 @@ these tools are used as substitutes or complements to coercive forms of
 influence [@ku2022dark; @putnam1988diplomacy; @allan2018distribution].
 
 We also provide data on domestic interference efforts to create
-pressure on---or provide assistance to---target governments [@lim2019money]. For Russia and China, this includes everything from surveillance and cyber-attacks [@holland_chiacu_reuters_2021; @bbc_huawei_uganda_zambia_2019; @balkan_n1_cyber_2020; @kafeero_quartz_2020]. We also provide data on the illicit or unintended consequences of influence efforts, including increased corruption and transnational organized crime [@brazys2017bad;
+pressure or provide assistance to target governments [@lim2019money]. For Russia and China, this includes everything from surveillance and cyber-attacks [@holland_chiacu_reuters_2021; @bbc_huawei_uganda_zambia_2019; @balkan_n1_cyber_2020; @kafeero_quartz_2020]. We also provide data on the illicit or unintended consequences of influence efforts, including increased corruption and transnational organized crime [@brazys2017bad;
 @isaksson2018chinese; @doj_triad_2003]. Data on these adverse types of influence allow research into
 the ability of Russia and China to effectively manage their influence
 operations. 
@@ -389,7 +389,7 @@ Backlash & Unintended or illicit consequences associated with influence attempts
 **Measurement and interpretation.** The classifier assigns category
 labels to article text, which we aggregate into monthly reporting
 indices. Primary analyses focus on six thematic indices, which are more
-stable than fine-grained categories. We report classifier performance
+stable than fine-grained categories. Some categories intentionally encompass actions with opposite substantive direction (for example, the imposition and removal of sanctions, or the expansion and reduction of diplomatic relations). We classify these together because both represent changes in the use of a common influence instrument. Future research can use the underlying article-level data to distinguish the direction of these activities and examine patterns of escalation, de-escalation, or coercive versus cooperative engagement. We report classifier performance
 and training details in the Supplementary Materials. *RAI* measures
 *reported* influence activity, not verified actions; covert behaviors
 such as intelligence and cyber operations are likely underreported and
@@ -398,7 +398,7 @@ total article volume, presenting both absolute levels and relative shares, and
 grounding analysis in within-country changes over time.
 
 **The *HQMARC* Corpus.** To measure reported influence activity, we built the 
-*High-Quality Media from Aid Receiving Countries* (*HQMARC*) corpus, 
+*High-Quality Media from Aid Receiving Countries* corpus, 
 covering `r num_countries` aid-receiving countries from 2012 through
 August 2025. *HQMARC* includes over 120 million articles from 16
 international outlets, 12 regional outlets, and `r sum_lengths` domestic
@@ -521,10 +521,7 @@ Second, we audit 86 randomly selected *RAI* surges encompassing 872 individual a
 
 ## Describing Authoritarian Influence Using RAI Data
 
-We describe *RAI* activity between 2012 and August 2025. Because *RAI*, treating 
-all analyses as descriptive and avoiding causal claims. We break the data into 
-two periods, namely 2012–2021 and 2022–2025, because influence activity begins to 
-change in the months around Russia’s full-scale invasion of Ukraine. Aggregation 
+We characterize RAI activity from 2012 through August 2025 using descriptive analyses only. To account for changes in influence activity associated with Russia's full-scale invasion of Ukraine, we distinguish between two periods: 2012–2021 and 2022–2025. Aggregation 
 from the monthly level to period averages is performed *after* normalization, 
 treating each country-month equally. This ensures that shifts across periods reflect 
 broad-based trends rather than a few high-activity months, and hedges against isolated
@@ -974,7 +971,7 @@ correlation in *RAI* changes: `r rc_list[3]`).
 
 ## Use Case: Testing Expectations of Russian Influence Activity
 
-We provide a use case of the *RAI* data focusing on Russian foreign activity in the lead up to its invasion of Ukraine in February 2022, exploiting *RAI*'s high-frequency, multi-dimensional structure to illustrate what the data reveals that most other sources cannot.
+To illustrate the analytical value of the RAI data, we examine Russian foreign influence activity in the lead-up to the February 2022 invasion of Ukraine. This case highlights how RAI's high-frequency, multidimensional structure captures patterns of activity that are difficult to observe using existing data sources.
 
 By fall 2021, U.S. intelligence suggests Putin had decided to invade Ukraine [@sanger2024new pp. 237-240]. Knowing that many aid-receiving countries would be pressured by the U.S. and its allies to isolate Russia, we expect that Russia increased foreign influence operations in the preceding months to strengthen diplomatic, military, and economic ties with those countries. The timing of tool choice matters. Soft Power and Domestic Interference operate over the medium term and yield limited immediate material cooperation. Diplomacy, by contrast, can quickly strengthen bilateral relationships, reaffirm existing commitments, and pre-emptively signal consequences for defection — making it well-suited to securing cooperation before an action likely to generate international blowback. High-level Russian diplomatic engagement has been shown to function specifically as a mechanism for deepening bilateral alignment with autocratic target governments [@balci2025giving], consistent with this expectation. Hard Power tools---arms transfers, joint exercises, security agreements---provide immediate material incentives and allow Russia to gain combat experience and test technology before a larger conflict [@goodson2023; @kagan2020]. Importantly, these tools are most valuable when deployed *before* conflict begins; once military activities commence, resources shift to the conflict and the window for influence preparation closes.
 
@@ -1241,7 +1238,7 @@ audit_ep_false <- get_audit("Economic Power", "false_pos")
 To confirm that these change-points identify substantive real-world developments rather than misclassification, we conduct AI-assisted qualitative analysis. For each country-month in the pre-invasion window (August 2021–January 2022), we pull all relevant articles from *HQMARC* (`r format(audit_articles, big.mark = ",")` articles
 total) and prompt GPT-4 to summarize the key developments reported. We then assess whether each change-point reflects genuine Russian influence or misclassification.Change-point months are typically periods of slightly elevated activity *before* the main surge, making this a demanding test of the data's sensitivity to lesser-known episodes. A modest number of misclassifications aside, we find strong evidence that Russia increased diplomatic and military engagement across many countries in the months before the invasion. See Supplementary Materials *Change-point Months in Time-Series* for full details.
 
-We turn next to which countries Russia targeted. IR theory suggests three candidate predictors: ideological proximity to Russia, alignment with mutual partners ("friends of friends" may be easier to persuade [@kinne2018defense]), and economic dependence on commodities Russia exports or imports. We operationalize ideological similarity using UN Ideal Point Distances (UNIPD) [@voetendata]. For each target country, we calculate their average ideal point distance from 2017-2021 with Russia, China, and the Western Powers (U.S., U.K., and France). Similarly, we operationalize economic dependence using COMTRADE data from 2015–2023 (full operationalization details and variable construction appear in Supplementary Materials *Operationalizing Economic Dependence*). Our dependent variable is an indicator for whether a country experienced an RAI influence spike in the six months before the invasion. Table 2 presents OLS results. For each of the three focal *RAI* themes, we run one model with all independent variables excluding UNIPD to China and one model including only UNIPD to China. We run separate models to avoid collinearity between UNIPD partners.^[Our sample includes `r n_strategic` of the `r num_countries` countries in the *RAI* data. We lose `r num_countries - n_strategic` countries from the *RAI* sample due to missing COMTRADE data.]
+We turn next to which countries Russia targeted. IR theory suggests three candidate predictors: ideological proximity to Russia, alignment with mutual partners ("friends of friends" may be easier to persuade [@kinne2018defense]), and economic dependence on Russian exports or imports. We operationalize ideological similarity using UN Ideal Point Distances (UNIPD) [@voetendata]. For each target country, we calculate their average ideal point distance from 2017-2021 with Russia, China, and the Western Powers (U.S., U.K., and France). Similarly, we operationalize economic dependence using COMTRADE data from 2015–2023 (full operationalization details and variable construction appear in Supplementary Materials *Operationalizing Economic Dependence*). Our dependent variable is an indicator for whether a country experienced an RAI influence spike in the six months before the invasion. Table 2 presents OLS results. For each of the three focal *RAI* themes, we run one model with all independent variables excluding UNIPD to China and one model including only UNIPD to China. We run separate models to avoid collinearity between UNIPD partners.^[Our sample includes `r n_strategic` of the `r num_countries` countries in the *RAI* data. We lose `r num_countries - n_strategic` countries from the *RAI* sample due to missing COMTRADE data.]
 
 
 ```{r}
@@ -1293,11 +1290,9 @@ countries and time periods in the sample, not only during active conflicts. This
 is a core contribution, even as it comes with narrower geographic scope relative to 
 datasets like AidData.
 
-*RAI* is particularly well-suited for several lines of research constrained by data 
-availability. By tracking a broad set of influence tools at high frequency, *RAI* enables 
-new work on when and how states seek cooperation or control [@kinne2018defense; @lake1996anarchy], 
-how influence tools substitute for or complement one another [@ku2022dark; @putnam1988diplomacy], 
-and how influence strategies respond to short-term geopolitical shocks. For instance, researchers can test whether influence activity produces compliance by merging RAI with UN General Assembly voting records [@voetendata] to examine whether pre-invasion diplomatic and military engagement shaped which countries condemned, abstained, or sided with Russia in March 2022, and whether analogous dynamics hold for Chinese influence on contested votes regarding Taiwan or Xinjiang. *RAI*'s simultaneous coverage of both powers in the same panel further enables analysis of whether Russia and China compete, specialize, or coordinate across target countries [@sanger2024new], a question the relative-share maps raise but cannot resolve. The Domestic Interference category speaks directly to scholarship on authoritarian promotion and democratic recession [@diamond2020democratic; @balci2025giving]: researchers can test whether sustained interference exposure predicts deterioration in civil liberties or electoral integrity. Moreover, merged with data on Chinese development finance [@goodman2024aiddata], *RAI* enables tests of whether diplomatic engagement precedes or follows aid commitments and whether financial relationships predict subsequent increases in domestic interference. 
+*RAI* is particularly well suited to research on international influence that has been constrained by limited data on the timing and composition of influence activities. Rather than recording only whether influence occurred, *RAI* tracks multiple instruments of state influence at monthly frequency, allowing researchers to examine how influence strategies evolve over time. This temporal resolution makes it possible to study when and how states seek cooperation or control [@kinne2018defense; @lake1996anarchy], whether diplomatic, military, informational, and economic tools substitute for or complement one another [@ku2022dark; @putnam1988diplomacy], and how influence strategies adapt to short-term geopolitical shocks. Because RAI follows both Russia and China within the same country-month panel, it also enables researchers to test whether the two powers compete, specialize, or coordinate across recipient countries [@sanger2024new], moving beyond descriptive comparisons to evaluate strategic interaction over time.
+
+*RAI* is equally valuable for research on conflict and domestic politics. Its high-frequency measurement allows researchers to study how influence activities are sequenced before, during, and after international crises, militarized disputes, coups, or contested elections. For example, merging *RAI* with UN General Assembly voting records [@voetendata] makes it possible to test whether Russian diplomatic and military engagement before the February 2022 invasion of Ukraine influenced states' voting behavior during the subsequent emergency General Assembly sessions. The Domestic Interference category likewise facilitates research on authoritarian promotion and democratic backsliding [@diamond2020democratic; @balci2025giving], while combining RAI with data on Chinese development finance [@goodman2024aiddata] enables tests of how economic and political influence reinforce one another. More generally, RAI provides a foundation for studying not only whether states exert influence, but also how influence strategies evolve across time, policy domains, and geopolitical contexts.
 
 The data have important limitations. *RAI* is media-based and reflects reporting salience 
 rather than verified action counts, covert activities should be treated as lower bounds, 
